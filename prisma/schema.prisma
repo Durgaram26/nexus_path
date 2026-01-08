@@ -1,0 +1,791 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client" // Corrected output path for the Prisma client
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model College {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique
+  departments Department[]
+}
+
+model Department {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  description String?
+  createdAt   DateTime @default(now()) @updatedAt
+  updatedAt   DateTime @default(now()) @updatedAt
+  
+  collegeId   Int
+  college     College    @relation(fields: [collegeId], references: [id])
+
+  // Relations
+  users       User[]
+  faculties   Faculty[]
+  students    Student[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model CareerPath {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  
+  // Relations
+  students    StudentCareerPath[]
+  faculties   FacultyCareerPath[]
+}
+
+model User {
+  id           Int    @id @default(autoincrement())
+  email        String @unique
+  password     String
+  plainPassword String?
+  role         String @default("student") // Can be "admin", "faculty", "student"
+  firstName    String?
+  lastName     String?
+  departmentId Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+  
+  // Relations
+  department   Department? @relation(fields: [departmentId], references: [id])
+  facultyAssignments StudentCareerPath[] @relation("FacultyAssignment")
+  roadmaps     Roadmap[]
+  roadmapAssignments RoadmapAssignment[] @relation("RoadmapAssignment")
+}
+
+model Faculty {
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
+  name         String
+  gender       Gender
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id])
+  
+  // Dynamic assignment options
+  assignedYears String?    // Comma-separated years (e.g., "1,2,3") or null for all years
+  
+  // Cross-department permissions
+  canAssignCrossDepartment Boolean @default(false) // Allow faculty to assign career paths to students in other departments
+  allowedDepartments String? // Comma-separated department IDs (e.g., "1,2,3") or null for all departments
+  
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  // Relations
+  careerPaths  FacultyCareerPath[]
+  sentMessages Message[]
+  createdRooms MessageRoom[]
+  evaluatedCertificates CertificateSubmission[]
+  createdWorkshops Workshop[]
+  createdCourses Course[]
+  courseRoadmapAssignments CourseRoadmapAssignment[]
+  mentorTalks MentorTalk[]
+}
+
+model FacultyCareerPath {
+  id           Int        @id @default(autoincrement())
+  facultyId    Int
+  careerPathId Int
+  assignedAt   DateTime   @default(now())
+  
+  // Relations
+  faculty      Faculty    @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  careerPath   CareerPath @relation(fields: [careerPathId], references: [id], onDelete: Cascade)
+  
+  @@unique([facultyId, careerPathId])
+}
+
+model Student {
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
+  name         String
+  gender       Gender
+  phoneNumber  String?
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id])
+  year         Int
+  registerNumber String   @unique
+  favoriteLanguage String? // Favorite programming language
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  // Relations
+  careerPaths  StudentCareerPath[]
+  performance StudentPerformance[]
+  adaptiveQuizzes AdaptiveQuiz[]
+  quizSessions QuizSession[]
+  quizAttempts QuizAttempt[]
+  roadmapAssignments RoadmapAssignment[]
+  resourceAccess StudentResourceAccess[]
+  codeTestSessions CodeTestSession[]
+  codeExecutionHistory CodeExecutionHistory[]
+  codeExecutions CodeExecution[]
+  codeTestResults CodeTestResult[]
+  notifications Notification[]
+  aiSuggestions AISuggestion[]
+  certificateSubmissions CertificateSubmission[]
+  workshopEnrollments WorkshopEnrollment[]
+  courseEnrollments CourseEnrollment[]
+  assignmentSubmissions AssignmentSubmission[]
+  mentorTalkAttendance MentorTalkAttendance[]
+  mentorTalkFeedback MentorTalkFeedback[]
+}
+
+model StudentCareerPath {
+  id           Int    @id @default(autoincrement())
+  studentId    Int
+  careerPathId Int
+  assignedBy   Int? // faculty who assigned this (User ID)
+  assignedAt   DateTime @default(now())
+  
+  // Relations
+  student      Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  careerPath   CareerPath @relation(fields: [careerPathId], references: [id], onDelete: Cascade)
+  assignedByUser User?   @relation("FacultyAssignment", fields: [assignedBy], references: [id])
+  
+  @@unique([studentId, careerPathId])
+}
+
+model Roadmap {
+  id              Int      @id @default(autoincrement())
+  title           String
+  description     String
+  totalDuration String
+  year            Int
+  careerPath      String
+  department      String
+  studentLevel    String   @default("beginner")
+  milestones      String   // JSON string of milestones
+  learningPath    String
+  careerOutcomes  String   // JSON string of career outcomes
+  isAIGenerated   Boolean  @default(false) // Distinguish AI vs manual roadmaps
+  createdBy       Int      // User ID who created this roadmap
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  createdByUser   User     @relation(fields: [createdBy], references: [id])
+  assignments     RoadmapAssignment[]
+  learningResources LearningResource[]
+  courseAssignments CourseRoadmapAssignment[]
+}
+
+model StudentPerformance {
+  id              Int      @id @default(autoincrement())
+  studentId       Int
+  category        String
+  knowledgeLevel  Int      @default(1) // 1-5 scale
+  totalAttempts   Int      @default(0)
+  correctAttempts Int      @default(0)
+  lastAttemptedAt DateTime @default(now())
+  weakAreas       String[] @default([])
+  strongAreas     String[] @default([])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@unique([studentId, category])
+}
+
+model AdaptiveQuiz {
+  id              Int      @id @default(autoincrement())
+  studentId       Int
+  quizDate        DateTime
+  questions       String   // JSON string of questions
+  performanceData String?  // JSON string of performance data
+  isCompleted     Boolean  @default(false)
+  totalAttempts   Int      @default(0)
+  bestScore       Float    @default(0.0)
+  lastAttemptAt   DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  quizAttempts    QuizAttempt[]
+}
+
+model QuizSession {
+  id              Int      @id @default(autoincrement())
+  studentId       Int
+  sessionDate     DateTime @default(now())
+  totalQuestions  Int
+  correctAnswers  Int
+  sessionScore    Float
+  timeSpent       Int      // in seconds
+  categories      String[] @default([])
+  difficulties    String[] @default([])
+  createdAt       DateTime @default(now())
+  
+  // Relations
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model QuizAttempt {
+  id              Int      @id @default(autoincrement())
+  adaptiveQuizId  Int?
+  quizId          Int?
+  studentId       Int
+  attemptNumber   Int      // 1 for first attempt, 2 for second attempt
+  answers         String   // JSON string of student answers
+  score           Float
+  correctAnswers  Int
+  totalQuestions  Int
+  timeSpent       Int      // in seconds
+  isCorrect       Boolean  @default(false)
+  attemptedAt     DateTime @default(now())
+  completedAt     DateTime?
+  wrongAnswers    String?  // JSON string of wrong answers with explanations
+  feedback        String?  // JSON string of detailed feedback
+  
+  // Relations
+  adaptiveQuiz    AdaptiveQuiz? @relation(fields: [adaptiveQuizId], references: [id], onDelete: Cascade)
+  quiz            Quiz?    @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model RoadmapAssignment {
+  id              Int      @id @default(autoincrement())
+  roadmapId       Int
+  studentId       Int
+  assignedBy      Int      // Faculty who assigned this
+  assignedAt      DateTime @default(now())
+  isActive        Boolean  @default(true)
+  progress        Int      @default(0) // 0-100 percentage
+  completedAt      DateTime?
+  notes           String?
+  
+  // Relations
+  roadmap         Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  assignedByUser  User     @relation("RoadmapAssignment", fields: [assignedBy], references: [id])
+  
+  @@unique([roadmapId, studentId])
+}
+
+model LearningResource {
+  id              Int      @id @default(autoincrement())
+  title           String
+  description     String
+  url             String
+  category        String   // Programming, Career Development, Documentation, etc.
+  difficulty      String   @default("beginner") // beginner, intermediate, advanced
+  careerPath      String   // Career path this resource is for
+  roadmapId       Int?     // Optional: specific roadmap this resource is for
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  roadmap         Roadmap? @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  studentAccess   StudentResourceAccess[]
+}
+
+model StudentResourceAccess {
+  id              Int      @id @default(autoincrement())
+  studentId       Int
+  resourceId      Int
+  accessedAt      DateTime @default(now())
+  isCompleted     Boolean  @default(false)
+  rating          Int?     // 1-5 star rating
+  notes           String?
+  
+  // Relations
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  resource        LearningResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  
+  @@unique([studentId, resourceId])
+}
+
+model Message {
+  id              Int      @id @default(autoincrement())
+  senderId        Int      // Faculty who sent the message
+  recipientIds    Int[]    // Array of student IDs (empty for broadcast messages)
+  subject         String
+  content         String
+  messageType     String   @default("general") // general, announcement, reminder, assignment
+  priority        String   @default("normal")   // low, normal, high, urgent
+  isBroadcast     Boolean  @default(false)      // true for messages to all students
+  isRead          Boolean  @default(false)
+  sentAt          DateTime @default(now())
+  readAt          DateTime?
+  
+  // Real-time messaging fields
+  isRealtime      Boolean  @default(false)      // true for real-time messages
+  roomId          String?                      // Room/Channel ID for group messages
+  replyToId       Int?                         // For threaded conversations
+  editedAt        DateTime?                    // When message was last edited
+  isEdited        Boolean  @default(false)     // Whether message has been edited
+  
+  // Relations
+  sender          Faculty  @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo         Message? @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies         Message[] @relation("MessageReplies")
+  readBy          MessageRead[]
+}
+
+model MessageRead {
+  id          Int      @id @default(autoincrement())
+  messageId   Int
+  userId      Int
+  readAt      DateTime @default(now())
+  
+  // Relations
+  message     Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  
+  @@unique([messageId, userId])
+}
+
+model MessageRoom {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  roomType    String   @default("general") // general, department, course, private
+  createdBy   Int
+  createdAt   DateTime @default(now())
+  isActive    Boolean  @default(true)
+  
+  // Relations
+  creator     Faculty  @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  members     MessageRoomMember[]
+}
+
+model MessageRoomMember {
+  id        Int     @id @default(autoincrement())
+  roomId    Int
+  userId    Int
+  userRole  String  @default("member") // member, admin, moderator
+  joinedAt  DateTime @default(now())
+  
+  // Relations
+  room      MessageRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  
+  @@unique([roomId, userId])
+}
+
+model CodeTestSession {
+  id              Int      @id @default(autoincrement())
+  studentId       Int
+  sessionDate     DateTime @default(now())
+  language        String   // Programming language used
+  languageId      Int      // Judge0 language ID
+  totalQuestions  Int      @default(5)
+  questions       String   // JSON string of questions
+  totalScore      Int      @default(0) // Total score out of 25 (5 questions * 5 marks each)
+  maxScore        Int      @default(25)
+  timeSpent       Int      // Time spent in seconds
+  isCompleted     Boolean  @default(false)
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  questionResults CodeTestQuestionResult[]
+}
+
+model CodeTestQuestionResult {
+  id              Int      @id @default(autoincrement())
+  sessionId       Int
+  questionId      String   // Question ID from the test
+  questionTitle   String
+  questionIndex   Int      // 0-4 (question number in the test)
+  studentCode     String   // Code written by student
+  score           Int      @default(0) // Score for this question (0-5)
+  maxScore        Int      @default(5)
+  passedTests     Int      @default(0) // Number of test cases passed
+  totalTests      Int      @default(0) // Total number of test cases
+  testResults     String   // JSON string of test case results
+  timeSpent       Int      // Time spent on this question in seconds
+  hintsUsed       Int      @default(0) // Number of hints used
+  attempts        Int      @default(0) // Number of code execution attempts
+  completedAt     DateTime @default(now())
+  
+  // Relations
+  session         CodeTestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model CodeExecutionHistory {
+  id              Int      @id @default(autoincrement())
+  studentId       Int
+  language        String
+  languageId      Int
+  code            String   // Code that was executed
+  input           String?  // Input provided
+  output          String?  // Output from execution
+  status          String   // Execution status (success, error, etc.)
+  executionTime   Int?     // Execution time in milliseconds
+  memoryUsed      Int?     // Memory used in KB
+  errorMessage    String?  // Error message if execution failed
+  executedAt      DateTime @default(now())
+  
+  // Relations
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+// Additional tables for student portal functionality
+model CodeExecution {
+  id              Int      @id @default(autoincrement())
+  studentId       Int
+  language        String
+  languageId      Int
+  code            String   // Code that was executed
+  input           String?  // Input provided
+  output          String?  // Output from execution
+  status          String   // Execution status (success, error, etc.)
+  executionTime   Int?     // Execution time in milliseconds
+  memoryUsed      Int?     // Memory used in KB
+  errorMessage    String?  // Error message if execution failed
+  executedAt      DateTime @default(now())
+  
+  // Relations
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model CodeTestResult {
+  id              Int      @id @default(autoincrement())
+  studentId       Int
+  testId          String   // Test identifier
+  language        String   // Programming language
+  score           Int      // Score achieved
+  maxScore        Int      // Maximum possible score
+  status          String   // completed, failed, in_progress
+  timeSpent       Int      // Time spent in seconds
+  code            String   // Code submitted
+  testCases       String   // JSON string of test cases
+  results         String   // JSON string of test results
+  completedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+  
+  // Relations
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id              Int      @id @default(autoincrement())
+  studentId       Int
+  title           String
+  message         String
+  type            String   // quiz, career, achievement, general
+  isRead          Boolean  @default(false)
+  priority        String   @default("normal") // low, normal, high, urgent
+  actionUrl       String?  // Optional URL for action
+  metadata        String?  // JSON string for additional data
+  createdAt       DateTime @default(now())
+  readAt          DateTime?
+  expiresAt       DateTime?
+  
+  // Relations
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model Quiz {
+  id              Int      @id @default(autoincrement())
+  title           String
+  description     String
+  category        String   // Programming, Algorithms, Data Structures, etc.
+  difficulty      String   // EASY, MEDIUM, HARD
+  totalQuestions  Int      @default(5)
+  timeLimit       Int?     // Time limit in minutes (null for no limit)
+  isActive        Boolean  @default(true)
+  questions       String   // JSON string of questions
+  options         String   // JSON string of question options
+  correctAnswers  String   // JSON string of correct answers
+  explanations    String   // JSON string of explanations
+  points          Int      @default(1) // Points per question
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  attempts        QuizAttempt[]
+}
+
+model AISuggestion {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  duration    String
+  difficulty  String
+  skills      String   // JSON string of skills array
+  savedAt     DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  studentId   Int
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model CertificateSubmission {
+  id              Int      @id @default(autoincrement())
+  studentId       Int
+  courseName      String
+  courseProvider  String
+  completionDate  DateTime
+  certificateFile String   // File path or URL
+  description     String?
+  courseLink      String?  // Optional course URL
+  courseType      String   @default("online-course") // online-course, workshop, certification, etc.
+  status          String   @default("pending") // pending, approved, rejected
+  submittedAt     DateTime @default(now())
+  evaluatedAt     DateTime?
+  evaluatedBy     Int?     // Faculty ID who evaluated
+  facultyComments String?
+  grade           String?  // A, B, C, D, F
+  
+  // Relations
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  evaluator       Faculty? @relation(fields: [evaluatedBy], references: [id])
+  
+  @@index([status])
+  @@index([studentId])
+  @@index([evaluatedBy])
+}
+
+model Workshop {
+  id                Int      @id @default(autoincrement())
+  title             String
+  description       String
+  instructor        String
+  duration          String   // e.g., "2 days", "3 hours"
+  level             String   // beginner, intermediate, advanced
+  category          String   // Web Development, Data Science, Design, etc.
+  maxParticipants   Int
+  enrolledParticipants Int  @default(0)
+  status            String   @default("upcoming") // upcoming, ongoing, completed, cancelled
+  startDate         DateTime
+  endDate           DateTime
+  location          String
+  prerequisites     String?  // JSON string of prerequisites array
+  objectives        String?  // JSON string of objectives array
+  materials         String?  // JSON string of materials array
+  isMandatory       Boolean  @default(false) // Whether this workshop is mandatory for students
+  createdBy         Int      // Faculty ID who created the workshop
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  creator           Faculty  @relation(fields: [createdBy], references: [id])
+  enrollments       WorkshopEnrollment[]
+  
+  @@index([status])
+  @@index([createdBy])
+  @@index([isMandatory])
+}
+
+model WorkshopEnrollment {
+  id          Int      @id @default(autoincrement())
+  workshopId  Int
+  studentId   Int
+  enrolledAt  DateTime @default(now())
+  status      String   @default("enrolled") // enrolled, completed, dropped
+  completedAt DateTime?
+  
+  // Relations
+  workshop    Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@unique([workshopId, studentId])
+  @@index([workshopId])
+  @@index([studentId])
+}
+
+model Course {
+  id              Int      @id @default(autoincrement())
+  title           String
+  description     String
+  instructor      String
+  duration        String
+  level           String   // beginner, intermediate, advanced
+  category        String
+  maxStudents     Int
+  enrolledStudents Int     @default(0)
+  status          String   @default("active") // active, inactive, completed
+  startDate       DateTime
+  endDate         DateTime
+  courseType      String   // online, offline, hybrid
+  location        String?
+  meetingLink     String?
+  isMandatory     Boolean  @default(false)
+  createdBy       Int      // Faculty ID who created the course
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  creator         Faculty  @relation(fields: [createdBy], references: [id])
+  enrollments     CourseEnrollment[]
+  assignments     Assignment[]
+  roadmapAssignments CourseRoadmapAssignment[]
+  
+  @@index([status])
+  @@index([createdBy])
+  @@index([courseType])
+}
+
+model CourseEnrollment {
+  id              Int      @id @default(autoincrement())
+  courseId        Int
+  studentId       Int
+  enrolledAt      DateTime @default(now())
+  status          String   @default("enrolled") // enrolled, dropped, completed
+  grade           Float?
+  attendance      Float    @default(100.0) // percentage
+  assignmentsCompleted Int @default(0)
+  totalAssignments Int    @default(0)
+  lastActivity    DateTime @default(now())
+  
+  // Relations
+  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@unique([courseId, studentId])
+  @@index([courseId])
+  @@index([studentId])
+}
+
+model Assignment {
+  id              Int      @id @default(autoincrement())
+  courseId        Int
+  title           String
+  description     String
+  dueDate         DateTime
+  maxPoints       Int      @default(100)
+  isMandatory     Boolean  @default(false)
+  submissionType  String   @default("file") // file, text, code, quiz
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  submissions     AssignmentSubmission[]
+  
+  @@index([courseId])
+  @@index([dueDate])
+}
+
+model AssignmentSubmission {
+  id              Int      @id @default(autoincrement())
+  assignmentId    Int
+  studentId       Int
+  submittedAt     DateTime @default(now())
+  status          String   @default("submitted") // submitted, graded, late
+  grade           Float?
+  feedback        String?
+  fileUrl         String?
+  textSubmission  String?
+  codeSubmission  String?
+  
+  // Relations
+  assignment      Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student         Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@index([assignmentId])
+  @@index([studentId])
+}
+
+model CourseRoadmapAssignment {
+  id              Int      @id @default(autoincrement())
+  courseId        Int
+  roadmapId       Int
+  assignedBy      Int      // Faculty ID who assigned this
+  assignedAt      DateTime @default(now())
+  isActive        Boolean  @default(true)
+  notes           String?  // Optional notes about the assignment
+  
+  // Relations
+  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  roadmap         Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  assignedByFaculty Faculty @relation(fields: [assignedBy], references: [id])
+  
+  @@unique([courseId, roadmapId])
+  @@index([courseId])
+  @@index([roadmapId])
+  @@index([assignedBy])
+}
+
+model MentorTalk {
+  id              Int      @id @default(autoincrement())
+  title           String
+  speakerName     String
+  company         String
+  designation     String
+  topic           String
+  description     String?
+  scheduledDate   DateTime
+  scheduledTime   String   // Time in HH:MM format
+  mode            String   @default("online") // online, offline
+  meetingLink     String?  // For online sessions
+  venue           String?  // For offline sessions
+  maxAttendees    Int?     // Optional limit
+  currentAttendees Int    @default(0)
+  status          String   @default("scheduled") // scheduled, completed, cancelled
+  createdBy       Int      // Faculty ID who created this
+  assignedTo      String?   // Batch/year or department assignment
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  createdByFaculty Faculty @relation(fields: [createdBy], references: [id])
+  attendees       MentorTalkAttendance[]
+  feedback        MentorTalkFeedback[]
+  
+  @@index([scheduledDate])
+  @@index([status])
+  @@index([createdBy])
+}
+
+model MentorTalkAttendance {
+  id              Int      @id @default(autoincrement())
+  talkId          Int
+  studentId       Int
+  attendedAt      DateTime @default(now())
+  status          String   @default("registered") // registered, attended, absent
+  
+  // Relations
+  talk            MentorTalk @relation(fields: [talkId], references: [id], onDelete: Cascade)
+  student         Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@unique([talkId, studentId])
+  @@index([talkId])
+  @@index([studentId])
+}
+
+model MentorTalkFeedback {
+  id              Int      @id @default(autoincrement())
+  talkId          Int
+  studentId       Int
+  rating          Int      // 1-5 rating
+  feedback        String?  // Text feedback
+  submittedAt     DateTime @default(now())
+  
+  // Relations
+  talk            MentorTalk @relation(fields: [talkId], references: [id], onDelete: Cascade)
+  student         Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@unique([talkId, studentId])
+  @@index([talkId])
+  @@index([studentId])
+}
+

@@ -1,0 +1,8 @@
+# Daily Quiz Reset - Runs at midnight UTC
+0 0 * * * curl -X POST "https://your-domain.com/api/cron/daily-quiz-reset" \
+  -H "Authorization: Bearer your-secure-cron-secret-here" \
+  -H "Content-Type: application/json"
+
+# Alternative: Use a cron service like Vercel Cron or GitHub Actions
+# For Vercel: Add to vercel.json
+# For GitHub Actions: Create .github/workflows/daily-quiz-reset.yml
