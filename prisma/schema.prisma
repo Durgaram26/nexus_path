@@ -10,24 +10,24 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model College {
-  id         Int        @id @default(autoincrement())
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
   name       String     @unique
   departments Department[]
 }
 
 model Department {
-  id          Int    @id @default(autoincrement())
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String @unique
   description String?
   createdAt   DateTime @default(now()) @updatedAt
   updatedAt   DateTime @default(now()) @updatedAt
   
-  collegeId   Int
+  collegeId   String @db.ObjectId
   college     College    @relation(fields: [collegeId], references: [id])
 
   // Relations
@@ -43,7 +43,7 @@ enum Gender {
 }
 
 model CareerPath {
-  id          Int    @id @default(autoincrement())
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String @unique
   description String?
   createdAt   DateTime @default(now())
@@ -55,14 +55,14 @@ model CareerPath {
 }
 
 model User {
-  id           Int    @id @default(autoincrement())
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
   email        String @unique
   password     String
   plainPassword String?
   role         String @default("student") // Can be "admin", "faculty", "student"
   firstName    String?
   lastName     String?
-  departmentId Int?
+  departmentId String? @db.ObjectId
   createdAt    DateTime @default(now())
   updatedAt    DateTime @default(now()) @updatedAt
   
@@ -74,11 +74,11 @@ model User {
 }
 
 model Faculty {
-  id           Int        @id @default(autoincrement())
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
   email        String     @unique
   name         String
   gender       Gender
-  departmentId Int
+  departmentId String @db.ObjectId
   department   Department @relation(fields: [departmentId], references: [id])
   
   // Dynamic assignment options
@@ -103,9 +103,9 @@ model Faculty {
 }
 
 model FacultyCareerPath {
-  id           Int        @id @default(autoincrement())
-  facultyId    Int
-  careerPathId Int
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  facultyId    String @db.ObjectId
+  careerPathId String @db.ObjectId
   assignedAt   DateTime   @default(now())
   
   // Relations
@@ -116,12 +116,12 @@ model FacultyCareerPath {
 }
 
 model Student {
-  id           Int        @id @default(autoincrement())
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
   email        String     @unique
   name         String
   gender       Gender
   phoneNumber  String?
-  departmentId Int
+  departmentId String @db.ObjectId
   department   Department @relation(fields: [departmentId], references: [id])
   year         Int
   registerNumber String   @unique
@@ -152,10 +152,10 @@ model Student {
 }
 
 model StudentCareerPath {
-  id           Int    @id @default(autoincrement())
-  studentId    Int
-  careerPathId Int
-  assignedBy   Int? // faculty who assigned this (User ID)
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  studentId    String @db.ObjectId
+  careerPathId String @db.ObjectId
+  assignedBy   String? @db.ObjectId // faculty who assigned this (User ID)
   assignedAt   DateTime @default(now())
   
   // Relations
@@ -167,7 +167,7 @@ model StudentCareerPath {
 }
 
 model Roadmap {
-  id              Int      @id @default(autoincrement())
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
   title           String
   description     String
   totalDuration String
@@ -179,7 +179,7 @@ model Roadmap {
   learningPath    String
   careerOutcomes  String   // JSON string of career outcomes
   isAIGenerated   Boolean  @default(false) // Distinguish AI vs manual roadmaps
-  createdBy       Int      // User ID who created this roadmap
+  createdBy       String      @db.ObjectId // User ID who created this roadmap
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
@@ -191,8 +191,8 @@ model Roadmap {
 }
 
 model StudentPerformance {
-  id              Int      @id @default(autoincrement())
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  studentId       String @db.ObjectId
   category        String
   knowledgeLevel  Int      @default(1) // 1-5 scale
   totalAttempts   Int      @default(0)
@@ -210,8 +210,8 @@ model StudentPerformance {
 }
 
 model AdaptiveQuiz {
-  id              Int      @id @default(autoincrement())
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  studentId       String @db.ObjectId
   quizDate        DateTime
   questions       String   // JSON string of questions
   performanceData String?  // JSON string of performance data
@@ -228,8 +228,8 @@ model AdaptiveQuiz {
 }
 
 model QuizSession {
-  id              Int      @id @default(autoincrement())
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  studentId       String @db.ObjectId
   sessionDate     DateTime @default(now())
   totalQuestions  Int
   correctAnswers  Int
@@ -244,10 +244,10 @@ model QuizSession {
 }
 
 model QuizAttempt {
-  id              Int      @id @default(autoincrement())
-  adaptiveQuizId  Int?
-  quizId          Int?
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  adaptiveQuizId  String? @db.ObjectId
+  quizId          String? @db.ObjectId
+  studentId       String @db.ObjectId
   attemptNumber   Int      // 1 for first attempt, 2 for second attempt
   answers         String   // JSON string of student answers
   score           Float
@@ -267,10 +267,10 @@ model QuizAttempt {
 }
 
 model RoadmapAssignment {
-  id              Int      @id @default(autoincrement())
-  roadmapId       Int
-  studentId       Int
-  assignedBy      Int      // Faculty who assigned this
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  roadmapId       String @db.ObjectId
+  studentId       String @db.ObjectId
+  assignedBy      String      @db.ObjectId // Faculty who assigned this
   assignedAt      DateTime @default(now())
   isActive        Boolean  @default(true)
   progress        Int      @default(0) // 0-100 percentage
@@ -286,14 +286,14 @@ model RoadmapAssignment {
 }
 
 model LearningResource {
-  id              Int      @id @default(autoincrement())
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
   title           String
   description     String
   url             String
   category        String   // Programming, Career Development, Documentation, etc.
   difficulty      String   @default("beginner") // beginner, intermediate, advanced
   careerPath      String   // Career path this resource is for
-  roadmapId       Int?     // Optional: specific roadmap this resource is for
+  roadmapId       String?     @db.ObjectId // Optional: specific roadmap this resource is for
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -304,9 +304,9 @@ model LearningResource {
 }
 
 model StudentResourceAccess {
-  id              Int      @id @default(autoincrement())
-  studentId       Int
-  resourceId      Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  studentId       String @db.ObjectId
+  resourceId      String @db.ObjectId
   accessedAt      DateTime @default(now())
   isCompleted     Boolean  @default(false)
   rating          Int?     // 1-5 star rating
@@ -320,9 +320,9 @@ model StudentResourceAccess {
 }
 
 model Message {
-  id              Int      @id @default(autoincrement())
-  senderId        Int      // Faculty who sent the message
-  recipientIds    Int[]    // Array of student IDs (empty for broadcast messages)
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  senderId        String      @db.ObjectId // Faculty who sent the message
+  recipientIds    String[] @db.ObjectId    // Array of student IDs (empty for broadcast messages)
   subject         String
   content         String
   messageType     String   @default("general") // general, announcement, reminder, assignment
@@ -335,21 +335,21 @@ model Message {
   // Real-time messaging fields
   isRealtime      Boolean  @default(false)      // true for real-time messages
   roomId          String?                      // Room/Channel ID for group messages
-  replyToId       Int?                         // For threaded conversations
+  replyToId       String? @db.ObjectId                         // For threaded conversations
   editedAt        DateTime?                    // When message was last edited
   isEdited        Boolean  @default(false)     // Whether message has been edited
   
   // Relations
   sender          Faculty  @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  replyTo         Message? @relation("MessageReplies", fields: [replyToId], references: [id])
+  replyTo         Message? @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   replies         Message[] @relation("MessageReplies")
   readBy          MessageRead[]
 }
 
 model MessageRead {
-  id          Int      @id @default(autoincrement())
-  messageId   Int
-  userId      Int
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  messageId   String @db.ObjectId
+  userId      String @db.ObjectId
   readAt      DateTime @default(now())
   
   // Relations
@@ -359,11 +359,11 @@ model MessageRead {
 }
 
 model MessageRoom {
-  id          Int      @id @default(autoincrement())
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String?
   roomType    String   @default("general") // general, department, course, private
-  createdBy   Int
+  createdBy   String @db.ObjectId
   createdAt   DateTime @default(now())
   isActive    Boolean  @default(true)
   
@@ -373,8 +373,8 @@ model MessageRoom {
 }
 
 model MessageRoomMember {
-  id        Int     @id @default(autoincrement())
-  roomId    Int
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  roomId    String @db.ObjectId
   userId    Int
   userRole  String  @default("member") // member, admin, moderator
   joinedAt  DateTime @default(now())
@@ -386,8 +386,8 @@ model MessageRoomMember {
 }
 
 model CodeTestSession {
-  id              Int      @id @default(autoincrement())
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  studentId       String @db.ObjectId
   sessionDate     DateTime @default(now())
   language        String   // Programming language used
   languageId      Int      // Judge0 language ID
@@ -407,8 +407,8 @@ model CodeTestSession {
 }
 
 model CodeTestQuestionResult {
-  id              Int      @id @default(autoincrement())
-  sessionId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId       String @db.ObjectId
   questionId      String   // Question ID from the test
   questionTitle   String
   questionIndex   Int      // 0-4 (question number in the test)
@@ -428,8 +428,8 @@ model CodeTestQuestionResult {
 }
 
 model CodeExecutionHistory {
-  id              Int      @id @default(autoincrement())
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  studentId       String @db.ObjectId
   language        String
   languageId      Int
   code            String   // Code that was executed
@@ -447,8 +447,8 @@ model CodeExecutionHistory {
 
 // Additional tables for student portal functionality
 model CodeExecution {
-  id              Int      @id @default(autoincrement())
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  studentId       String @db.ObjectId
   language        String
   languageId      Int
   code            String   // Code that was executed
@@ -465,8 +465,8 @@ model CodeExecution {
 }
 
 model CodeTestResult {
-  id              Int      @id @default(autoincrement())
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  studentId       String @db.ObjectId
   testId          String   // Test identifier
   language        String   // Programming language
   score           Int      // Score achieved
@@ -484,8 +484,8 @@ model CodeTestResult {
 }
 
 model Notification {
-  id              Int      @id @default(autoincrement())
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  studentId       String @db.ObjectId
   title           String
   message         String
   type            String   // quiz, career, achievement, general
@@ -502,7 +502,7 @@ model Notification {
 }
 
 model Quiz {
-  id              Int      @id @default(autoincrement())
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
   title           String
   description     String
   category        String   // Programming, Algorithms, Data Structures, etc.
@@ -523,7 +523,7 @@ model Quiz {
 }
 
 model AISuggestion {
-  id          Int      @id @default(autoincrement())
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String
   duration    String
@@ -534,13 +534,13 @@ model AISuggestion {
   updatedAt   DateTime @updatedAt
   
   // Relations
-  studentId   Int
+  studentId   String @db.ObjectId
   student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
 
 model CertificateSubmission {
-  id              Int      @id @default(autoincrement())
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  studentId       String @db.ObjectId
   courseName      String
   courseProvider  String
   completionDate  DateTime
@@ -551,7 +551,7 @@ model CertificateSubmission {
   status          String   @default("pending") // pending, approved, rejected
   submittedAt     DateTime @default(now())
   evaluatedAt     DateTime?
-  evaluatedBy     Int?     // Faculty ID who evaluated
+  evaluatedBy     String?     @db.ObjectId // Faculty ID who evaluated
   facultyComments String?
   grade           String?  // A, B, C, D, F
   
@@ -565,7 +565,7 @@ model CertificateSubmission {
 }
 
 model Workshop {
-  id                Int      @id @default(autoincrement())
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
   title             String
   description       String
   instructor        String
@@ -582,7 +582,7 @@ model Workshop {
   objectives        String?  // JSON string of objectives array
   materials         String?  // JSON string of materials array
   isMandatory       Boolean  @default(false) // Whether this workshop is mandatory for students
-  createdBy         Int      // Faculty ID who created the workshop
+  createdBy         String      @db.ObjectId // Faculty ID who created the workshop
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   
@@ -596,9 +596,9 @@ model Workshop {
 }
 
 model WorkshopEnrollment {
-  id          Int      @id @default(autoincrement())
-  workshopId  Int
-  studentId   Int
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  workshopId  String @db.ObjectId
+  studentId   String @db.ObjectId
   enrolledAt  DateTime @default(now())
   status      String   @default("enrolled") // enrolled, completed, dropped
   completedAt DateTime?
@@ -613,7 +613,7 @@ model WorkshopEnrollment {
 }
 
 model Course {
-  id              Int      @id @default(autoincrement())
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
   title           String
   description     String
   instructor      String
@@ -629,7 +629,7 @@ model Course {
   location        String?
   meetingLink     String?
   isMandatory     Boolean  @default(false)
-  createdBy       Int      // Faculty ID who created the course
+  createdBy       String      @db.ObjectId // Faculty ID who created the course
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
@@ -645,9 +645,9 @@ model Course {
 }
 
 model CourseEnrollment {
-  id              Int      @id @default(autoincrement())
-  courseId        Int
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  courseId        String @db.ObjectId
+  studentId       String @db.ObjectId
   enrolledAt      DateTime @default(now())
   status          String   @default("enrolled") // enrolled, dropped, completed
   grade           Float?
@@ -666,8 +666,8 @@ model CourseEnrollment {
 }
 
 model Assignment {
-  id              Int      @id @default(autoincrement())
-  courseId        Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  courseId        String @db.ObjectId
   title           String
   description     String
   dueDate         DateTime
@@ -686,9 +686,9 @@ model Assignment {
 }
 
 model AssignmentSubmission {
-  id              Int      @id @default(autoincrement())
-  assignmentId    Int
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  assignmentId    String @db.ObjectId
+  studentId       String @db.ObjectId
   submittedAt     DateTime @default(now())
   status          String   @default("submitted") // submitted, graded, late
   grade           Float?
@@ -706,10 +706,10 @@ model AssignmentSubmission {
 }
 
 model CourseRoadmapAssignment {
-  id              Int      @id @default(autoincrement())
-  courseId        Int
-  roadmapId       Int
-  assignedBy      Int      // Faculty ID who assigned this
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  courseId        String @db.ObjectId
+  roadmapId       String @db.ObjectId
+  assignedBy      String      @db.ObjectId // Faculty ID who assigned this
   assignedAt      DateTime @default(now())
   isActive        Boolean  @default(true)
   notes           String?  // Optional notes about the assignment
@@ -726,7 +726,7 @@ model CourseRoadmapAssignment {
 }
 
 model MentorTalk {
-  id              Int      @id @default(autoincrement())
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
   title           String
   speakerName     String
   company         String
@@ -741,7 +741,7 @@ model MentorTalk {
   maxAttendees    Int?     // Optional limit
   currentAttendees Int    @default(0)
   status          String   @default("scheduled") // scheduled, completed, cancelled
-  createdBy       Int      // Faculty ID who created this
+  createdBy       String      @db.ObjectId // Faculty ID who created this
   assignedTo      String?   // Batch/year or department assignment
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -757,9 +757,9 @@ model MentorTalk {
 }
 
 model MentorTalkAttendance {
-  id              Int      @id @default(autoincrement())
-  talkId          Int
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  talkId          String @db.ObjectId
+  studentId       String @db.ObjectId
   attendedAt      DateTime @default(now())
   status          String   @default("registered") // registered, attended, absent
   
@@ -773,9 +773,9 @@ model MentorTalkAttendance {
 }
 
 model MentorTalkFeedback {
-  id              Int      @id @default(autoincrement())
-  talkId          Int
-  studentId       Int
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  talkId          String @db.ObjectId
+  studentId       String @db.ObjectId
   rating          Int      // 1-5 rating
   feedback        String?  // Text feedback
   submittedAt     DateTime @default(now())
