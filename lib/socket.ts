@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { Server as SocketIOServer } from 'socket.io';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyToken } from './auth';

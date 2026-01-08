@@ -8,7 +8,7 @@ function getAuthPayload(request: NextRequest) {
     ? bearer.substring('Bearer '.length)
     : undefined;
   const tokenFromCookie = request.cookies.get('access_token')?.value;
-  ';
+  const token = tokenFromHeader || tokenFromCookie;
   return token ? verifyToken(token) : null;
 }
 
@@ -25,7 +25,8 @@ export async function PUT(
 
     const { id } = await params;
     
-    if (isNaN()) {
+    const facultyId = parseInt(id);
+    if (isNaN(facultyId)) {
       return NextResponse.json({ message: 'Invalid faculty ID' }, { status: 400 });
     }
 
@@ -37,19 +38,20 @@ export async function PUT(
     }
 
     // Check if faculty exists
-    const faculty = await prisma.faculty.findUnique({ where: { id: } });
+    const faculty = await prisma.faculty.findUnique({ where: { id: facultyId } });
     if (!faculty) {
       return NextResponse.json({ message: 'Faculty not found' }, { status: 404 });
     }
 
     // Update assigned years
     const updated = await prisma.faculty.update({
-      where: { id: },
-      data: { assignedYears }});
+      where: { id: facultyId },
+      data: { assignedYears }
+    });
 
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
-    console.error('PUT //faculty/[id]/years :');
-    return NextResponse.json({ message: 'Internal Server Error', : String(error) }, { status: 500 });
+    console.error('PUT /api/faculty/[id]/years error:', error);
+    return NextResponse.json({ message: 'Internal Server Error', error: String(error) }, { status: 500 });
   }
 }

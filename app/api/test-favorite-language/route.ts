@@ -13,9 +13,9 @@ export async function PUT(request: NextRequest) {
       receivedData: body
     });
   } catch (error) {
-    console.error('Test endpoint :');
+    console.error('Test endpoint error:', error);
     return NextResponse.json(
-      { : 'Test endpoint failed', details: String(error) },
+      { message: 'Test endpoint failed', details: String(error) },
       { status: 500 }
     );
   }

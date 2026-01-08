@@ -8,11 +8,12 @@ function getAuthPayload(request: NextRequest) {
     ? bearer.substring('Bearer '.length)
     : undefined;
   const tokenFromCookie = request.cookies.get('access_token')?.value;
-  ';
+  const token = tokenFromHeader || tokenFromCookie;
   return token ? verifyToken(token) : null;
 }
 
-// GET - Get a specific export async function GET(
+// GET - Get a specific student
+export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -23,46 +24,53 @@ function getAuthPayload(request: NextRequest) {
     }
 
     const { id } = await params;
+    const studentId = parseInt(id);
     
-    if (isNaN()) {
+    if (isNaN(studentId)) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
-    
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      include: { department: true }
+    });
 
-    if (!) {
+    if (!student) {
       return NextResponse.json({ message: 'Student not found' }, { status: 404 });
     }
 
-    // Check if faculty can access this if ((payload as any).role === 'faculty') {
+    // Check if faculty can access this student's department
+    if ((payload as any).role === 'faculty') {
       const faculty = await prisma.faculty.findUnique({
-        where: { email: (payload as any).email }});
+        where: { email: (payload as any).email }
+      });
 
       if (!faculty) {
         return NextResponse.json({ message: 'Faculty not found' }, { status: 404 });
       }
 
-      // Check if faculty can access this 's department
+      // Check if faculty can access this student's department
       const canAccess = faculty.canAssignCrossDepartment && (
-        !faculty.|| // Can access all departments
-        faculty..split(',').map(id => parseInt(id.trim())).includes(.departmentId)
+        !faculty.allowedDepartments || // Can access all departments
+        faculty.allowedDepartments.split(',').map(id => parseInt(id.trim())).includes(student.departmentId)
       );
 
-      if (!canAccess && faculty.departmentId !== .departmentId) {
+      if (!canAccess && faculty.departmentId !== student.departmentId) {
         return NextResponse.json({ 
-          message: 'You do not have permission to access this ' 
+          message: 'You do not have permission to access this student' 
         }, { status: 403 });
       }
     }
 
-    return NextResponse.json( { status: 200 });
+    return NextResponse.json(student, { status: 200 });
   } catch (error) {
-    console.error('GET //faculty/students/[id] :');
-    return NextResponse.json({ message: 'Internal Server Error', : String(error) }, { status: 500 });
+    console.error('GET /api/faculty/students/[id] error:', error);
+    return NextResponse.json({ message: 'Internal Server Error', error: String(error) }, { status: 500 });
   }
 }
 
-// PUT - Update a export async function PUT(
+// PUT - Update a student
+export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -73,8 +81,9 @@ function getAuthPayload(request: NextRequest) {
     }
 
     const { id } = await params;
+    const studentId = parseInt(id);
     
-    if (isNaN()) {
+    if (isNaN(studentId)) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
@@ -84,51 +93,54 @@ function getAuthPayload(request: NextRequest) {
       return NextResponse.json({ message: 'All fields are required' }, { status: 400 });
     }
 
-    // Check if exists
-    const existingStudent = await prisma..findUnique({ where: { id: } });
+    // Check if student exists
+    const existingStudent = await prisma.student.findUnique({ where: { id: studentId } });
     if (!existingStudent) {
       return NextResponse.json({ message: 'Student not found' }, { status: 404 });
     }
 
-    // Check if faculty can update this if ((payload as any).role === 'faculty') {
+    // Check if faculty can update this student
+    if ((payload as any).role === 'faculty') {
       const faculty = await prisma.faculty.findUnique({
-        where: { email: (payload as any).email }});
+        where: { email: (payload as any).email }
+      });
 
       if (!faculty) {
         return NextResponse.json({ message: 'Faculty not found' }, { status: 404 });
       }
 
-      // Check if faculty can access this 's department
+      // Check if faculty can access this student's department
       const canAccess = faculty.canAssignCrossDepartment && (
-        !faculty.|| // Can access all departments
-        faculty..split(',').map(id => parseInt(id.trim())).includes(existingStudent.departmentId)
+        !faculty.allowedDepartments || // Can access all departments
+        faculty.allowedDepartments.split(',').map(id => parseInt(id.trim())).includes(existingStudent.departmentId)
       );
 
       if (!canAccess && faculty.departmentId !== existingStudent.departmentId) {
         return NextResponse.json({ 
-          message: 'You do not have permission to update this ' 
+          message: 'You do not have permission to update this student' 
         }, { status: 403 });
       }
 
       // Check if faculty can move to new department
       if (parseInt(departmentId) !== existingStudent.departmentId) {
         const canMoveToNewDept = faculty.canAssignCrossDepartment && (
-          !faculty.|| // Can access all departments
-          faculty..split(',').map(id => parseInt(id.trim())).includes(parseInt(departmentId))
+          !faculty.allowedDepartments || // Can access all departments
+          faculty.allowedDepartments.split(',').map(id => parseInt(id.trim())).includes(parseInt(departmentId))
         );
 
         if (!canMoveToNewDept && faculty.departmentId !== parseInt(departmentId)) {
           return NextResponse.json({ 
-            message: 'You do not have permission to move this to the selected department' 
+            message: 'You do not have permission to move this student to the selected department' 
           }, { status: 403 });
         }
       }
     }
 
-    // Check if email or register number is already taken by another const duplicateStudent = await prisma..findFirst({
+    // Check if email or register number is already taken by another student
+    const duplicateStudent = await prisma.student.findFirst({
       where: {
         AND: [
-          { id: { not: } },
+          { id: { not: studentId } },
           {
             OR: [
               { email },
@@ -145,8 +157,9 @@ function getAuthPayload(request: NextRequest) {
       }, { status: 409 });
     }
 
-    // Update const updatedStudent = await prisma..update({
-      where: { id: },
+    // Update student
+    const updatedStudent = await prisma.student.update({
+      where: { id: studentId },
       data: {
         email,
         name,
@@ -165,11 +178,12 @@ function getAuthPayload(request: NextRequest) {
     return NextResponse.json(updatedStudent, { status: 200 });
   } catch (error) {
     console.error('PUT //faculty/students/[id] :');
-    return NextResponse.json({ message: 'Internal Server Error', : String(error) }, { status: 500 });
+    return NextResponse.json({ message: 'Internal Server Error', error: String(error) }, { status: 500 });
   }
 }
 
-// DELETE - Delete a export async function DELETE(
+// DELETE - Delete a student
+export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -180,45 +194,52 @@ function getAuthPayload(request: NextRequest) {
     }
 
     const { id } = await params;
+    const studentId = parseInt(id);
     
-    if (isNaN()) {
+    if (isNaN(studentId)) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
-    // Check if exists
+    // Check if student exists
+    const student = await prisma.student.findUnique({
+      where: { id: studentId }
+    });
     
-    if (!) {
+    if (!student) {
       return NextResponse.json({ message: 'Student not found' }, { status: 404 });
     }
 
-    // Check if faculty can delete this if ((payload as any).role === 'faculty') {
+    // Check if faculty can delete this student
+    if ((payload as any).role === 'faculty') {
       const faculty = await prisma.faculty.findUnique({
-        where: { email: (payload as any).email }});
+        where: { email: (payload as any).email }
+      });
 
       if (!faculty) {
         return NextResponse.json({ message: 'Faculty not found' }, { status: 404 });
       }
 
-      // Check if faculty can access this 's department
+      // Check if faculty can access this student's department
       const canAccess = faculty.canAssignCrossDepartment && (
-        !faculty.|| // Can access all departments
-        faculty..split(',').map(id => parseInt(id.trim())).includes(.departmentId)
+        !faculty.allowedDepartments || // Can access all departments
+        faculty.allowedDepartments.split(',').map(id => parseInt(id.trim())).includes(student.departmentId)
       );
 
-      if (!canAccess && faculty.departmentId !== .departmentId) {
+      if (!canAccess && faculty.departmentId !== student.departmentId) {
         return NextResponse.json({ 
-          message: 'You do not have permission to delete this ' 
+          message: 'You do not have permission to delete this student' 
         }, { status: 403 });
       }
     }
 
-    // Delete (this will cascade delete career path assignments)
-    await prisma..delete({
-      where: { id: }});
+    // Delete student (this will cascade delete career path assignments)
+    await prisma.student.delete({
+      where: { id: studentId }
+    });
 
     return NextResponse.json({ message: 'Student deleted successfully' }, { status: 200 });
   } catch (error) {
     console.error('DELETE //faculty/students/[id] :');
-    return NextResponse.json({ message: 'Internal Server Error', : String(error) }, { status: 500 });
+    return NextResponse.json({ message: 'Internal Server Error', error: String(error) }, { status: 500 });
   }
 }

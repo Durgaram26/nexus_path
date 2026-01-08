@@ -5,6 +5,8 @@ import api from '@/lib/api';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart3, FileText, TrendingUp, BookOpen, Calendar, Settings, Menu, Search, Bell, Award, Target, CheckCircle, Play } from 'lucide-react';
 
 
 
@@ -17,7 +19,7 @@ interface Student {
   department: string;
   year: number;
   avatar?: string;
-  : number;
+  progress: number;
   totalCourses: number;
   completedCourses: number;
   currentStreak: number;
@@ -31,8 +33,8 @@ interface Course {
   instructor: string;
   duration: string;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  : number;
-  status: 'Not Started' | 'In ' | 'Completed';
+  progress: number;
+  status: 'Not Started' | 'In Progress' | 'Completed';
   thumbnail: string;
   lessons: number;
   quizzes: number;
@@ -46,7 +48,7 @@ interface Quiz {
   duration: number;
   questions: number;
   difficulty: 'Easy' | 'Medium' | 'Hard';
-  status: 'Available' | 'In ' | 'Completed' | 'Locked';
+  status: 'Available' | 'In Progress' | 'Completed' | 'Locked';
   score?: number;
   attempts: number;
   maxAttempts: number;
@@ -55,18 +57,18 @@ interface Quiz {
 }
 
 export default function LMSHomePage() {
-  const [sidebarOpen, setSidebarOpen] = useStatesetLoading(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [loading, setLoading] = useStatesetLoading(false);
+  const [loading, setLoading] = useState(false);
 
   // Mock data - in real app, this would come from API
-  const : Student = {
+  const student: Student = {
     id: 1,
     name: "John Doe",
     email: "john.doe@university.edu",
     department: "Computer Science",
     year: 3,
-    : 75,
+    progress: 75,
     totalCourses: 8,
     completedCourses: 6,
     currentStreak: 12,
@@ -81,8 +83,8 @@ export default function LMSHomePage() {
       instructor: "Dr. Sarah Johnson",
       duration: "8 weeks",
       difficulty: "Advanced",
-      : 85,
-      status: "In ",
+      progress: 85,
+      status: "In Progress",
       thumbnail: "//placeholder/300/200",
       lessons: 24,
       quizzes: 6,
@@ -95,8 +97,8 @@ export default function LMSHomePage() {
       instructor: "Prof. Michael Chen",
       duration: "10 weeks",
       difficulty: "Intermediate",
-      : 60,
-      status: "In ",
+      progress: 60,
+      status: "In Progress",
       thumbnail: "//placeholder/300/200",
       lessons: 30,
       quizzes: 8,
@@ -109,7 +111,7 @@ export default function LMSHomePage() {
       instructor: "Dr. Emily Rodriguez",
       duration: "12 weeks",
       difficulty: "Beginner",
-      : 100,
+      progress: 100,
       status: "Completed",
       thumbnail: "//placeholder/300/200",
       lessons: 40,
@@ -139,7 +141,7 @@ export default function LMSHomePage() {
       duration: 45,
       questions: 20,
       difficulty: "Hard",
-      status: "In ",
+      status: "In Progress",
       score: 85,
       attempts: 1,
       maxAttempts: 2,
@@ -163,11 +165,11 @@ export default function LMSHomePage() {
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, active: true },
-    { id: 'courses', label: 'My Courses', icon:  active: false },
+    { id: 'courses', label: 'My Courses', icon: BookOpen, active: false },
     { id: 'quizzes', label: 'Quizzes & Tests', icon: FileText, active: false },
-    { id: '', label: '', icon: TrendingUp, active: false },
-    { id: 'calendar', label: '', icon:  active: false },
-    { id: 'settings', label: '', icon:  active: false }
+    { id: 'progress', label: 'Progress', icon: TrendingUp, active: false },
+    { id: 'calendar', label: 'Calendar', icon: Calendar, active: false },
+    { id: 'settings', label: 'Settings', icon: Settings, active: false }
   ];
 
   const getDifficultyColor = (difficulty: string) => {
@@ -200,8 +202,6 @@ export default function LMSHomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      </>
-      
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="px-4 sm:px-6 lg:px-8">
@@ -238,12 +238,12 @@ export default function LMSHomePage() {
               
               <div className="flex items-center space-x-3">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-gray-900">{(as any)?error.name}</p>
-                  <p className="text-xs text-gray-500">{.department}</p>
+                  <p className="text-sm font-medium text-gray-900">{student.name}</p>
+                  <p className="text-xs text-gray-500">{student.department}</p>
                 </div>
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                   <span className="text-sm font-medium text-blue-600">
-                    {error.name.charAt(0)}
+                    {student.name.charAt(0)}
                   </span>
                 </div>
               </div>
@@ -272,9 +272,9 @@ export default function LMSHomePage() {
               {navigationItems.map((item) => (
                 <Button
                   key={item.id}
-                  variant={activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab === item.id ? "default" : "ghost"}
+                  variant={activeTab === item.id ? "default" : "ghost"}
                   className={`w-full justify-start ${
-                    activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab === item.id 
+                    activeTab === item.id 
                       ? 'bg-blue-600 text-white' 
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
@@ -289,13 +289,15 @@ export default function LMSHomePage() {
             <div className="p-4 border-t border-gray-200">
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600"></span>
-                  <span className="font-medium">{.}%</span>
+                  <span className="text-gray-600">Progress</span>
+                  <span className="font-medium">{student.progress}%</span>
                 </div>
-                <value={.} className="h-2" />
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${student.progress}%` }}></div>
+                </div>
                 <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>{.completedCourses} of {.totalCourses} courses</span>
-                  <span>🔥 {.currentStreak} day streak</span>
+                  <span>{student.completedCourses} of {student.totalCourses} courses</span>
+                  <span>🔥 {student.currentStreak} day streak</span>
                 </div>
               </div>
             </div>
@@ -310,12 +312,12 @@ export default function LMSHomePage() {
               <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold mb-2">Welcome back, {(as any)?error.name}!</h2>
+                    <h2 className="text-2xl font-bold mb-2">Welcome back, {student.name}!</h2>
                     <p className="text-blue-100">Continue your learning journey with adaptive assessments</p>
                   </div>
                   <div className="text-right">
-                    <div className="text-3xl font-bold">{.}%</div>
-                    <div className="text-blue-100">Overall </div>
+                    <div className="text-3xl font-bold">{student.progress}%</div>
+                    <div className="text-blue-100">Overall Progress</div>
                   </div>
                 </div>
               </div>
@@ -330,7 +332,7 @@ export default function LMSHomePage() {
                       </div>
                       <div className="ml-4">
                         <p className="text-sm font-medium text-gray-600">Active Courses</p>
-                        <p className="text-2xl font-bold text-gray-900">{courses.filter(c => cerror.response.status === 'In ').length}</p>
+                        <p className="text-2xl font-bold text-gray-900">{courses.filter(c => c.status === 'In Progress').length}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -344,7 +346,7 @@ export default function LMSHomePage() {
                       </div>
                       <div className="ml-4">
                         <p className="text-sm font-medium text-gray-600">Completed</p>
-                        <p className="text-2xl font-bold text-gray-900">{.completedCourses}</p>
+                        <p className="text-2xl font-bold text-gray-900">{student.completedCourses}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -358,7 +360,7 @@ export default function LMSHomePage() {
                       </div>
                       <div className="ml-4">
                         <p className="text-sm font-medium text-gray-600">Quizzes Taken</p>
-                        <p className="text-2xl font-bold text-gray-900">{quizzes.filter(q => qerror.response.status === 'Completed').length}</p>
+                        <p className="text-2xl font-bold text-gray-900">{quizzes.filter(q => q.status === 'Completed').length}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -372,7 +374,7 @@ export default function LMSHomePage() {
                       </div>
                       <div className="ml-4">
                         <p className="text-sm font-medium text-gray-600">Study Streak</p>
-                        <p className="text-2xl font-bold text-gray-900">{.currentStreak} days</p>
+                        <p className="text-2xl font-bold text-gray-900">{student.currentStreak} days</p>
                       </div>
                     </div>
                   </CardContent>
@@ -382,12 +384,12 @@ export default function LMSHomePage() {
               {/* Recent Activity */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
-                  <>
+                  <CardHeader>
                     <div className="flex items-center">
                       <div className="w-5 h-5 mr-2" />
                       My Courses
-                    </>
-                  </>
+                    </div>
+                  </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       {courses.slice(0, 3).map((course) => (
@@ -401,15 +403,17 @@ export default function LMSHomePage() {
                             <div className="flex items-center space-x-2 mt-1">
                               <div className={getDifficultyColor(course.difficulty)}>
                                 {course.difficulty}
-                              </>
-                              <div className={getStatusColor(courseerror.response.status)}>
-                                {courseerror.response.status}
-                              </>
+                              </div>
+                              <div className={getStatusColor(course.status)}>
+                                {course.status}
+                              </div>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-sm font-medium">{course.}%</div>
-                            <value={course.} className="w-16 h-2 mt-1" />
+                            <div className="text-sm font-medium">{course.progress}%</div>
+                            <div className="w-16 h-2 mt-1 bg-gray-200 rounded-full">
+                              <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${course.progress}%` }}></div>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -418,12 +422,12 @@ export default function LMSHomePage() {
                 </Card>
 
                 <Card>
-                  <>
+                  <CardHeader>
                     <div className="flex items-center">
                       <FileText className="w-5 h-5 mr-2" />
                       Recent Quizzes
-                    </>
-                  </>
+                    </div>
+                  </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       {quizzes.slice(0, 3).map((quiz) => (
@@ -435,13 +439,13 @@ export default function LMSHomePage() {
                             <h4 className="font-medium text-gray-900">{quiz.title}</h4>
                             <p className="text-sm text-gray-500">{quiz.questions} questions • {quiz.duration} min</p>
                             <div className="flex items-center space-x-2 mt-1">
-                              <div className={getQuizStatusColor(quizerror.response.status)}>
-                                {quizerror.response.status}
-                              </>
+                              <div className={getQuizStatusColor(quiz.status)}>
+                                {quiz.status}
+                              </div>
                               {quiz.isAdaptive && (
                                 <div className="bg-purple-100 text-purple-800">
                                   AI Adaptive
-                                </>
+                                </div>
                               )}
                               {quiz.score && (
                                 <span className="text-sm font-medium text-green-600">
@@ -451,8 +455,8 @@ export default function LMSHomePage() {
                             </div>
                           </div>
                           <Button size="sm" variant="outline">
-                            {quizerror.response.status === 'Available' ? <Play className="w-4 h-4" /> : 
-                             quizerror.response.status === 'In ' ? <div className="w-4 h-4" /> :
+                            {quiz.status === 'Available' ? <Play className="w-4 h-4" /> : 
+                             quiz.status === 'In Progress' ? <div className="w-4 h-4" /> :
                              <CheckCircle className="w-4 h-4" />}
                           </Button>
                         </div>
@@ -483,13 +487,13 @@ export default function LMSHomePage() {
                     <>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="text-lg">{quiz.title}</>
+                          <div className="text-lg">{quiz.title}</div>
                           <p className="text-sm text-gray-600 mt-1">{quiz.description}</p>
                         </div>
                         {quiz.isAdaptive && (
                           <div className="bg-purple-100 text-purple-800 ml-2">
                             AI
-                          </>
+                          </div>
                         )}
                       </div>
                     </>
@@ -507,13 +511,13 @@ export default function LMSHomePage() {
                           <span className="text-gray-600">Difficulty</span>
                           <div className={getDifficultyColor(quiz.difficulty)}>
                             {quiz.difficulty}
-                          </>
+                          </div>
                         </div>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-600">Status</span>
-                          <div className={getQuizStatusColor(quizerror.response.status)}>
-                            {quizerror.response.status}
-                          </>
+                          <div className={getQuizStatusColor(quiz.status)}>
+                            {quiz.status}
+                          </div>
                         </div>
                         {quiz.score && (
                           <div className="flex items-center justify-between text-sm">
@@ -529,12 +533,12 @@ export default function LMSHomePage() {
                         <div className="pt-4">
                           <Button 
                             className="w-full" 
-                            variant={quizerror.response.status === 'Available' ? 'default' : 'outline'}
-                            disabled={quizerror.response.status === 'Locked'}
+                            variant={quiz.status === 'Available' ? 'default' : 'outline'}
+                            disabled={quiz.status === 'Locked'}
                           >
-                            {quizerror.response.status === 'Available' ? 'Start Quiz' :
-                             quizerror.response.status === 'In ' ? 'Continue Quiz' :
-                             quizerror.response.status === 'Completed' ? 'Review Results' :
+                            {quiz.status === 'Available' ? 'Start Quiz' :
+                             quiz.status === 'In Progress' ? 'Continue Quiz' :
+                             quiz.status === 'Completed' ? 'Review Results' :
                              'Locked'}
                           </Button>
                         </div>
