@@ -78,6 +78,7 @@ model Faculty {
   email        String     @unique
   name         String
   gender       Gender
+  phoneNumber  String?
   departmentId Int
   department   Department @relation(fields: [departmentId], references: [id])
   
@@ -100,6 +101,8 @@ model Faculty {
   createdCourses Course[]
   courseRoadmapAssignments CourseRoadmapAssignment[]
   mentorTalks MentorTalk[]
+  createdIndustryMentors IndustryMentor[]
+  assignedMentors IndustryMentorAssignment[]
 }
 
 model FacultyCareerPath {
@@ -149,6 +152,7 @@ model Student {
   assignmentSubmissions AssignmentSubmission[]
   mentorTalkAttendance MentorTalkAttendance[]
   mentorTalkFeedback MentorTalkFeedback[]
+  mentorAssignments IndustryMentorAssignment[]
 }
 
 model StudentCareerPath {
@@ -787,5 +791,48 @@ model MentorTalkFeedback {
   @@unique([talkId, studentId])
   @@index([talkId])
   @@index([studentId])
+}
+
+model IndustryMentor {
+  id              Int      @id @default(autoincrement())
+  name            String
+  email           String   @unique
+  phone           String?
+  company         String
+  position        String
+  industry        String
+  experience      Int      // Years of experience
+  expertise       String[] // Array of expertise areas
+  bio             String?
+  profileImage    String?
+  maxStudents     Int      @default(5)
+  timezone        String   @default("UTC")
+  availability    String   @default("{}") // JSON string for availability schedule
+  preferences     String?  // JSON string for preferences
+  isActive        Boolean  @default(true)
+  createdBy       Int      // Faculty who created this mentor
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  createdByFaculty Faculty @relation(fields: [createdBy], references: [id])
+  mentorAssignments IndustryMentorAssignment[]
+}
+
+model IndustryMentorAssignment {
+  id           Int            @id @default(autoincrement())
+  mentorId     Int
+  studentId    Int
+  assignedBy   Int            // Faculty who assigned
+  assignedAt   DateTime       @default(now())
+  isActive     Boolean        @default(true)
+  notes        String?
+  
+  // Relations
+  mentor       IndustryMentor @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  student      Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  assignedByFaculty Faculty   @relation(fields: [assignedBy], references: [id])
+  
+  @@unique([mentorId, studentId])
 }
 

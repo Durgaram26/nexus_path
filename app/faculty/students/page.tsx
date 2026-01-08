@@ -323,7 +323,7 @@ export default function FacultyStudentsPage() {
     
     setAccountCreationLoading(true);
     try {
-      let passwordData: any = { createAccount: true };
+      const passwordData: any = { createAccount: true };
       
       if (passwordMethod === 'custom') {
         passwordData.password = customPassword;
@@ -419,7 +419,7 @@ export default function FacultyStudentsPage() {
 
     setAccountCreationLoading(true);
     try {
-      let passwordData: any = {};
+      const passwordData: any = {};
       
       if (bulkPasswordMethod === 'custom') {
         passwordData.password = bulkCustomPassword;

@@ -6,10 +6,11 @@ import { jsPDF } from 'jspdf';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { filename: string } }
+  { params }: { params: Promise<{ filename: string }> }
 ) {
   try {
-    console.log('🔍 Certificate file download requested:', params.filename);
+    const { filename } = await params;
+    console.log('🔍 Certificate file download requested:', filename);
     
     // Verify authentication
     const bearer = request.headers.get('authorization');

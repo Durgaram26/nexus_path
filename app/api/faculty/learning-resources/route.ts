@@ -200,8 +200,7 @@ export async function POST(request: NextRequest) {
       // If specific students are selected, create access records for them
       if (studentIds && studentIds.length > 0) {
         const accessRecords = studentIds.map((studentId: number) => ({
-          studentId,
-          resourceId: resource.id
+        studentId: studentId.toString(),
         }));
 
         await prisma.studentResourceAccess.createMany({
@@ -227,8 +226,8 @@ export async function POST(request: NextRequest) {
       }
 
       const accessRecords = studentIds.map((studentId: number) => ({
-        studentId,
-        resourceId: parseInt(resourceId)
+        studentId: studentId.toString(),
+        resourceId
       }));
 
       await prisma.studentResourceAccess.createMany({
@@ -269,7 +268,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const updatedResource = await prisma.learningResource.update({
-      where: { id: parseInt(resourceId) },
+      where: { id: resourceId },
       data: {
         ...(title && { title }),
         ...(description && { description }),
@@ -312,8 +311,8 @@ export async function DELETE(request: NextRequest) {
       // Remove assignment from specific student
       await prisma.studentResourceAccess.deleteMany({
         where: {
-          resourceId: parseInt(resourceId),
-          studentId: parseInt(studentId)
+          resourceId,
+          studentId
         }
       });
 
@@ -325,7 +324,7 @@ export async function DELETE(request: NextRequest) {
     } else if (resourceId) {
       // Delete the entire resource (and all its assignments)
       await prisma.learningResource.delete({
-        where: { id: parseInt(resourceId) }
+        where: { id: resourceId }
       });
 
       return NextResponse.json({

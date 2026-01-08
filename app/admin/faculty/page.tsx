@@ -31,6 +31,14 @@ interface Faculty {
   allowedDepartments?: string | null;
 }
 
+interface User {
+  id: number;
+  email: string;
+  role: string;
+  plainPassword?: string;
+  createdAt: Date;
+}
+
 interface Student {
   id: number;
   email: string;
@@ -145,7 +153,7 @@ export default function AdminFacultyPage() {
       // Check which faculties have user accounts
       try {
         const usersResponse = await api.get('/users?role=faculty&format=json');
-        const userEmails = new Set<string>(usersResponse.data.map((u: any) => u.email));
+        const userEmails = new Set<string>(usersResponse.data.map((u: User) => u.email));
         setFacultiesWithAccounts(userEmails);
       } catch (error) {
         console.error('Failed to fetch user accounts:');

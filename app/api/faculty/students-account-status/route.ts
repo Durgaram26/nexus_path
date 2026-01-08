@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const ids = studentIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+    const ids = studentIds.split(',').map(id => id.trim()).filter(id => id.length > 0);
     console.log('🔢 Parsed student IDs:', ids);
 
     if (ids.length === 0) {
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
         email: student.email,
         name: student.name,
         registerNumber: student.registerNumber,
-        department: student.department?.name || 'Unknown',
+        department: student.department!.name,
         year: student.year,
         hasAccount: hasUserAccount,
         accountCreatedAt: userAccount?.createdAt || null,

@@ -96,7 +96,7 @@ function calculateCurrentStreak(executions: any[]): number {
   today.setHours(0, 0, 0, 0);
   
   let streak = 0;
-  let currentDate = new Date(today);
+  const currentDate = new Date(today);
   
   // Group executions by date
   const executionsByDate = new Map();

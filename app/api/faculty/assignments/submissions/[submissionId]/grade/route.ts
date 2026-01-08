@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // In-memory storage for submissions (in a real app, this would be a database)
-let submissions: any[] = [];
+const submissions: any[] = [];
 
 // POST /api/faculty/assignments/submissions/[submissionId]/grade - Grade submission
 export async function POST(
   request: NextRequest,
-  { params }: { params: { submissionId: string } }
+  { params }: { params: Promise<{ submissionId: string }> }
 ) {
   try {
-    const submissionId = parseInt(params.submissionId);
+    const { submissionId } = await params;
+    const submissionIdNum = parseInt(submissionId);
     const body = await request.json();
     const { grade, feedback } = body;
     
-    const submission = submissions.find(s => s.id === submissionId);
+    const submission = submissions.find(s => s.id === submissionIdNum);
     if (!submission) {
       return NextResponse.json(
         { success: false, message: 'Submission not found' },
