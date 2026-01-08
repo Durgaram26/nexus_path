@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GeminiAIService } from '../../../lib/gemini-ai';
+import { GeminiAIService } from '@/lib/gemini-ai';
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +18,8 @@ export async function GET(request: NextRequest) {
     console.log('Testing Gemini AI with parameters:', testRequest);
     
     try {
-      const questions = await .generateQuestionsWithGemini(testRequest);
+      const geminiService = new GeminiAIService();
+      const questions = await geminiService.generateQuestionsWithGemini(testRequest);
       
       return NextResponse.json({
         message: 'Gemini AI test successful',
@@ -31,19 +32,19 @@ export async function GET(request: NextRequest) {
         } : null
       });
     } catch (geminiError) {
-      console.error('Gemini AI :', geminiError);
+      console.error('Gemini AI error:', geminiError);
       return NextResponse.json({
         message: 'Gemini AI test failed',
-        : geminiError error instanceof Error ? geminiErrorerror.message : 'Unknown ',
+        error: geminiError instanceof Error ? geminiError.message : 'Unknown error',
         details: geminiError
       }, { status: 500 });
     }
 
   } catch (error) {
-    console.error('Gemini test API :');
+    console.error('Gemini test API error:', error);
     return NextResponse.json({ 
       message: 'Gemini test failed',
-      : error instanceof Error ? error.message : 'Unknown '
+      error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }

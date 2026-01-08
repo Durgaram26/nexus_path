@@ -8,11 +8,12 @@ function getAuthPayload(request: NextRequest) {
     ? bearer.substring('Bearer '.length)
     : undefined;
   const tokenFromCookie = request.cookies.get('access_token')?.value;
-  ';
+  const token = tokenFromHeader || tokenFromCookie;
   return token ? verifyToken(token) : null;
 }
 
-// GET - Get 's quiz attempts and export async function GET(request: NextRequest) {
+// GET - Get student's quiz attempts and statistics
+export async function GET(request: NextRequest) {
   try {
     // Temporarily bypass authentication for testing
     // const payload = getAuthPayload(request);
@@ -27,8 +28,8 @@ function getAuthPayload(request: NextRequest) {
     const attempts: unknown[] = [];
     
     // Add adaptive learning logic - analyze weak areas
-    Technical Skills', 'Problem Solving']; // Mock weak areas
-    Communication', 'Leadership']; // Mock strong areas
+    const weakAreas = ['Technical Skills', 'Problem Solving']; // Mock weak areas
+    const strongAreas = ['Communication', 'Leadership']; // Mock strong areas
 
     // Calculate statistics
     const totalAttempts = attempts.length;
@@ -46,8 +47,8 @@ function getAuthPayload(request: NextRequest) {
       }
     }, { status: 200 });
   } catch (error) {
-    console.error('GET ///quiz/attempts :');
-    return NextResponse.json({ message: 'Internal Server Error', : String(error) }, { status: 500 });
+    console.error('GET /api/student/quiz/attempts error:', error);
+    return NextResponse.json({ message: 'Internal Server Error', error: String(error) }, { status: 500 });
   }
 }
 
@@ -84,8 +85,8 @@ export async function POST(request: NextRequest) {
       explanation,
       // Add learning insights
       learningInsights: {
-        : !isCorrect ? [category] : [],
-        : isCorrect ? [category] : [],
+        weakAreas: !isCorrect ? [category] : [],
+        strongAreas: isCorrect ? [category] : [],
         recommendedFocus: !isCorrect ? `Focus on ${category.toLowerCase()} concepts` : `Great job with ${category.toLowerCase()}!`
       }
     };
@@ -117,6 +118,6 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error) {
     console.error('POST ///quiz/attempts :');
-    return NextResponse.json({ message: 'Internal Server Error', : String(error) }, { status: 500 });
+    return NextResponse.json({ message: 'Internal Server Error', error: String(error) }, { status: 500 });
   }
 }

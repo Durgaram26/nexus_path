@@ -5,6 +5,8 @@ import api from '@/lib/api';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Flag, CheckCircle, ArrowLeft, ArrowRight, Play, Brain, Shield, AlertTriangle, Zap, Target } from 'lucide-react';
 
 
 
@@ -42,11 +44,11 @@ export default function LMSQuizPage() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [showResults, setShowResults] = useStatesetLoading(false);
+  const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
-  const [loading, setLoading] = useStatesetLoading(false);
-  const [fullscreenMode, setFullscreenMode] = useStatesetLoading(false);
-  const [showInstructions, setShowInstructions] = useStatesetLoading(true);
+  const [loading, setLoading] = useState(false);
+  const [fullscreenMode, setFullscreenMode] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(true);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
 
   // Mock quiz data - in real app, this would come from API
@@ -122,26 +124,26 @@ export default function LMSQuizPage() {
     setCurrentQuestionIndex(0);
     setSelectedAnswer(null);
     setScore(0);
-    setShowResultssetLoadingsetLoading(false);
-    setShowInstructionssetLoading(true);
+    setShowResults(false);
+    setShowInstructions(true);
     setFlaggedQuestions(new Set());
   };
 
   
-    
-    setShowInstructionssetLoading(false);
-    setSession(=> ? { ... started: true } : null);
+  const startQuiz = () => {
+    setShowInstructions(false);
+    setSession(prev => prev ? { ...prev, started: true } : null);
     
     // Start timer
     const timer = setInterval(() => {
-      setSession(=> {
-        if (!|| .completed) {
+      setSession(prev => {
+        if (!prev || prev.completed) {
           clearInterval(timer);
-          return ;
+          return prev;
         }
         
-        const newTimeSpent = .timeSpent + 1;
-        const newTimeRemaining = .timeRemaining - 1;
+        const newTimeSpent = prev.timeSpent + 1;
+        const newTimeRemaining = prev.timeRemaining - 1;
         
         if (newTimeRemaining <= 0) {
           finishQuiz();
@@ -149,7 +151,7 @@ export default function LMSQuizPage() {
         }
         
         return {
-          ...
+          ...prev,
           timeSpent: newTimeSpent,
           timeRemaining: newTimeRemaining
         };
@@ -159,7 +161,9 @@ export default function LMSQuizPage() {
     (window as any).quizTimer = timer;
   };
 
-  Please select an answer before proceeding');
+  const handleNextQuestion = () => {
+    if (selectedAnswer === null) {
+      toast.error('Please select an answer before proceeding');
       return;
     }
 
@@ -167,7 +171,7 @@ export default function LMSQuizPage() {
     const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
     
     if (isCorrect) {
-      setScore(=> + currentQuestion.points);
+      setScore(prev => prev + currentQuestion.points);
     }
 
     // Store answer
@@ -181,15 +185,15 @@ export default function LMSQuizPage() {
       difficulty: currentQuestion.difficulty
     };
 
-    setSession(=> ? {
-      ...
-      answers: [....answers, answer],
-      currentQuestion: .currentQuestion + 1
+    setSession(prev => prev ? {
+      ...prev,
+      answers: [...prev.answers, answer],
+      currentQuestion: prev.currentQuestion + 1
     } : null);
 
     // Move to next question or finish
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(=> + 1);
+      setCurrentQuestionIndex(prev => prev + 1);
       setSelectedAnswer(null);
     } else {
       finishQuiz();
@@ -197,8 +201,8 @@ export default function LMSQuizPage() {
   };
 
   const finishQuiz = () => {
-    setSession(=> ? { ... completed: true } : null);
-    setShowResultssetLoadingsetLoading(true);
+    setSession(prev => prev ? { ...prev, completed: true } : null);
+    setShowResults(true);
     
     if ((window as any).quizTimer) {
       clearInterval((window as any).quizTimer);
@@ -207,17 +211,17 @@ export default function LMSQuizPage() {
     toast.success(`Quiz completed! Score: ${score}/${questions.reduce((sum, q) => sum + q.points, 0)}`);
   };
 
-  const navigateQuestion = (direction: '' | 'next') => {
-    if (direction === '' && currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(=> - 1);
+  const navigateQuestion = (direction: 'prev' | 'next') => {
+    if (direction === 'prev' && currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
     } else if (direction === 'next' && currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(=> + 1);
+      setCurrentQuestionIndex(prev => prev + 1);
     }
   };
 
   const toggleFlag = () => {
-    setFlaggedQuestions(=> {
-      const newSet = new Set();
+    setFlaggedQuestions(prev => {
+      const newSet = new Set(prev);
       if (newSet.has(currentQuestionIndex)) {
         newSet.delete(currentQuestionIndex);
       } else {
@@ -230,7 +234,7 @@ export default function LMSQuizPage() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString(error).padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -270,9 +274,9 @@ export default function LMSQuizPage() {
 
   useEffect(() => {
     initializeQuiz();
-  }, [initializeQuiz]);
+  }, []);
 
-  if (token) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -288,8 +292,6 @@ export default function LMSQuizPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      </>
-      
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="px-4 sm:px-6 lg:px-8">
@@ -334,12 +336,12 @@ export default function LMSQuizPage() {
         {/* Instructions */}
         {showInstructions && (
           <Card className="mb-6 border-blue-200 bg-blue-50">
-            <>
+            <CardHeader>
               <div className="flex items-center text-blue-800">
                 <div className="w-5 h-5 mr-2" />
                 Quiz Instructions
-              </>
-            </>
+              </div>
+            </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
@@ -385,7 +387,7 @@ export default function LMSQuizPage() {
               
               <div className="text-center">
                 <Button 
-                  onClick={}
+                  onClick={startQuiz}
                   className="bg-blue-600 hover:bg-blue-700"
                   size="lg"
                 >
@@ -400,10 +402,10 @@ export default function LMSQuizPage() {
         {/* Quiz Content */}
         {session?.started && !session.completed && currentQuestion && (
           <Card className="mb-6">
-            <>
+            <CardHeader>
               <div className="flex justify-between items-center">
                 <div>
-                  <>Question {currentQuestionIndex + 1} of {questions.length}</>
+                  <div className="text-lg font-semibold">Question {currentQuestionIndex + 1} of {questions.length}</div>
                   <div className="text-sm text-gray-600 mt-1">
                     {currentQuestion.category} • {currentQuestion.difficulty}
                   </div>
@@ -411,10 +413,10 @@ export default function LMSQuizPage() {
                 <div className="flex items-center space-x-2">
                   <div className={getDifficultyColor(currentQuestion.difficulty)}>
                     {currentQuestion.difficulty}
-                  </>
-                  <variant="outline">
+                  </div>
+                  <div className="px-2 py-1 text-xs border rounded">
                     {currentQuestion.points} points
-                  </>
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"
@@ -425,25 +427,24 @@ export default function LMSQuizPage() {
                   </Button>
                 </div>
               </div>
-              <value={} className="mt-2" />
-            </>
+            </CardHeader>
             
             <CardContent>
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-medium mb-4">{currentQuestion.question}</h3>
                   <div className="space-y-2">
-                    {currentQuestion.options.map((option, ) => (
+                    {currentQuestion.options.map((option, index) => (
                       <label 
-                        key={} 
+                        key={index} 
                         className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                       >
                         <input
                           type="radio"
                           name="quiz-answer"
-                          value={}
-                          checked={selectedAnswer === }
-                          onChange={() => setSelectedAnswer()}
+                          value={index}
+                          checked={selectedAnswer === index}
+                          onChange={() => setSelectedAnswer(index)}
                           className="w-4 h-4"
                         />
                         <span>{option}</span>
@@ -473,7 +474,7 @@ export default function LMSQuizPage() {
                   </div>
                   
                   <Button
-                    onClick={}
+                    onClick={() => { if (currentQuestionIndex < questions.length - 1) navigateQuestion('next'); else finishQuiz(); }}
                     disabled={selectedAnswer === null}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
@@ -488,12 +489,12 @@ export default function LMSQuizPage() {
         {/* Results */}
         {showResults && (
           <Card className="mb-6">
-            <>
+            <CardHeader>
               <div className="flex items-center">
                 <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-                Quiz Results
-              </>
-            </>
+                <div className="text-lg font-semibold">Quiz Results</div>
+              </div>
+            </CardHeader>
             <CardContent>
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { socketClient } from '@/lib/socket-client';
-import { api } from '@/lib/api';
+import api from '@/lib/api';
 import { toast } from 'sonner';
 
 interface Message {

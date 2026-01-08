@@ -18,45 +18,46 @@ export async function GET(request: NextRequest) {
 
     console.log('Test request body:', requestBody);
 
-    POST',
+    const response = await fetch(`${JUDGE0_BASE_URL}/submissions`, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        '-RapidAPI-Key': JUDGE0_API_KEY,
-        '-RapidAPI-Host': 'judge0-ce.p.rapidapi.com'
+        'X-RapidAPI-Key': JUDGE0_API_KEY,
+        'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com'
       },
       body: JSON.stringify(requestBody)
     });
 
-    console.log('Judge0 test status:', error.response.status);
-    console.log('Judge0 test headers:', Object.fromEntries(.headers.entries()));
+    console.log('Judge0 test status:', response.status);
+    console.log('Judge0 test headers:', Object.fromEntries(response.headers.entries()));
 
-    if (!.ok) {
-      const errorText = await .text();
-      console.error('Judge0 test :', errorText);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Judge0 test error:', errorText);
       return NextResponse.json({
         success: false,
-        status: error.response.status,
-        : errorText,
-        headers: Object.fromEntries(.headers.entries())
+        status: response.status,
+        error: errorText,
+        headers: Object.fromEntries(response.headers.entries())
       });
     }
 
-    const data = await .json();
+    const data = await response.json();
     console.log('Judge0 test data:', data);
 
     return NextResponse.json({
       success: true,
-      status: error.response.status,
+      status: response.status,
       data: data,
       message: 'Judge0 API is working'
     });
 
-  } catch (error: error unknown) {
-    console.error('Judge0 test :');
+  } catch (error: unknown) {
+    console.error('Judge0 test error:', error);
     return NextResponse.json({
       success: false,
-      : error.message,
-      stack: .stack
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
     }, { status: 500 });
   }
 }
