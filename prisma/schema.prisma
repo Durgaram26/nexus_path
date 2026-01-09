@@ -78,12 +78,8 @@ model Faculty {
   email        String     @unique
   name         String
   gender       Gender
-<<<<<<< HEAD
-  departmentId String @db.ObjectId
-=======
   phoneNumber  String?
   departmentId Int
->>>>>>> main
   department   Department @relation(fields: [departmentId], references: [id])
   
   // Dynamic assignment options
