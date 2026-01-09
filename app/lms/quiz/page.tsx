@@ -457,7 +457,7 @@ export default function LMSQuizPage() {
                   <div className="flex space-x-2">
                     <Button
                       variant="outline"
-                      onClick={() => navigateQuestion('')}
+                      onClick={() => navigateQuestion('prev')}
                       disabled={currentQuestionIndex === 0}
                     >
                       <ArrowLeft className="w-4 h-4 mr-1" />

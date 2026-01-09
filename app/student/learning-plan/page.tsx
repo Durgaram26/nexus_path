@@ -73,7 +73,7 @@ export default function StudentLearningPlanPage() {
                   } catch (error) {
                     console.log('JSON parse failed, treating as comma-separated string');
                     // If JSON parsing fails, treat as comma-separated string
-                    activitySkills = activity.skills.split(',').map(s => s.trim());
+                    activitySkills = activity.skills.split(',').map((s: string) => s.trim());
                     console.log('Split result:', activitySkills);
                   }
                 } else {
@@ -238,7 +238,7 @@ export default function StudentLearningPlanPage() {
         console.log('🎉 AI suggestions loaded:', response.data.suggestions);
         console.log('Current aiSuggestions state:', aiSuggestions);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error generating AI suggestions:', error);
       console.log('🔄 Using intelligent fallback suggestions...');
       console.log('Error details:', error.response?.data || error.message);
@@ -330,7 +330,7 @@ export default function StudentLearningPlanPage() {
           console.log('Saved to backend successfully');
           setSavedSuggestions(prev => [...prev, { ...suggestion, id: response.data.id }]);
         }
-      } catch (apiError) {
+      } catch (apiError: any) {
         console.error('Backend save failed:', apiError);
         console.log('API Error details:', apiError.response?.data || apiError.message);
         console.log('Falling back to localStorage...');
@@ -698,7 +698,7 @@ export default function StudentLearningPlanPage() {
                           <div className="space-y-1">
                             <p className="text-xs font-medium text-gray-700">Prerequisites:</p>
                             <div className="flex flex-wrap gap-1">
-                              {suggestion.prerequisites.map((prereq, prereqIndex) => (
+                              {suggestion.prerequisites.map((prereq: any, prereqIndex: number) => (
                                 <span 
                                   key={prereqIndex}
                                   className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded"
@@ -714,7 +714,7 @@ export default function StudentLearningPlanPage() {
                         <div className="space-y-1">
                           <p className="text-xs font-medium text-gray-700">Skills You'll Learn:</p>
                           <div className="flex flex-wrap gap-1">
-                            {suggestion.skills.map((skill, skillIndex) => (
+                            {suggestion.skills.map((skill: any, skillIndex: number) => (
                               <span 
                                 key={skillIndex}
                                 className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
@@ -730,7 +730,7 @@ export default function StudentLearningPlanPage() {
                           <div className="space-y-1">
                             <p className="text-xs font-medium text-gray-700">Career Outcomes:</p>
                             <div className="flex flex-wrap gap-1">
-                              {suggestion.careerOutcomes.map((outcome, outcomeIndex) => (
+                              {suggestion.careerOutcomes.map((outcome: any, outcomeIndex: number) => (
                                 <span 
                                   key={outcomeIndex}
                                   className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded"
@@ -800,7 +800,7 @@ export default function StudentLearningPlanPage() {
                         <span>Saved: {new Date(suggestion.savedAt).toLocaleDateString()}</span>
                       </div>
                       <div className="flex flex-wrap gap-1">
-                        {suggestion.skills.map((skill, skillIndex) => (
+                        {suggestion.skills.map((skill: any, skillIndex: number) => (
                           <span 
                             key={skillIndex}
                             className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"

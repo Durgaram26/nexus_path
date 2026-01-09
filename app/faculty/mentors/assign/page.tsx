@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +26,6 @@ import {
   BookOpen
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 
 interface IndustryMentor {
@@ -61,6 +61,7 @@ interface Student {
 }
 
 export default function AssignMentorPage() {
+  const router = useRouter();
   const [mentors, setMentors] = useState<IndustryMentor[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);

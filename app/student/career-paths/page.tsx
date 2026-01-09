@@ -184,7 +184,7 @@ export default function StudentCareerPathsPage() {
                     {careerPath.assignedByUser && (
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <User className="h-4 w-4" />
-                        <span>Assigned by: {careerPath.assignedByUser.name || careerPath.assignedByUser.email}</span>
+                        <span>Assigned by: {careerPath.assignedByUser.firstName} {careerPath.assignedByUser.lastName}</span>
                       </div>
                     )}
                   </div>

@@ -163,7 +163,7 @@ export default function AddStudent({ params }: { params: Promise<{ id: string }>
       } else {
         throw new Error('Failed to assign student');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error assigning student:', error);
       
       // Check if it's a 404 error (API not implemented)

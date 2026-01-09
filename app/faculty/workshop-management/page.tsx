@@ -113,7 +113,7 @@ export default function WorkshopManagement() {
       } else {
         throw new Error('Failed to fetch workshops');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching workshops:', error);
       console.error('Error details:', error.response?.data);
       toast.error('Failed to fetch workshops. Please try again later.');
@@ -138,7 +138,7 @@ export default function WorkshopManagement() {
       } else {
         throw new Error('Failed to delete workshop');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting workshop:', error);
       toast.error('Failed to delete workshop');
     } finally {

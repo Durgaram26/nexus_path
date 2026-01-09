@@ -21,21 +21,21 @@ export async function GET(request: NextRequest) {
     try {
       const sessions = await prisma.codeTestSession.findMany({ take: 1 });
       console.log('✅ CodeTestSession table accessible:', sessions.length, 'records');
-    } catch (error) {
+    } catch (error: any) {
       console.log('❌ CodeTestSession table error:', error.message);
     }
 
     try {
       const questionResults = await prisma.codeTestQuestionResult.findMany({ take: 1 });
       console.log('✅ CodeTestQuestionResult table accessible:', questionResults.length, 'records');
-    } catch (error) {
+    } catch (error: any) {
       console.log('❌ CodeTestQuestionResult table error:', error.message);
     }
 
     try {
       const executionHistory = await prisma.codeExecutionHistory.findMany({ take: 1 });
       console.log('✅ CodeExecutionHistory table accessible:', executionHistory.length, 'records');
-    } catch (error) {
+    } catch (error: any) {
       console.log('❌ CodeExecutionHistory table error:', error.message);
     }
 

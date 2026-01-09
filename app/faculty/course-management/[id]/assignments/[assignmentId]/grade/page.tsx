@@ -125,7 +125,7 @@ export default function GradeAssignment({
         }));
         setSubmissions(transformedSubmissions);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching data:', error);
       
       // Check if it's a 404 error (API not implemented)
@@ -176,7 +176,7 @@ export default function GradeAssignment({
       } else {
         throw new Error('Failed to grade submission');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error grading submission:', error);
       
       // Check if it's a 404 error (API not implemented)

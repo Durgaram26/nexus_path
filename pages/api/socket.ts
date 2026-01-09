@@ -3,7 +3,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { verifyToken } from '@/lib/auth';
 
 const SocketHandler = (req: NextApiRequest, res: NextApiResponse) => {
-  if (res.socket.server.io) {
+  if ((res.socket as any).server.io) {
     console.log('Socket.IO already running');
     res.end();
     return;
@@ -11,7 +11,7 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponse) => {
 
   console.log('Initializing Socket.IO server...');
   
-  const io = new SocketIOServer(res.socket.server, {
+  const io = new SocketIOServer((res.socket as any).server, {
     cors: {
       origin: process.env.NODE_ENV === 'production' 
         ? process.env.NEXT_PUBLIC_APP_URL 
@@ -121,7 +121,7 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponse) => {
     });
   });
 
-  res.socket.server.io = io;
+  (res.socket as any).server.io = io;
   res.end();
 };
 

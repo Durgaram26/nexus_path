@@ -181,12 +181,12 @@ export const socketManager = new SocketManager();
 
 // Next.js API route handler for Socket.IO
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (res.socket.server.io) {
+  if ((res.socket as any)?.server.io) {
     console.log('Socket.IO already running');
   } else {
     console.log('Initializing Socket.IO');
-    socketManager.initialize(res.socket.server);
-    res.socket.server.io = socketManager;
+    socketManager.initialize((res.socket as any).server);
+    (res.socket as any).server.io = socketManager;
   }
   res.end();
 }

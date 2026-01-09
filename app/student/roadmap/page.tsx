@@ -91,7 +91,7 @@ export default function StudentRoadmapPage() {
         return null;
       }
       return payload;
-    } catch (error) {
+    } catch (error: any) {
       localStorage.removeItem('access_token');
       return null;
     }
@@ -126,7 +126,7 @@ export default function StudentRoadmapPage() {
       } else {
         setError('Failed to load roadmap');
       }
-    } catch (error) {
+    } catch (error: any) {
       // Handle expected 400 errors (career path requirements) without logging as errors
       if (error.response?.status === 400) {
         if (error.response.data?.requiresCareerPath) {

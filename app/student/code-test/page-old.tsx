@@ -278,7 +278,7 @@ export default function CodeTestPage() {
 
     try {
       const testCases = currentQuestion.testCases;
-      const results = [];
+      const results: any[] = [];
       let passedTests = 0;
 
       for (let i = 0; i < testCases.length; i++) {
