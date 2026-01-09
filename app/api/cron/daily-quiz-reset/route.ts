@@ -71,7 +71,7 @@ async function resetDailyQuizData() {
       include: {
         quizAttempts: {
           where: {
-            createdAt: {
+            attemptedAt: {
               gte: new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate()),
               lt: new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate() + 1)
             }
@@ -87,17 +87,9 @@ async function resetDailyQuizData() {
         const correctAnswers = student.quizAttempts.reduce((sum: number, attempt: any) => sum + attempt.correctAnswers, 0);
         const averageScore = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
 
-        // Update student performance
-        await prisma.student.update({
-          where: { id: student.id },
-          data: {
-            lastQuizDate: yesterday,
-            totalQuizAttempts: {
-              increment: student.quizAttempts.length
-            },
-            averageQuizScore: averageScore
-          }
-        });
+        // TODO: Update student performance records if needed
+        // The Student model doesn't have lastQuizDate, totalQuizAttempts fields
+        // Consider updating StudentPerformance model instead
       }
     }
 

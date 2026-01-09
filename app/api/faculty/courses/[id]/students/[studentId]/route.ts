@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 // DELETE /api/faculty/courses/[id]/students/[studentId] - Remove student from course
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; studentId: string } }
+  { params }: { params: Promise<{ id: string; studentId: string }> }
 ) {
   try {
-    const courseId = parseInt(params.id);
-    const studentId = parseInt(params.studentId);
+    const { id, studentId: studentIdStr } = await params;
+    const courseId = parseInt(id);
+    const studentId = parseInt(studentIdStr);
     
     // In a real app, you would remove the student from the course enrollment
     // For now, we'll just return success

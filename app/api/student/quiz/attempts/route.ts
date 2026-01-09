@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
 
     // Calculate statistics
     const totalAttempts = attempts.length;
-    const correctAttempts = attempts.filter(a => a.isCorrect).length;
-    const totalPoints = attempts.reduce((sum, a) => sum + a.earnedPoints, 0);
+    const correctAttempts = attempts.filter((a: any) => a.isCorrect).length;
+    const totalPoints = attempts.reduce((sum: number, a: any) => sum + a.earnedPoints, 0);
     const accuracy = totalAttempts > 0 ? (correctAttempts / totalAttempts) * 100 : 0;
 
     return NextResponse.json({
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       selectedAnswer,
       isCorrect,
       earnedPoints: earnedPoints || 0,
-      attemptedAt: new Date().toISOString(error),
+      attemptedAt: new Date().toISOString(),
       category,
       difficulty,
       question,

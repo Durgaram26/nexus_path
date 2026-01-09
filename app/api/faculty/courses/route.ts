@@ -89,10 +89,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('❌ Error creating course:', error);
-    console.error('Error details:', error.message);
-    console.error('Error stack:', error.stack);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('Error details:', errorMessage);
+    console.error('Error stack:', errorStack);
     return NextResponse.json(
-      { success: false, message: `Failed to create course: ${error.message}` },
+      { success: false, message: `Failed to create course: ${errorMessage}` },
       { status: 500 }
     );
   }

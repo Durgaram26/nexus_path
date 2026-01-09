@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // In-memory storage for courses (in a real app, this would be a database)
-let courses: any[] = [];
+const courses: any[] = [];
 
 // GET /api/faculty/courses/[id]/assignments - Fetch course assignments
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const courseId = parseInt(params.id);
+    const { id } = await params;
+    const courseId = parseInt(id);
     const course = courses.find(c => c.id === courseId);
     
     if (!course) {

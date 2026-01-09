@@ -26,7 +26,7 @@ export async function GET(
     const { id } = await params;
     const studentId = parseInt(id);
     
-    if (isNaN(studentId)) {
+    if (!studentId || isNaN(studentId)) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
@@ -83,7 +83,7 @@ export async function PUT(
     const { id } = await params;
     const studentId = parseInt(id);
     
-    if (isNaN(studentId)) {
+    if (!studentId || isNaN(studentId)) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
@@ -164,7 +164,7 @@ export async function PUT(
         email,
         name,
         gender,
-        departmentId: parseInt(departmentId),
+        departmentId: departmentId,
         year: parseInt(year),
         registerNumber},
       include: {
@@ -196,7 +196,7 @@ export async function DELETE(
     const { id } = await params;
     const studentId = parseInt(id);
     
-    if (isNaN(studentId)) {
+    if (!studentId || isNaN(studentId)) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 

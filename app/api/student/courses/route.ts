@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     // Find the user record
     console.log('Looking for user with ID:', decoded.userId);
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: decoded.userId as number },
       select: { email: true }
     });
 

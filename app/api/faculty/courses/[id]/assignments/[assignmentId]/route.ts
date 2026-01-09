@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // In-memory storage for courses (in a real app, this would be a database)
-let courses: any[] = [];
+const courses: any[] = [];
 
 // DELETE /api/faculty/courses/[id]/assignments/[assignmentId] - Delete assignment
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; assignmentId: string } }
+  { params }: { params: Promise<{ id: string; assignmentId: string }> }
 ) {
   try {
-    const courseId = parseInt(params.id);
-    const assignmentId = parseInt(params.assignmentId);
+    const { id, assignmentId } = await params;
+    const courseId = parseInt(id);
+    const assignmentIdNum = parseInt(assignmentId);
     
     const course = courses.find(c => c.id === courseId);
     if (!course) {
@@ -20,7 +21,7 @@ export async function DELETE(
       );
     }
     
-    const assignmentIndex = course.assignments.findIndex(a => a.id === assignmentId);
+    const assignmentIndex = course.assignments.findIndex((a: any) => a.id === assignmentIdNum);
     if (assignmentIndex === -1) {
       return NextResponse.json(
         { success: false, message: 'Assignment not found' },

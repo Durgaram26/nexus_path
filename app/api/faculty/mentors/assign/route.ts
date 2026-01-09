@@ -35,15 +35,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (mentor.currentStudents + assignments.length > mentor.maxStudents) {
+    // Get current number of students assigned to this mentor
+    const currentAssignmentCount = await prisma.industryMentorAssignment.count({
+      where: {
+        mentorId: mentorId,
+        isActive: true
+      }
+    });
+
+    if (currentAssignmentCount + assignments.length > mentor.maxStudents) {
       return NextResponse.json(
-        { success: false, message: `Mentor can only handle ${mentor.maxStudents} students. Currently has ${mentor.currentStudents}.` },
+        { success: false, message: `Mentor can only handle ${mentor.maxStudents} students. Currently has ${currentAssignmentCount}.` },
         { status: 400 }
       );
     }
 
     // Check for existing assignments
-    const existingAssignments = await prisma.mentorAssignment.findMany({
+    const existingAssignments = await prisma.industryMentorAssignment.findMany({
       where: {
         mentorId: mentorId,
         studentId: { in: assignments.map(a => a.studentId) },
@@ -60,7 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create assignments
-    const createdAssignments = await prisma.mentorAssignment.createMany({
+    const createdAssignments = await prisma.industryMentorAssignment.createMany({
       data: assignments.map(assignment => ({
         mentorId: assignment.mentorId,
         studentId: assignment.studentId,
@@ -72,15 +80,9 @@ export async function POST(request: NextRequest) {
       }))
     });
 
-    // Update mentor's current student count
-    await prisma.industryMentor.update({
-      where: { id: mentorId },
-      data: {
-        currentStudents: {
-          increment: assignments.length
-        }
-      }
-    });
+    // TODO: If needed to track student count, consider adding a field to IndustryMentor or use count queries
+    // Update mentor assignment status
+    // (Currently IndustryMentor doesn't have a currentStudents field)
 
     console.log(`✅ Created ${createdAssignments.count} mentor assignments`);
 

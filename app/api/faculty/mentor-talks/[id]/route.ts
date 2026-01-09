@@ -6,10 +6,11 @@ const prisma = new PrismaClient();
 // PUT /api/faculty/mentor-talks/[id] - Update mentor talk
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const talkId = params.id;
+    const { id } = await params;
+    const talkId = id;
     
     if (!talkId || isNaN(parseInt(talkId))) {
       return NextResponse.json(
@@ -123,10 +124,11 @@ export async function PUT(
 // DELETE /api/faculty/mentor-talks/[id] - Delete mentor talk
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const talkId = params.id;
+    const { id } = await params;
+    const talkId = id;
     
     if (!talkId || isNaN(parseInt(talkId))) {
       return NextResponse.json(

@@ -51,7 +51,7 @@ async function generateAISuggestions(skillType: string, currentLevel: string, in
     console.log('Student profile:', studentProfile);
     
     // Analyze current roadmap to understand student's progress and gaps
-    const roadmapAnalysis = analyzeCurrentRoadmaps(currentRoadmaps, studentProfile);
+    const roadmapAnalysis = analyzeCurrentRoadmaps(currentRoadmaps || [], studentProfile);
     console.log('Roadmap analysis:', roadmapAnalysis);
     
     // Generate personalized suggestions based on analysis
@@ -125,7 +125,7 @@ function analyzeCurrentRoadmaps(roadmaps: any[], studentProfile: any) {
                     activitySkills = JSON.parse(activity.skills);
                   } catch (error) {
                     // If JSON parsing fails, treat as comma-separated string
-                    activitySkills = activity.skills.split(',').map(s => s.trim());
+                    activitySkills = activity.skills.split(',').map((s: string) => s.trim());
                   }
                 } else {
                   activitySkills = activity.skills;
@@ -163,8 +163,8 @@ function generatePersonalizedSuggestions(analysis: any, interests: string[], cur
   
   // Based on academic year and current skills, suggest appropriate learning paths
   const academicYear = analysis.academicYear;
-  const currentSkills = Array.from(analysis.currentSkills);
-  const careerGoals = Array.from(analysis.careerGoals);
+  const currentSkills = Array.from(analysis.currentSkills) as string[];
+  const careerGoals = Array.from(analysis.careerGoals) as string[];
   
   console.log('Academic year:', academicYear);
   console.log('Current skills:', currentSkills);

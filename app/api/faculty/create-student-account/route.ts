@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     // Get the student record
     const student = await prisma.student.findUnique({
-      where: { id: parseInt(studentId) },
+      where: { id: studentId },
       include: { 
         department: true,
         careerPaths: {
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
         email: student.email,
         name: student.name,
         registerNumber: student.registerNumber,
-        department: student.department.name,
+        department: student.department!.name,
         year: student.year
       },
       credentials: {
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
         name: student.name,
         email: student.email,
         password: finalPassword,
-        department: student.department.name,
+        department: student.department!.name,
         year: student.year,
         createdAt: new Date().toISOString()
       }
@@ -207,7 +207,7 @@ export async function PUT(request: NextRequest) {
       try {
         // Get the student record
         const student = await prisma.student.findUnique({
-          where: { id: parseInt(studentId) },
+          where: { id: studentId },
           include: { 
             department: true,
             careerPaths: {
@@ -284,7 +284,7 @@ export async function PUT(request: NextRequest) {
             name: student.name,
             email: student.email,
             password: finalPassword,
-            department: student.department.name,
+            department: student.department!.name,
             year: student.year,
             createdAt: new Date().toISOString()
           }

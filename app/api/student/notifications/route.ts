@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const studentId = (payload as any).userId;
 
     // Get notifications using the notification service
-    let notifications = [];
+    let notifications: any[] = [];
     let unreadCount = 0;
     
     try {

@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
         name: student.name,
         email: student.email,
         password: user?.plainPassword || null,
-        department: student.department.name,
+        department: student.department!.name,
         year: student.year,
         createdAt: user?.createdAt || null
       };

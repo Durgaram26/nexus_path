@@ -49,10 +49,7 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Querying for student IDs:', ids);
     
     const students = await prisma.student.findMany({
-      where: { id: { in: ids } },
-      include: {
-        department: true
-      }
+      where: { id: { in: ids } }
     });
     console.log(`✅ Found ${students.length} students`);
     console.log('📝 Students found:', students.map(s => ({ id: s.id, name: s.name, email: s.email })));
@@ -102,7 +99,7 @@ export async function GET(request: NextRequest) {
         email: student.email,
         name: student.name,
         registerNumber: student.registerNumber,
-        department: student.department?.name || 'Unknown',
+        departmentId: student.departmentId,
         year: student.year,
         hasAccount: hasUserAccount,
         accountCreatedAt: userAccount?.createdAt || null,

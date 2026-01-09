@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // In-memory storage for submissions (in a real app, this would be a database)
-let submissions: any[] = [];
+const submissions: any[] = [];
 
 // GET /api/faculty/courses/[id]/assignments/[assignmentId]/submissions - Fetch assignment submissions
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; assignmentId: string } }
+  { params }: { params: Promise<{ id: string; assignmentId: string }> }
 ) {
   try {
-    const courseId = parseInt(params.id);
-    const assignmentId = parseInt(params.assignmentId);
+    const { id, assignmentId } = await params;
+    const courseId = parseInt(id);
+    const assignmentIdNum = parseInt(assignmentId);
     
     // In a real app, you would filter submissions by course and assignment
     // For now, we'll return all submissions

@@ -124,7 +124,11 @@ export async function GET(request: NextRequest) {
     // Get course details
     const course = await prisma.course.findUnique({
       where: { id: parseInt(courseId) },
-      include: { creator: true }
+      include: { 
+        creator: {
+          include: { department: true }
+        }
+      }
     });
 
     if (!course) {

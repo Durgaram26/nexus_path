@@ -6,10 +6,11 @@ const prisma = new PrismaClient();
 // POST /api/student/mentor-talks/[id]/register - Register for mentor talk
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const talkId = parseInt(params.id);
+    const { id } = await params;
+    const talkId = parseInt(id);
     // TODO: Get student ID from JWT token
     const studentId = 1; // Mock student ID
 

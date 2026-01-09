@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 
     console.log('Fetching workshops with where clause:', where);
 
-    let workshops = [];
+    let workshops: any[] = [];
     try {
       // First, test if the workshop table exists
       await prisma.workshop.findFirst();
@@ -104,7 +104,8 @@ export async function GET(request: NextRequest) {
       });
     } catch (dbError) {
       console.error('Database error:', dbError);
-      console.error('Database error details:', dbError.message);
+      const errorMessage = dbError instanceof Error ? dbError.message : String(dbError);
+      console.error('Database error details:', errorMessage);
       // If there's a database error (like table doesn't exist), return empty array
       workshops = [];
     }
@@ -118,11 +119,13 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error fetching workshops:', error);
-    console.error('Error details:', error.message);
-    console.error('Error stack:', error.stack);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error('Error details:', errorMessage);
+    console.error('Error stack:', errorStack);
     return NextResponse.json({ 
       error: 'Failed to fetch workshops',
-      details: error.message
+      details: errorMessage
     }, { status: 500 });
   }
 }
@@ -188,7 +191,7 @@ export async function POST(request: NextRequest) {
         faculty = await prisma.faculty.create({
           data: {
             email: payload.email,
-            name: payload.firstName + ' ' + payload.lastName || 'Faculty Member',
+            name: 'Faculty Member',
             gender: 'OTHER', // Default gender
             departmentId: 1 // Default department
           }
@@ -241,11 +244,13 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error creating workshop:', error);
-    console.error('Error details:', error.message);
-    console.error('Error stack:', error.stack);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error('Error details:', errorMessage);
+    console.error('Error stack:', errorStack);
     return NextResponse.json({ 
       error: 'Failed to create workshop',
-      details: error.message
+      details: errorMessage
     }, { status: 500 });
   }
 }

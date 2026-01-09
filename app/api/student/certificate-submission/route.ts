@@ -70,12 +70,12 @@ export async function POST(request: NextRequest) {
     console.log('✅ Certificate file saved:', filename);
 
     const body = {
-      courseName: formData.get('courseName'),
-      courseProvider: formData.get('courseProvider'),
-      completionDate: formData.get('completionDate'),
-      description: formData.get('description'),
-      courseLink: formData.get('courseLink'),
-      courseType: formData.get('courseType'),
+      courseName: (formData.get('courseName') as string) || '',
+      courseProvider: (formData.get('courseProvider') as string) || '',
+      completionDate: (formData.get('completionDate') as string) || new Date().toISOString(),
+      description: (formData.get('description') as string) || '',
+      courseLink: (formData.get('courseLink') as string) || '',
+      courseType: (formData.get('courseType') as string) || 'online',
       certificateFile: filename
     };
     

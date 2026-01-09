@@ -4,6 +4,7 @@ import { useState } from 'react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { User, Menu, Search, Bell, LogOut, Settings } from 'lucide-react';
 
 
 
@@ -11,17 +12,18 @@ interface LMSNavigationProps {
   studentName: string;
   department: string;
   notifications?: number;
+  activeTab?: string;
   onNavigate: (section: string) => void;
-  : string;
 }
 
 export default function LMSNavigation({ 
   studentName, 
   department, 
   notifications = 0,
+  activeTab = 'dashboard',
   onNavigate}: LMSNavigationProps) {
-  const [sidebarOpen, setSidebarOpen] = useStatesetLoading(false);
-  const [profileOpen, setProfileOpen] = useStatesetLoading(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊', path: '/lms' },
@@ -40,7 +42,7 @@ export default function LMSNavigation({
       {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={() => setSidebarOpensetLoading(false)}
+          onClick={() => setSidebarOpen(false)}
         />
       )}
 
@@ -67,7 +69,7 @@ export default function LMSNavigation({
                 variant="ghost"
                 size="sm"
                 className="md:hidden"
-                onClick={() => setSidebarOpensetLoading(false)}
+                onClick={() => setSidebarOpen(false)}
               >
                 <div className="w-4 h-4" />
               </Button>
@@ -79,15 +81,15 @@ export default function LMSNavigation({
             {navigationItems.map((item) => (
               <Button
                 key={item.id}
-                variant={activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab === item.id ? "default" : "ghost"}
+                variant={activeTab === item.id ? "default" : "ghost"}
                 className={`w-full justify-start ${
-                  activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab activeTab === item.id 
+                  activeTab === item.id 
                     ? 'bg-blue-600 text-white' 
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
                 onClick={() => {
                   onNavigate(item.id);
-                  setSidebarOpensetLoadingsetLoading(false);
+                  setSidebarOpen(false);
                 }}
               >
                 <span className="text-lg mr-3">{item.icon}</span>
@@ -124,7 +126,7 @@ export default function LMSNavigation({
                 variant="ghost"
                 size="sm"
                 className="md:hidden mr-4"
-                onClick={() => setSidebarOpensetLoading(true)}
+                onClick={() => setSidebarOpen(true)}
               >
                 <Menu className="w-5 h-5" />
               </Button>
@@ -153,9 +155,9 @@ export default function LMSNavigation({
                 <Button variant="ghost" size="sm">
                   <Bell className="w-4 h-4" />
                   {notifications > 0 && (
-                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs">
+                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                       {notifications}
-                    </>
+                    </div>
                   )}
                 </Button>
               </div>
@@ -195,8 +197,9 @@ export default function LMSNavigation({
                       className="w-full justify-start"
                       onClick={() => onNavigate('settings')}
                     >
-                      <div className="w-4 h-4 mr-2" />
-                      </Button>
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </Button>
                     <hr className="my-1" />
                     <Button
                       variant="ghost"

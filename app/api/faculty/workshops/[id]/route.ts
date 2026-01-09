@@ -43,8 +43,7 @@ export async function GET(
       include: {
         creator: {
           select: {
-            firstName: true,
-            lastName: true,
+            name: true,
             email: true
           }
         },
@@ -52,8 +51,7 @@ export async function GET(
           include: {
             student: {
               select: {
-                firstName: true,
-                lastName: true,
+                name: true,
                 email: true
               }
             }
@@ -155,8 +153,7 @@ export async function PUT(
       include: {
         creator: {
           select: {
-            firstName: true,
-            lastName: true,
+            name: true,
             email: true
           }
         },
@@ -164,8 +161,7 @@ export async function PUT(
           include: {
             student: {
               select: {
-                firstName: true,
-                lastName: true,
+                name: true,
                 email: true
               }
             }

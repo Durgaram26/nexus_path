@@ -6,10 +6,11 @@ const prisma = new PrismaClient();
 // GET /api/faculty/courses/[id]/students - Fetch course students
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const courseId = parseInt(params.id);
+    const { id } = await params;
+    const courseId = parseInt(id);
     
     // Fetch students enrolled in this course from database
     const enrollments = await prisma.courseEnrollment.findMany({
@@ -53,10 +54,11 @@ export async function GET(
 // POST /api/faculty/courses/[id]/students - Add student to course
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const courseId = parseInt(params.id);
+    const { id } = await params;
+    const courseId = parseInt(id);
     const body = await request.json();
     
     // First, find or create the student
@@ -125,31 +127,6 @@ export async function POST(
     console.error('Error adding student:', error);
     return NextResponse.json(
       { success: false, message: 'Failed to add student' },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE /api/faculty/courses/[id]/students/[studentId] - Remove student from course
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string; studentId: string } }
-) {
-  try {
-    const courseId = parseInt(params.id);
-    const studentId = parseInt(params.studentId);
-    
-    // In a real app, you would remove the student from the course enrollment
-    // For now, we'll just return success
-    
-    return NextResponse.json({
-      success: true,
-      message: 'Student removed from course successfully'
-    });
-  } catch (error) {
-    console.error('Error removing student:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to remove student' },
       { status: 500 }
     );
   }

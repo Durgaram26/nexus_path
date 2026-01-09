@@ -4,7 +4,8 @@ import prisma from '@/lib/prisma';
 
 interface QuizAttempt {
   id: number;
-  adaptiveQuizId: number;
+  adaptiveQuizId: number | null;
+  quizId: number | null;
   studentId: number;
   attemptNumber: number;
   answers: string;
@@ -12,7 +13,7 @@ interface QuizAttempt {
   correctAnswers: number;
   totalQuestions: number;
   timeSpent: number;
-  completedAt: Date;
+  completedAt: Date | null;
   wrongAnswers: string | null;
   feedback: string | null;
 }
@@ -129,6 +130,7 @@ export async function GET(request: NextRequest) {
       const monthlyData = new Map<string, { totalScore: number; count: number }>();
       
       quizAttempts.forEach(attempt => {
+        if (!attempt.completedAt) return;
         const month = attempt.completedAt.toLocaleDateString('en-US', { month: 'short' });
         if (!monthlyData.has(month)) {
           monthlyData.set(month, { totalScore: 0, count: 0 });
@@ -179,6 +181,7 @@ export async function GET(request: NextRequest) {
       const dailyData = new Map<string, { quizScores: number[]; totalAttempts: number }>();
       
       quizAttempts.forEach(attempt => {
+        if (!attempt.completedAt) return;
         const date = attempt.completedAt.toISOString().split('T')[0];
         if (!dailyData.has(date)) {
           dailyData.set(date, { quizScores: [], totalAttempts: 0 });
@@ -357,7 +360,7 @@ export async function GET(request: NextRequest) {
     const recentActivities: Activity[] = quizAttempts.slice(0, 5).map(attempt => ({
       title: `Completed Quiz`,
       description: `Scored ${attempt.score}% on quiz`,
-      time: attempt.completedAt.toLocaleDateString('en-US'),
+      time: attempt.completedAt?.toLocaleDateString('en-US') || new Date().toLocaleDateString('en-US'),
       type: 'Quiz'
     }));
 
@@ -387,6 +390,7 @@ export async function GET(request: NextRequest) {
       const dailyData = new Map<string, { scores: number[]; attempts: number }>();
       
       quizAttempts.forEach(attempt => {
+        if (!attempt.completedAt) return;
         const date = attempt.completedAt.toISOString().split('T')[0];
         if (!dailyData.has(date)) {
           dailyData.set(date, { scores: [], attempts: 0 });

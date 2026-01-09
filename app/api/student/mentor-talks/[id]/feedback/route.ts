@@ -6,10 +6,11 @@ const prisma = new PrismaClient();
 // POST /api/student/mentor-talks/[id]/feedback - Submit feedback for mentor talk
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const talkId = parseInt(params.id);
+    const { id } = await params;
+    const talkId = parseInt(id);
     const body = await request.json();
     const { rating, feedback } = body;
     
