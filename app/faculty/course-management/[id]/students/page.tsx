@@ -120,7 +120,7 @@ export default function CourseStudents({ params }: { params: Promise<{ id: strin
         }));
         setStudents(transformedStudents);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching data:', error);
       
       // Check if it's a 404 error (course not found)
@@ -162,7 +162,7 @@ export default function CourseStudents({ params }: { params: Promise<{ id: strin
       } else {
         throw new Error('Failed to remove student');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error removing student:', error);
       
       // Check if it's a 404 error (API not implemented)

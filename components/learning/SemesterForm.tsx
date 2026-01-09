@@ -27,8 +27,7 @@ import {
   ChevronDown,
   ChevronRight,
   Clock,
-  Link as LinkIcon,
-  Tool
+  Link as LinkIcon
 } from 'lucide-react';
 
 interface SemesterActivity {
@@ -246,7 +245,7 @@ export default function SemesterForm({
                           </div>
                           {activity.tool && (
                             <div className="text-gray-500 truncate flex items-center gap-1">
-                              <Tool className="w-3 h-3" />
+                              <Wrench className="w-3 h-3" />
                               {activity.tool}
                             </div>
                           )}
@@ -310,7 +309,7 @@ export default function SemesterForm({
                                 )}
                                 {activity.tool && (
                                   <div className="flex items-center gap-1">
-                                    <Tool className="w-3 h-3" />
+                                    <Wrench className="w-3 h-3" />
                                     {activity.tool}
                                   </div>
                                 )}

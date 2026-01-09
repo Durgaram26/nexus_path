@@ -198,9 +198,6 @@ export default function StudentCourses() {
                   )}
                   <div className="text-xs text-gray-500 space-y-1">
                     <div>Assigned: {new Date(careerPath.assignedAt).toLocaleDateString()}</div>
-                    {careerPath.assignedByUser && (
-                      <div>Assigned by: {careerPath.assignedByUser.name || careerPath.assignedByUser.email}</div>
-                    )}
                   </div>
                 </div>
               ))}

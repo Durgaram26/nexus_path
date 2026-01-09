@@ -53,7 +53,7 @@ interface CertificateSubmission {
 export default function CertificatePreviewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const submissionId = searchParams.get('id');
+  const submissionId = searchParams?.get('id');
   
   const [submission, setSubmission] = useState<CertificateSubmission | null>(null);
   const [loading, setLoading] = useState(true);

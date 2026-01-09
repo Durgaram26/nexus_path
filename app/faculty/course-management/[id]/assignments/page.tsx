@@ -124,7 +124,7 @@ export default function CourseAssignments({ params }: { params: Promise<{ id: st
         }));
         setAssignments(transformedAssignments);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching course data:', error);
       
       // Check if it's a 404 error (API not implemented)
@@ -164,7 +164,7 @@ export default function CourseAssignments({ params }: { params: Promise<{ id: st
       } else {
         throw new Error('Failed to delete assignment');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting assignment:', error);
       
       // Check if it's a 404 error (API not implemented)
@@ -198,7 +198,7 @@ export default function CourseAssignments({ params }: { params: Promise<{ id: st
       } else {
         throw new Error('Failed to grade submission');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error grading submission:', error);
       
       // Check if it's a 404 error (API not implemented)

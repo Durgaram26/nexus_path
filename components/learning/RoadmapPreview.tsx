@@ -14,7 +14,6 @@ import {
   Target,
   FileText,
   Brain,
-  Wrench,
   GraduationCap,
   Download,
   Share,
@@ -24,7 +23,7 @@ import {
   ChevronRight,
   Clock,
   Link as LinkIcon,
-  Tool,
+  Wrench,
   CheckCircle,
   ArrowRight
 } from 'lucide-react';
@@ -349,7 +348,7 @@ export default function RoadmapPreview({
                                 </div>
                                 {activity.tool && (
                                   <div className="text-gray-500 truncate flex items-center gap-1">
-                                    <Tool className="w-3 h-3" />
+                                    <Wrench className="w-3 h-3" />
                                     {activity.tool}
                                   </div>
                                 )}
@@ -391,7 +390,7 @@ export default function RoadmapPreview({
                                     )}
                                     {activity.tool && (
                                       <div className="flex items-center gap-1">
-                                        <Tool className="w-3 h-3" />
+                                        <Wrench className="w-3 h-3" />
                                         {activity.tool}
                                       </div>
                                     )}

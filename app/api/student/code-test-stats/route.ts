@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
+import { CodeExecution, CodeTestResult } from '@prisma/client';
 
 function getAuthPayload(request: NextRequest) {
   const bearer = request.headers.get('authorization');
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
     const studentId = (payload as any).userId;
 
     // Try to get code execution history
-    let codeExecutions = [];
+    let codeExecutions: CodeExecution[] = [];
     try {
       codeExecutions = await prisma.codeExecution.findMany({
         where: {
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Try to get code test results
-    let codeTestResults = [];
+    let codeTestResults: CodeTestResult[] = [];
     try {
       codeTestResults = await prisma.codeTestResult.findMany({
         where: {

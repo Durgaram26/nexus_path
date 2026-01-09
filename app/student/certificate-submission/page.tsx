@@ -218,11 +218,11 @@ export default function CertificateSubmissionPage() {
           // Add workshops while avoiding duplicates
           setRecommendedCourses(prev => {
             const existingTitles = new Set(prev.map(course => course.title));
-            const newWorkshops = mandatoryWorkshops.filter(workshop => !existingTitles.has(workshop.title));
+            const newWorkshops = mandatoryWorkshops.filter((workshop: any) => !existingTitles.has(workshop.title));
             return [...prev, ...newWorkshops];
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching mandatory workshops:', error);
         console.error('Error details:', error.response?.data);
         // Don't set empty array here, keep existing courses

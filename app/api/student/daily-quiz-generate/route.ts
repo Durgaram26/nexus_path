@@ -78,11 +78,9 @@ export async function POST(request: NextRequest) {
     // Create adaptive quiz record
     const adaptiveQuiz = await prisma.adaptiveQuiz.create({
       data: {
+        studentId: student.id,
         quizDate: new Date(),
-        questions: JSON.stringify(allQuestions),
-        totalQuestions: allQuestions.length,
-        isActive: true,
-        createdBy: student.id
+        questions: JSON.stringify(allQuestions)
       }
     });
 

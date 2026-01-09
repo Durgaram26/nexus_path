@@ -185,12 +185,6 @@ export function RealtimeMessageList({
                             <Clock className="h-3 w-3" />
                             {formatTime(message.sentAt)}
                           </div>
-                          {message.isEdited && (
-                            <span className="flex items-center gap-1">
-                              <Edit className="h-3 w-3" />
-                              Edited
-                            </span>
-                          )}
                           {message.replies && message.replies.length > 0 && (
                             <span className="flex items-center gap-1">
                               <Reply className="h-3 w-3" />

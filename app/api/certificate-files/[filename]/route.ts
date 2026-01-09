@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import fs from 'fs';
 import path from 'path';
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 
 export async function GET(
   request: NextRequest,

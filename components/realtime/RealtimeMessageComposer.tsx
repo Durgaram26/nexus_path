@@ -149,7 +149,7 @@ export function RealtimeMessageComposer({
   }, []);
 
   const selectedMessageType = messageTypes.find(type => type.value === messageType);
-  const selectedPriority = priorities.find(priority => priority.value === priority);
+  const selectedPriority = priorities.find(p => p.value === priority);
 
   return (
     <Card className="w-full">

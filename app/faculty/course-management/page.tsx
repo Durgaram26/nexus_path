@@ -132,7 +132,7 @@ export default function CourseManagement() {
     };
 
     try {
-      const result = await makeApiCall();
+      const result: any = await makeApiCall();
       
       if (result.success && result.data.data.success) {
         // Transform the API response to match the Course interface
@@ -226,7 +226,7 @@ export default function CourseManagement() {
       } else {
         throw new Error('Failed to delete course');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting course:', error);
       
       // Check if it's a 404 error (API not implemented)
