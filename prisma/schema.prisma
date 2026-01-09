@@ -79,7 +79,7 @@ model Faculty {
   name         String
   gender       Gender
   phoneNumber  String?
-  departmentId Int
+  departmentId String @db.ObjectId
   department   Department @relation(fields: [departmentId], references: [id])
   
   // Dynamic assignment options
@@ -794,7 +794,7 @@ model MentorTalkFeedback {
 }
 
 model IndustryMentor {
-  id              Int      @id @default(autoincrement())
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
   name            String
   email           String   @unique
   phone           String?
@@ -810,7 +810,7 @@ model IndustryMentor {
   availability    String   @default("{}") // JSON string for availability schedule
   preferences     String?  // JSON string for preferences
   isActive        Boolean  @default(true)
-  createdBy       Int      // Faculty who created this mentor
+  createdBy       String @db.ObjectId      // Faculty who created this mentor
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
@@ -820,10 +820,10 @@ model IndustryMentor {
 }
 
 model IndustryMentorAssignment {
-  id           Int            @id @default(autoincrement())
-  mentorId     Int
-  studentId    Int
-  assignedBy   Int            // Faculty who assigned
+  id           String            @id @default(auto()) @map("_id") @db.ObjectId
+  mentorId     String @db.ObjectId
+  studentId    String @db.ObjectId
+  assignedBy   String @db.ObjectId            // Faculty who assigned
   assignedAt   DateTime       @default(now())
   isActive     Boolean        @default(true)
   notes        String?
