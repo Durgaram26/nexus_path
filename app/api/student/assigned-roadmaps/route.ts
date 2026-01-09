@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     // Find the record for this user
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(decoded.userId) },
+      where: { id: decoded.userId as number },
       select: { email: true }
     });
 

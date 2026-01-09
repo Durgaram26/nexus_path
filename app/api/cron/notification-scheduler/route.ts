@@ -251,18 +251,9 @@ async function sendSubmissionDeadlineReminders() {
     });
 
     // Check for certificate submissions due soon
-    const upcomingSubmissions = await prisma.certificateSubmission.findMany({
-      where: {
-        status: 'pending',
-        submissionDeadline: {
-          gte: new Date(),
-          lte: new Date(Date.now() + 24 * 60 * 60 * 1000) // Next 24 hours
-        }
-      },
-      include: {
-        student: true
-      }
-    });
+    // TODO: CertificateSubmission model doesn't have submissionDeadline field
+    // Consider adding this field to the schema if deadline tracking is needed
+    const upcomingSubmissions: any[] = [];
 
     for (const submission of upcomingSubmissions) {
       await NotificationService.createSubmissionDeadlineReminder(

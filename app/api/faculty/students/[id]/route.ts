@@ -24,9 +24,9 @@ export async function GET(
     }
 
     const { id } = await params;
-    const studentId = id;
+    const studentId = parseInt(id);
     
-    if (!studentId) {
+    if (!studentId || isNaN(studentId)) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
@@ -81,9 +81,9 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const studentId = id;
+    const studentId = parseInt(id);
     
-    if (!studentId) {
+    if (!studentId || isNaN(studentId)) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
@@ -194,9 +194,9 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const studentId = id;
+    const studentId = parseInt(id);
     
-    if (!studentId) {
+    if (!studentId || isNaN(studentId)) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 

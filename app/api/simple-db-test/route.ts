@@ -48,10 +48,11 @@ export async function GET(request: NextRequest) {
 
     } catch (createError) {
       console.error('❌ Failed to create record:', createError);
+      const errorMessage = createError instanceof Error ? createError.message : String(createError);
       return NextResponse.json({
         success: false,
         error: 'Failed to create record',
-        details: createError.message
+        details: errorMessage
       });
     }
 

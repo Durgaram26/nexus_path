@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const ids = studentIds.split(',').map(id => id.trim()).filter(id => id.length > 0);
+    const ids = studentIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
 
     if (ids.length === 0) {
       return NextResponse.json({ 

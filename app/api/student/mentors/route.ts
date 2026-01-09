@@ -29,7 +29,6 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             assignedAt: true,
-            goals: true,
             notes: true
           }
         }
@@ -51,7 +50,7 @@ export async function GET(request: NextRequest) {
       bio: mentor.bio,
       profileImage: mentor.profileImage,
       timezone: mentor.timezone,
-      assignment: mentor.mentorAssignments[0] // Get the assignment for this student
+      assignment: (mentor as any).mentorAssignments?.[0] // Get the assignment for this student
     }));
 
     console.log(`✅ Found ${mentors.length} mentors for student`);

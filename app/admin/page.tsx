@@ -25,12 +25,13 @@ export default function AdminDashboard() {
     totalDepartments: 0,
     totalFaculty: 0,
     totalStudents: 0,
-    totalCareerPaths: 0
+    totalCareerPaths: 0,
+    totalRoadmaps: 0
   });
 
   const [isLoading, setIsLoading] = useState(true);
 
-  const [recentActivity, setRecentActivity] = useState([]);
+  const [recentActivity, setRecentActivity] = useState<Array<{ id: string; action: string; user: string; time: string }>>([]);
 
   useEffect(() => {
     // Fetch dashboard statistics
@@ -66,7 +67,8 @@ export default function AdminDashboard() {
               totalDepartments: statsData.stats.totalDepartments || 0,
               totalFaculty: statsData.stats.totalFaculty || 0,
               totalStudents: statsData.stats.totalStudents || 0,
-              totalCareerPaths: statsData.stats.totalCareerPaths || 0
+              totalCareerPaths: statsData.stats.totalCareerPaths || 0,
+              totalRoadmaps: statsData.stats.totalRoadmaps || 0
             });
           } else {
             console.log('Stats API returned unsuccessful response:', statsData);
@@ -76,7 +78,8 @@ export default function AdminDashboard() {
               totalDepartments: 0,
               totalFaculty: 0,
               totalStudents: 0,
-              totalCareerPaths: 0
+              totalCareerPaths: 0,
+              totalRoadmaps: 0
             });
           }
         } else {
@@ -88,7 +91,8 @@ export default function AdminDashboard() {
             totalDepartments: 0,
             totalFaculty: 0,
             totalStudents: 0,
-            totalCareerPaths: 0
+            totalCareerPaths: 0,
+            totalRoadmaps: 0
           });
         }
 
@@ -104,7 +108,8 @@ export default function AdminDashboard() {
           totalDepartments: 0,
           totalFaculty: 0,
           totalStudents: 0,
-          totalCareerPaths: 0
+          totalCareerPaths: 0,
+          totalRoadmaps: 0
         });
         setRecentActivity([]);
       } finally {

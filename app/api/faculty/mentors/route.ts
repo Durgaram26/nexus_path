@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     // TODO: Get faculty ID from JWT token
-    const facultyId = '1'; // Mock faculty ID
+    const facultyId = 1; // Mock faculty ID
 
     // Create new mentor
     const mentor = await prisma.industryMentor.create({

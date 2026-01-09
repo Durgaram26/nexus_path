@@ -304,8 +304,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     const url = new URL(request.url);
-    const resourceId = url.searchParams.get('resourceId');
-    const studentId = url.searchParams.get('studentId');
+    const resourceIdStr = url.searchParams.get('resourceId');
+    const studentIdStr = url.searchParams.get('studentId');
+    
+    const resourceId = resourceIdStr ? parseInt(resourceIdStr) : null;
+    const studentId = studentIdStr ? parseInt(studentIdStr) : null;
 
     if (resourceId && studentId) {
       // Remove assignment from specific student

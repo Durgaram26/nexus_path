@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
           milestones: JSON.stringify(generatedRoadmap.milestones),
           learningPath: generatedRoadmap.learningPath,
           careerOutcomes: JSON.stringify(generatedRoadmap.careerOutcomes),
-          createdBy: parseInt(decoded.userId),
+          createdBy: decoded.userId as number,
           createdAt: new Date(),
           updatedAt: new Date(),
           learningResources: {
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
           studentLevel,
           createdAt: savedRoadmap.createdAt.toISOString(),
           createdBy: {
-            id: parseInt(decoded.userId),
+            id: decoded.userId as number,
             email: decoded.email,
             firstName: faculty.name?.split(' ')[0] || 'Faculty',
             lastName: faculty.name?.split(' ').slice(1).join(' ') || 'Member'
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
           studentLevel,
           createdAt: new Date().toISOString(),
           createdBy: {
-            id: parseInt(decoded.userId),
+            id: decoded.userId as number,
             email: decoded.email,
             firstName: faculty.name?.split(' ')[0] || 'Faculty',
             lastName: faculty.name?.split(' ').slice(1).join(' ') || 'Member'
@@ -186,9 +186,9 @@ export async function GET(request: NextRequest) {
       
       if (faculty) {
         // Show roadmaps created by either the user ID or faculty ID
-        where.createdBy = { in: [parseInt(decoded.userId), faculty.id] };
+        where.createdBy = { in: [decoded.userId as number, faculty.id] };
       } else {
-        where.createdBy = parseInt(decoded.userId);
+        where.createdBy = decoded.userId as number;
       }
     }
     
@@ -299,12 +299,12 @@ export async function DELETE(request: NextRequest) {
       
       if (faculty) {
         // Check if roadmap was created by either the user ID or faculty ID
-        if (roadmap.createdBy !== parseInt(decoded.userId) && roadmap.createdBy !== faculty.id) {
+        if (roadmap.createdBy !== (decoded.userId as number) && roadmap.createdBy !== faculty.id) {
           return NextResponse.json({ error: 'You can only delete your own roadmaps' }, { status: 403 });
         }
       } else {
         // Fallback to user ID check
-        if (roadmap.createdBy !== parseInt(decoded.userId)) {
+        if (roadmap.createdBy !== (decoded.userId as number)) {
           return NextResponse.json({ error: 'You can only delete your own roadmaps' }, { status: 403 });
         }
       }

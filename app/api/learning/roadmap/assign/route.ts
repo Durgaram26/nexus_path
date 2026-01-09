@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
           data: {
             roadmapId: assignment.roadmapId,
             studentId: assignment.studentId,
-            assignedBy: parseInt(decoded.userId),
+            assignedBy: decoded.userId as number,
             notes: assignment.notes || null,
             isActive: true
           },
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
     
     const assignments = await prisma.roadmapAssignment.findMany({
       where: {
-        assignedBy: parseInt(decoded.userId)
+        assignedBy: decoded.userId as number
       },
       include: {
         roadmap: {
@@ -213,7 +213,7 @@ export async function DELETE(request: NextRequest) {
     const assignment = await prisma.roadmapAssignment.findFirst({
       where: {
         id: parseInt(assignmentId),
-        assignedBy: parseInt(decoded.userId)
+        assignedBy: decoded.userId as number
       }
     });
 

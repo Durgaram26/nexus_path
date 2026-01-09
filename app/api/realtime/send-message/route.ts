@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       });
     } else {
       // Notify specific recipients
-      recipientIds.forEach(recipientId => {
+      recipientIds.forEach((recipientId: number) => {
         socketManager.sendNotification(recipientId, notification);
       });
     }

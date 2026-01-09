@@ -59,12 +59,12 @@ export async function GET(
       score: attempt.score,
       correctAnswers: attempt.correctAnswers,
       totalQuestions: attempt.totalQuestions,
-      completedAt: attempt.completedAt.toISOString(),
+      completedAt: attempt.completedAt?.toISOString() || null,
       timeSpent: attempt.timeSpent,
       wrongAnswers: attempt.wrongAnswers ? JSON.parse(attempt.wrongAnswers) : [],
       feedback: attempt.feedback ? JSON.parse(attempt.feedback) : [],
-      quizDate: attempt.adaptiveQuiz.quizDate,
-      totalQuestionsInQuiz: attempt.adaptiveQuiz.questions ? JSON.parse(attempt.adaptiveQuiz.questions).length : 0
+      quizDate: attempt.adaptiveQuiz?.quizDate || null,
+      totalQuestionsInQuiz: attempt.adaptiveQuiz?.questions ? JSON.parse(attempt.adaptiveQuiz.questions).length : 0
     }));
 
     // Calculate additional statistics
@@ -91,7 +91,7 @@ export async function GET(
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     
     const recentAttempts = attempts.filter(attempt => 
-      attempt.completedAt >= sevenDaysAgo
+      attempt.completedAt && attempt.completedAt >= sevenDaysAgo
     );
 
     const recentAverage = recentAttempts.length > 0

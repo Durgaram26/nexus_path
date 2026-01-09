@@ -33,7 +33,7 @@ export async function GET(
     }
 
     // Serve the actual uploaded PDF file
-    const filePath = path.join(process.cwd(), 'uploads', 'certificates', params.filename);
+    const filePath = path.join(process.cwd(), 'uploads', 'certificates', filename);
     
     // Check if file exists
     if (!fs.existsSync(filePath)) {
@@ -70,7 +70,7 @@ export async function GET(
       return new NextResponse(pdfBuffer, {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `inline; filename="missing-${params.filename}"`,
+          'Content-Disposition': `inline; filename="missing-${filename}"`,
           'Content-Length': pdfBuffer.length.toString(),
         },
       });
@@ -82,12 +82,12 @@ export async function GET(
     // Get file stats for content length
     const stats = fs.statSync(filePath);
     
-    console.log('✅ Serving certificate file:', params.filename, 'Size:', stats.size, 'bytes');
+    console.log('✅ Serving certificate file:', filename, 'Size:', stats.size, 'bytes');
     
     return new NextResponse(fileBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${params.filename}"`,
+        'Content-Disposition': `inline; filename="${filename}"`,
         'Content-Length': stats.size.toString(),
         'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
       },

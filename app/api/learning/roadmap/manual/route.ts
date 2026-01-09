@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     
     try {
       user = await prisma.user.findUnique({
-        where: { id: parseInt(decoded.userId) },
+        where: { id: decoded.userId as number },
         select: { email: true }
       });
       console.log('User lookup result:', user ? 'Found' : 'Not found');
@@ -211,7 +211,7 @@ export async function GET(request: NextRequest) {
 
     // Get user first to get email, then find faculty by email
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(decoded.userId) },
+      where: { id: decoded.userId as number },
       select: { email: true }
     });
 

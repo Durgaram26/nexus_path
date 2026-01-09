@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     // Get mandatory workshops
     console.log('Fetching workshops from database...');
-    let workshops = [];
+    let workshops: any[] = [];
     try {
       workshops = await prisma.workshop.findMany({
         where: {
@@ -88,11 +88,13 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error fetching mandatory workshops:', error);
-    console.error('Error details:', error.message);
-    console.error('Error stack:', error.stack);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error('Error details:', errorMessage);
+    console.error('Error stack:', errorStack);
     return NextResponse.json({ 
       error: 'Failed to fetch mandatory workshops',
-      details: error.message
+      details: errorMessage
     }, { status: 500 });
   }
 }

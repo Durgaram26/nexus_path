@@ -6,10 +6,11 @@ const prisma = new PrismaClient();
 // GET /api/faculty/courses/[id] - Fetch specific course
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const courseId = parseInt(params.id);
+    const { id } = await params;
+    const courseId = parseInt(id);
     console.log('🔍 Fetching course with ID:', courseId);
     
     const course = await prisma.course.findUnique({
@@ -50,10 +51,11 @@ export async function GET(
 // DELETE /api/faculty/courses/[id] - Delete course
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const courseId = parseInt(params.id);
+    const { id } = await params;
+    const courseId = parseInt(id);
     console.log('🗑️ Deleting course with ID:', courseId);
     
     // Check if course exists

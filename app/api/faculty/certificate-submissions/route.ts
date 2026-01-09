@@ -214,12 +214,12 @@ export async function PUT(request: NextRequest) {
     }
 
     const updatedSubmission = await prisma.certificateSubmission.update({
-      where: { id: parseInt(id) },
+      where: { id: id },
       data: {
         status,
         grade: grade || null,
         facultyComments: comments || null,
-        evaluatedBy: evaluatedBy ? parseInt(evaluatedBy) : null,
+        evaluatedBy: evaluatedBy ? evaluatedBy : null,
         evaluatedAt: new Date()
       },
       include: {

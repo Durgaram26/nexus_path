@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const ids = studentIds.split(',').map(id => id.trim()).filter(id => id.length > 0);
+    const ids = studentIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
     console.log('🔢 Parsed student IDs:', ids);
 
     if (ids.length === 0) {
@@ -49,10 +49,7 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Querying for student IDs:', ids);
     
     const students = await prisma.student.findMany({
-      where: { id: { in: ids } },
-      include: {
-        department: true
-      }
+      where: { id: { in: ids } }
     });
     console.log(`✅ Found ${students.length} students`);
     console.log('📝 Students found:', students.map(s => ({ id: s.id, name: s.name, email: s.email })));
@@ -102,7 +99,7 @@ export async function GET(request: NextRequest) {
         email: student.email,
         name: student.name,
         registerNumber: student.registerNumber,
-        department: student.department!.name,
+        departmentId: student.departmentId,
         year: student.year,
         hasAccount: hasUserAccount,
         accountCreatedAt: userAccount?.createdAt || null,

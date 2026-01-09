@@ -11,41 +11,39 @@ export async function GET(request: NextRequest) {
 
     console.log('📅 Fetching mentor meetings for student:', studentId);
 
-    const meetings = await prisma.mentorMeeting.findMany({
+    const meetings = await prisma.mentorTalk.findMany({
       where: {
-        studentId: studentId
+        createdAt: undefined // MentorTalk doesn't have studentId, using attendance instead
       },
       include: {
-        mentor: {
+        createdByFaculty: {
           select: {
             id: true,
-            name: true,
-            company: true,
-            position: true
+            name: true
           }
         }
       },
       orderBy: {
-        scheduledAt: 'desc'
+        createdAt: 'desc'
       }
     });
 
-    const transformedMeetings = meetings.map(meeting => ({
+    const transformedMeetings = meetings.map((meeting: any) => ({
       id: meeting.id,
       title: meeting.title,
       description: meeting.description,
-      meetingType: meeting.meetingType,
-      scheduledAt: meeting.scheduledAt.toISOString(),
-      duration: meeting.duration,
+      meetingType: meeting.mode,
+      scheduledAt: meeting.scheduledDate.toISOString(),
+      duration: undefined,
       meetingLink: meeting.meetingLink,
-      location: meeting.location,
+      location: meeting.venue,
       status: meeting.status,
-      agenda: meeting.agenda,
-      notes: meeting.notes,
+      agenda: meeting.topic,
+      notes: undefined,
       feedback: meeting.feedback,
-      studentFeedback: meeting.studentFeedback,
-      rating: meeting.rating,
-      mentor: meeting.mentor
+      studentFeedback: undefined,
+      rating: undefined,
+      mentor: meeting.createdByFaculty
     }));
 
     console.log(`✅ Found ${meetings.length} meetings for student`);

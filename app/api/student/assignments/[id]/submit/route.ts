@@ -6,10 +6,11 @@ const prisma = new PrismaClient();
 // POST /api/student/assignments/[id]/submit - Submit assignment
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const assignmentId = parseInt(params.id);
+    const { id } = await params;
+    const assignmentId = parseInt(id);
     const body = await request.json();
     const { textSubmission, codeSubmission, submissionType } = body;
 

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     // Get user information first to get email
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(studentId) }
+      where: { id: (payload as any).userId as number }
     });
     
     if (!user) {
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Try to get quiz attempts for the student
-    let quizAttempts = [];
+    let quizAttempts: any[] = [];
     try {
       quizAttempts = await prisma.quizAttempt.findMany({
         where: {
