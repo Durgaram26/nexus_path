@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 function getAuthPayload(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '');
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const userId = parseInt((payload as any).userId);
+    const userId = (payload as any).userId;
     const userRole = (payload as any).role;
     const roomId = searchParams.get('roomId');
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -127,7 +127,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const { messageId } = await request.json();
-    const userId = parseInt((payload as any).userId);
+    const userId = (payload as any).userId;
 
     if (!messageId) {
       return NextResponse.json({ 
@@ -138,7 +138,7 @@ export async function PATCH(request: NextRequest) {
     // Check if message exists and user has access
     const message = await prisma.message.findFirst({
       where: {
-        id: parseInt(messageId),
+        id: messageId,
         OR: [
           { recipientIds: { has: userId } },
           { isBroadcast: true },
@@ -157,7 +157,7 @@ export async function PATCH(request: NextRequest) {
     await prisma.messageRead.upsert({
       where: {
         messageId_userId: {
-          messageId: parseInt(messageId),
+          messageId: messageId,
           userId
         }
       },
@@ -165,7 +165,7 @@ export async function PATCH(request: NextRequest) {
         readAt: new Date()
       },
       create: {
-        messageId: parseInt(messageId),
+        messageId: messageId,
         userId,
         readAt: new Date()
       }

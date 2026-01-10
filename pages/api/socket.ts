@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Server as SocketIOServer } from 'socket.io';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 const SocketHandler = (req: NextApiRequest, res: NextApiResponse) => {
   if ((res.socket as any).server.io) {

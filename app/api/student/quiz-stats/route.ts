@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 function getAuthPayload(request: NextRequest) {
   const bearer = request.headers.get('authorization');
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     // Get user information first to get email
     const user = await prisma.user.findUnique({
-      where: { id: (payload as any).userId as number }
+      where: { id: (payload as any).userId }
     });
     
     if (!user) {

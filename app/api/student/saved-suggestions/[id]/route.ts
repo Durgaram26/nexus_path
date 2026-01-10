@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 const prisma = new PrismaClient();
 
@@ -23,9 +23,9 @@ export async function DELETE(
     // Get student ID and suggestion ID
     const studentId = payload.userId;
     const { id } = await params;
-    const suggestionId = parseInt(id);
+    const suggestionId = id;
 
-    if (isNaN(suggestionId)) {
+    if (!suggestionId) {
       return NextResponse.json({ error: 'Invalid suggestion ID' }, { status: 400 });
     }
 

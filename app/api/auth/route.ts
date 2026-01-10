@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { signToken } from '@/lib/auth';
+import { signToken } from '@/lib/jwt';
 import bcrypt from 'bcrypt';
 import prisma from '@/lib/prisma';
 
@@ -13,7 +13,15 @@ export async function POST(request: Request) {
 
     if (!user) {
       console.log('User not found for email:', email);
-      return new NextResponse(JSON.stringify({ message: 'User not found' }), { status: 401 });
+      return new NextResponse(
+        JSON.stringify({ 
+          error: { 
+            message: 'No account found with this email address. Please check and try again or sign up for a new account.',
+            code: 'USER_NOT_FOUND'
+          } 
+        }), 
+        { status: 401 }
+      );
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
@@ -21,7 +29,15 @@ export async function POST(request: Request) {
 
     if (!passwordMatch) {
       console.log('Password does not match for user:', email);
-      return new NextResponse(JSON.stringify({ message: 'Invalid password' }), { status: 401 });
+      return new NextResponse(
+        JSON.stringify({ 
+          error: { 
+            message: 'Incorrect password. Please check and try again.',
+            code: 'INVALID_PASSWORD'
+          } 
+        }), 
+        { status: 401 }
+      );
     }
 
     console.log('Generating access token for user:', user.email);
@@ -41,6 +57,14 @@ export async function POST(request: Request) {
     return res;
   } catch (error) {
     console.error('Login error:', error);
-    return new NextResponse(JSON.stringify({ message: 'Login failed' }), { status: 500 });
+    return new NextResponse(
+      JSON.stringify({ 
+        error: { 
+          message: 'An error occurred during login. Please try again later.',
+          code: 'LOGIN_ERROR'
+        } 
+      }), 
+      { status: 500 }
+    );
   }
 }

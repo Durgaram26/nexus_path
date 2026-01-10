@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcrypt';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     let derivedRole: string;
-    let departmentId: number | undefined;
+    let departmentId: string | undefined;
 
     // If role is explicitly provided and it's admin, use it directly
     if (role === 'admin') {

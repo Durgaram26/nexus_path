@@ -1,26 +1,8 @@
-import jwt from 'jsonwebtoken';
 import { User } from '@prisma/client';
 import prisma from './prisma';
+import { signToken, verifyToken } from './jwt';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecret';
-
-export const signToken = (user: User) => {
-  const access_token = jwt.sign(
-    { userId: user.id, role: user.role, email: user.email },
-    JWT_SECRET,
-    { expiresIn: '1h' }
-  );
-  return access_token;
-};
-
-export const verifyToken = (token: string) => {
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    return decoded as { userId: number; role: string; email: string };
-  } catch (error) {
-    return null;
-  }
-};
+export { signToken, verifyToken };
 
 export const ensureFacultyRecord = async (email: string, userId: number) => {
   try {
@@ -35,7 +17,7 @@ export const ensureFacultyRecord = async (email: string, userId: number) => {
 
     // Get user details to create Faculty record
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: String(userId) },
       include: { department: true }
     });
 

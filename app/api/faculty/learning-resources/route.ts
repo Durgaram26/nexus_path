@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import prisma from '@/lib/prisma';
 
 function getAuthPayload(request: NextRequest) {
@@ -199,14 +199,19 @@ export async function POST(request: NextRequest) {
 
       // If specific students are selected, create access records for them
       if (studentIds && studentIds.length > 0) {
-        const accessRecords = studentIds.map((studentId: number) => ({
-        studentId: studentId.toString(),
+        const accessRecords = studentIds.map((studentId: string) => ({
+          studentId,
+          resourceId: resource.id
         }));
 
-        await prisma.studentResourceAccess.createMany({
-          data: accessRecords,
-          skipDuplicates: true
-        });
+        try {
+          await prisma.studentResourceAccess.createMany({
+            data: accessRecords
+          });
+        } catch (e) {
+          // Ignore duplicate constraint errors
+          console.log('Some duplicate assignments were skipped');
+        }
       }
 
       return NextResponse.json({
@@ -225,15 +230,19 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
       }
 
-      const accessRecords = studentIds.map((studentId: number) => ({
-        studentId: studentId.toString(),
+      const accessRecords = studentIds.map((studentId: string) => ({
+        studentId,
         resourceId
       }));
 
-      await prisma.studentResourceAccess.createMany({
-        data: accessRecords,
-        skipDuplicates: true
-      });
+      try {
+        await prisma.studentResourceAccess.createMany({
+          data: accessRecords
+        });
+      } catch (e) {
+        // Ignore duplicate constraint errors
+        console.log('Some duplicate assignments were skipped');
+      }
 
       return NextResponse.json({
         success: true,
@@ -307,8 +316,8 @@ export async function DELETE(request: NextRequest) {
     const resourceIdStr = url.searchParams.get('resourceId');
     const studentIdStr = url.searchParams.get('studentId');
     
-    const resourceId = resourceIdStr ? parseInt(resourceIdStr) : null;
-    const studentId = studentIdStr ? parseInt(studentIdStr) : null;
+    const resourceId = resourceIdStr || null;
+    const studentId = studentIdStr || null;
 
     if (resourceId && studentId) {
       // Remove assignment from specific student

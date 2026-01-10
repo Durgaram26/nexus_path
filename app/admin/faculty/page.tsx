@@ -9,22 +9,22 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface College {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface Department {
-  id: number;
+  id: string;
   name: string;
   college: College;
 }
 
 interface Faculty {
-  id: number;
+  id: string;
   email: string;
   name: string;
   gender: 'MALE' | 'FEMALE' | 'OTHER';
-  departmentId: number;
+  departmentId: string;
   department: Department;
   assignedYears?: string | null;
   canAssignCrossDepartment?: boolean;
@@ -32,7 +32,7 @@ interface Faculty {
 }
 
 interface User {
-  id: number;
+  id: string;
   email: string;
   role: string;
   plainPassword?: string;
@@ -40,34 +40,34 @@ interface User {
 }
 
 interface Student {
-  id: number;
+  id: string;
   email: string;
   name: string;
   gender: 'MALE' | 'FEMALE' | 'OTHER';
-  departmentId: number;
+  departmentId: string;
   department: Department;
   year: number;
   registerNumber: string;
 }
 
 interface CareerPath {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
 }
 
 interface StudentCareerPath {
-  id: number;
-  studentId: number;
-  careerPathId: number;
+  id: string;
+  studentId: string;
+  careerPathId: string;
   assignedAt: string;
   careerPath: CareerPath;
 }
 
 interface FacultyCareerPath {
-  id: number;
-  facultyId: number;
-  careerPathId: number;
+  id: string;
+  facultyId: string;
+  careerPathId: string;
   assignedAt: string;
   careerPath: CareerPath;
 }
@@ -78,7 +78,7 @@ export default function AdminFacultyPage() {
   const [newFacultyEmail, setNewFacultyEmail] = useState('');
   const [newFacultyName, setNewFacultyName] = useState('');
   const [newFacultyGender, setNewFacultyGender] = useState<'MALE' | 'FEMALE' | 'OTHER'>('MALE');
-  const [newFacultyDepartmentId, setNewFacultyDepartmentId] = useState<number | ''>('');
+  const [newFacultyDepartmentId, setNewFacultyDepartmentId] = useState<string>('');
   const [editingFaculty, setEditingFaculty] = useState<Faculty | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -87,7 +87,7 @@ export default function AdminFacultyPage() {
   const [newPassword, setNewPassword] = useState('');
   
   // state
-  const [filterDepartmentId, setFilterDepartmentId] = useState<number | ''>('');
+  const [filterDepartmentId, setFilterDepartmentId] = useState<string>('');
   
   // Track which faculty have user accounts
   const [facultiesWithAccounts, setFacultiesWithAccounts] = useState<Set<string>>(new Set());
@@ -97,21 +97,21 @@ export default function AdminFacultyPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [careerPaths, setCareerPaths] = useState<CareerPath[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [selectedCareerPathId, setSelectedCareerPathId] = useState<number | ''>('');
+  const [selectedCareerPathId, setSelectedCareerPathId] = useState<string>('');
   const [StudentCareerPaths, setStudentCareerPaths] = useState<StudentCareerPath[]>([]);
 
   // Faculty assignment state (for faculty members)
   const [showFacultyAssignmentModal, setShowFacultyAssignmentModal] = useState(false);
   const [selectedFaculty, setSelectedFaculty] = useState<Faculty | null>(null);
   const [facultyCareerPaths, setFacultyCareerPaths] = useState<FacultyCareerPath[]>([]);
-  const [selectedFacultyCareerPathId, setSelectedFacultyCareerPathId] = useState<number | ''>('');
+  const [selectedFacultyCareerPathId, setSelectedFacultyCareerPathId] = useState<string>('');
   const [FacultyAssignedYears, setFacultyAssignedYears] = useState<string>('');
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
   
   // Cross-department permission state
   const [canAssignCrossDepartment, setCanAssignCrossDepartment] = useState(false);
   const [AllowedDepartments, setAllowedDepartments] = useState<string>('');
-  const [selectedAllowedDepartments, setSelectedAllowedDepartments] = useState<number[]>([]);
+  const [selectedAllowedDepartments, setSelectedAllowedDepartments] = useState<string[]>([]);
 
   const fetchDepartments = async () => {
     try {
@@ -218,7 +218,7 @@ export default function AdminFacultyPage() {
     }
   };
 
-  const handleDeleteFaculty = async (id: number) => {
+  const handleDeleteFaculty = async (id: string) => {
     setLoading(true);
     try {
       await api.delete('/faculty', { data: { id } });
@@ -288,7 +288,7 @@ export default function AdminFacultyPage() {
     }
   };
 
-  const handleRemoveCareerPath = async (careerPathId: number) => {
+  const handleRemoveCareerPath = async (careerPathId: string) => {
     if (!selectedStudent) return;
     setLoading(true);
     try {
@@ -330,7 +330,7 @@ export default function AdminFacultyPage() {
       // Parse cross-department permissions
       setCanAssignCrossDepartment(faculty.canAssignCrossDepartment || false);
       if (faculty.allowedDepartments) {
-        const allowedDeptIds = faculty.allowedDepartments.split(',').map((id: string) => parseInt(id.trim()));
+        const allowedDeptIds = faculty.allowedDepartments.split(',').map((id: string) => id.trim());
         setSelectedAllowedDepartments(allowedDeptIds);
         setAllowedDepartments(faculty.allowedDepartments);
       } else {
@@ -338,7 +338,7 @@ export default function AdminFacultyPage() {
         setAllowedDepartments('');
       }
     } catch (error: unknown) {
-      console.error('Error fetching faculty assignments:');
+      console.error('Error fetching faculty assignments:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       toast.error('Failed to fetch faculty assignments', { description: errorMessage });
       setFacultyCareerPaths([]);
@@ -369,7 +369,7 @@ export default function AdminFacultyPage() {
     }
   };
 
-  const handleRemoveCareerPathFromFaculty = async (careerPathId: number) => {
+  const handleRemoveCareerPathFromFaculty = async (careerPathId: string) => {
     if (!selectedFaculty) return;
     setLoading(true);
     try {
@@ -411,11 +411,11 @@ export default function AdminFacultyPage() {
     }
   };
 
-  const toggleAllowedDepartment = (departmentId: number) => {
+  const toggleAllowedDepartment = (departmentId: string) => {
     setSelectedAllowedDepartments(prev => 
       prev.includes(departmentId) 
         ? prev.filter(id => id !== departmentId)
-        : [...prev, departmentId].sort()
+        : [...prev, departmentId]
     );
   };
 
@@ -489,11 +489,10 @@ export default function AdminFacultyPage() {
                   value={editingFaculty ? editingFaculty.departmentId : newFacultyDepartmentId}
                   onChange={(e) => {
                     const value = e.target.value;
-                    const numValue = value === '' ? '' : parseInt(value);
                     if (editingFaculty) {
-                      setEditingFaculty({ ...editingFaculty, departmentId: numValue === '' ? 0 : numValue });
+                      setEditingFaculty({ ...editingFaculty, departmentId: value });
                     } else {
-                      setNewFacultyDepartmentId(numValue);
+                      setNewFacultyDepartmentId(value);
                     }
                   }}
                   required
@@ -572,7 +571,7 @@ export default function AdminFacultyPage() {
                       id="careerPath"
                       className="border rounded h-10 px-3 w-full"
                       value={selectedCareerPathId}
-                      onChange={(e) => setSelectedCareerPathId(parseInt(e.target.value))}
+                      onChange={(e) => setSelectedCareerPathId(e.target.value)}
                       required
                     >
                       <option value="">Select a Career Path</option>
@@ -649,7 +648,7 @@ export default function AdminFacultyPage() {
                 <select 
                   className="border rounded h-10 px-3 w-full" 
                   value={filterDepartmentId} 
-                  onChange={(e) => setFilterDepartmentId(e.target.value ? parseInt(e.target.value) : '')}
+                  onChange={(e) => setFilterDepartmentId(e.target.value)}
                 >
                   <option value="">All Departments</option>
                   {departments.map(d => (
@@ -744,22 +743,28 @@ export default function AdminFacultyPage() {
                   <form onSubmit={handleAssignCareerPathToFaculty} className="space-y-4 mb-4">
                     <div className="space-y-2">
                       <Label htmlFor="facultyCareerPath">Assign Career Path</Label>
-                      <select
-                        id="facultyCareerPath"
-                        className="border rounded h-10 px-3 w-full"
-                        value={selectedFacultyCareerPathId}
-                        onChange={(e) => setSelectedFacultyCareerPathId(parseInt(e.target.value))}
-                        required
-                      >
-                        <option value="">Select a Career Path</option>
-                        {careerPaths.map((cp) => (
-                          <option key={cp.id} value={cp.id}>
-                            {cp.name}
-                          </option>
-                        ))}
-                      </select>
+                      {careerPaths.length === 0 ? (
+                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                          ⚠️ No career paths available. Please create career paths first before assigning them to faculty.
+                        </div>
+                      ) : (
+                        <select
+                          id="facultyCareerPath"
+                          className="border rounded h-10 px-3 w-full"
+                          value={selectedFacultyCareerPathId}
+                          onChange={(e) => setSelectedFacultyCareerPathId(e.target.value)}
+                          required
+                        >
+                          <option value="">Select a Career Path</option>
+                          {careerPaths.map((cp) => (
+                            <option key={cp.id} value={cp.id}>
+                              {cp.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
-                    <Button type="submit" disabled={loading} size="sm">
+                    <Button type="submit" disabled={loading || careerPaths.length === 0} size="sm">
                       {loading ? 'Assigning...' : 'Assign Career Path'}
                     </Button>
                   </form>
@@ -890,7 +895,7 @@ export default function AdminFacultyPage() {
               <select 
                 className="border rounded h-10 px-3 w-full" 
                 value={filterDepartmentId} 
-                onChange={(e) => setFilterDepartmentId(e.target.value ? parseInt(e.target.value) : '')}
+                onChange={(e) => setFilterDepartmentId(e.target.value)}
               >
                 <option value="">All Departments</option>
                 {departments.map(d => (

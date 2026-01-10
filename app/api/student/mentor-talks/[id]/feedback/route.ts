@@ -10,12 +10,12 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const talkId = parseInt(id);
+    const talkId = id;
     const body = await request.json();
     const { rating, feedback } = body;
     
     // TODO: Get student ID from JWT token
-    const studentId = 1; // Mock student ID
+    const studentId = '1'; // Mock student ID
 
     console.log('💬 Submitting feedback for mentor talk:', { talkId, studentId, rating });
 

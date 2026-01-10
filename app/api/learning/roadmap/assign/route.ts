@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import prisma from '@/lib/prisma';
 
 // POST - Assign roadmaps to students
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
           data: {
             roadmapId: assignment.roadmapId,
             studentId: assignment.studentId,
-            assignedBy: decoded.userId as number,
+            assignedBy: decoded.userId,
             notes: assignment.notes || null,
             isActive: true
           },
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
     
     const assignments = await prisma.roadmapAssignment.findMany({
       where: {
-        assignedBy: decoded.userId as number
+        assignedBy: decoded.userId
       },
       include: {
         roadmap: {
@@ -212,8 +212,8 @@ export async function DELETE(request: NextRequest) {
     // Check if the assignment was created by this faculty member
     const assignment = await prisma.roadmapAssignment.findFirst({
       where: {
-        id: parseInt(assignmentId),
-        assignedBy: decoded.userId as number
+        id: assignmentId,
+        assignedBy: decoded.userId
       }
     });
 
@@ -225,7 +225,7 @@ export async function DELETE(request: NextRequest) {
 
     await prisma.roadmapAssignment.delete({
       where: {
-        id: parseInt(assignmentId)
+        id: assignmentId
       }
     });
 

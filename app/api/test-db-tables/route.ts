@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     const prisma = new PrismaClient();
 
     // Test if tables exist
-    const tables = await prisma.$queryRaw`
+    const tables = await (prisma as any).$queryRaw`
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public' 

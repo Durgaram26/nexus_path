@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 function getAuthPayload(request: NextRequest) {
   const bearer = request.headers.get('authorization');
@@ -13,9 +13,8 @@ function getAuthPayload(request: NextRequest) {
 }
 
 // Helper to parse and validate faculty ID
-function parseFacultyId(id: string): number | null {
-  const parsed = parseInt(id, 10);
-  return isNaN(parsed) ? null : parsed;
+function parseFacultyId(id: string): string | null {
+  return id && id.length > 0 ? id : null;
 }
 
 // GET - Get career paths assigned to a faculty
@@ -72,7 +71,7 @@ export async function POST(
 
     const { careerPathId } = await request.json();
 
-    if (!careerPathId || typeof careerPathId !== 'number') {
+    if (!careerPathId || typeof careerPathId !== 'string') {
       return NextResponse.json({ message: 'Valid career path ID is required' }, { status: 400 });
     }
 
@@ -137,7 +136,7 @@ export async function DELETE(
 
     const { careerPathId } = await request.json();
 
-    if (!careerPathId || typeof careerPathId !== 'number') {
+    if (!careerPathId || typeof careerPathId !== 'string') {
       return NextResponse.json({ message: 'Valid career path ID is required' }, { status: 400 });
     }
 

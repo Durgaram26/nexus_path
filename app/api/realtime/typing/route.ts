@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import { socketManager } from '@/lib/socket';
 
 function getAuthPayload(request: NextRequest) {
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { action, recipientId, roomId } = await request.json();
-    const userId = parseInt((payload as any).userId);
+    const userId = (payload as any).userId;
 
     if (!action || (!recipientId && !roomId)) {
       return NextResponse.json({ 

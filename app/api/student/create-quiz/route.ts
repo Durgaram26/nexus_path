@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Get the user first to get their email
     console.log('Looking up user with ID:', (payload as any).userId);
     const user = await prisma.user.findUnique({
-      where: { id: parseInt((payload as any).userId) }
+      where: { id: (payload as any).userId }
     });
     console.log('User found:', user ? 'Yes' : 'No');
     

@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     
     // Get the user first to get their email
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(studentId) }
+      where: { id: studentId }
     });
     
     if (!user) {
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
 
     // Get the user first to get their email
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(studentId) }
+      where: { id: studentId }
     });
     
     if (!user) {
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
           where: {
             studentId_resourceId: {
               studentId: student.id,
-              resourceId: parseInt(resourceId)
+              resourceId: resourceId
             }
           },
           update: {
@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
           },
           create: {
             studentId: student.id,
-            resourceId: parseInt(resourceId),
+            resourceId: resourceId,
             accessedAt: new Date()
           }
         });
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
           where: {
             studentId_resourceId: {
               studentId: student.id,
-              resourceId: parseInt(resourceId)
+              resourceId: resourceId
             }
           },
           update: {
@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
           },
           create: {
             studentId: student.id,
-            resourceId: parseInt(resourceId),
+            resourceId: resourceId,
             isCompleted: true,
             rating: rating || null,
             notes: notes || null

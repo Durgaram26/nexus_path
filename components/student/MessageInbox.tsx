@@ -276,15 +276,22 @@ export function MessageInbox({ studentId }: MessageInboxProps) {
       <div className="space-y-4">
         {filteredMessages.length === 0 ? (
           <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Mail className="h-12 w-12 text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No messages found</h3>
-              <p className="text-gray-500 text-center">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <Mail className="h-16 w-16 text-gray-300 mb-6" />
+              <h3 className="text-2xl font-semibold text-gray-900 mb-3">No messages found</h3>
+              <p className="text-gray-500 text-center text-lg mb-6">
                 {searchTerm || filterType !== 'all' || filterPriority !== 'all'
                   ? 'Try adjusting your search or filters'
                   : 'You don\'t have any messages yet'
                 }
               </p>
+              {!searchTerm && filterType === 'all' && filterPriority === 'all' && (
+                <div className="max-w-sm mx-auto p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    📩 Messages from your faculty members will appear here once they send you any updates, announcements, or reminders.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         ) : (

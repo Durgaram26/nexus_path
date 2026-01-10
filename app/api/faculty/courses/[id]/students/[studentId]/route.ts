@@ -7,8 +7,8 @@ export async function DELETE(
 ) {
   try {
     const { id, studentId: studentIdStr } = await params;
-    const courseId = parseInt(id);
-    const studentId = parseInt(studentIdStr);
+    const courseId = id;
+    const studentId = studentIdStr;
     
     // In a real app, you would remove the student from the course enrollment
     // For now, we'll just return success

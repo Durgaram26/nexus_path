@@ -7,6 +7,13 @@ const api = axios.create({
   timeout: 30000, // 30 seconds default timeout
 });
 
+// Extended timeout for AI generation endpoints
+const aiApi = axios.create({
+  baseURL: "/api",
+  withCredentials: true,
+  timeout: 120000, // 2 minutes for AI operations
+});
+
 api.interceptors.request.use((config) => {
   // Use the proper token extraction method
   const token = getTokenFromStorage();
@@ -27,6 +34,20 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Apply same interceptors to aiApi
+aiApi.interceptors.request.use((config) => {
+  const token = getTokenFromStorage();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+aiApi.interceptors.response.use(
+  (response) => response,
+  (error) => Promise.reject(error)
+);
 
 // Add response interceptor to debug response issues
 api.interceptors.response.use(
@@ -53,3 +74,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+export { aiApi };

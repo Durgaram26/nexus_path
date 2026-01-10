@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 export async function GET(request: NextRequest) {
   try {
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
             email: payload.email,
             name: 'Faculty Member',
             gender: 'OTHER', // Default gender
-            departmentId: 1 // Default department
+            departmentId: '000000000000000000000001' // Default department ID - update with actual default
           }
         });
         console.log('Created faculty record:', faculty.id);
@@ -203,7 +203,7 @@ export async function POST(request: NextRequest) {
     } catch (facultyError) {
       console.error('Error with faculty record:', facultyError);
       // If faculty creation fails, use a default faculty ID
-      faculty = { id: 1 };
+      faculty = { id: '000000000000000000000001' };
     }
 
     // Create workshop

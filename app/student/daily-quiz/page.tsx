@@ -17,7 +17,7 @@ interface Student {
   name: string;
   gender: 'MALE' | 'FEMALE' | 'OTHER';
   phoneNumber?: string;
-  departmentId: number;
+  departmentId: string;
   department: {
     id: number;
     name: string;

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken, ensureFacultyRecord } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
+import { ensureFacultyRecord } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
 function getAuthPayload(request: NextRequest) {

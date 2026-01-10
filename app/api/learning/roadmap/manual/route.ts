@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 console.log('📦 API MODULE LOADED - /learning/roadmap/manual');
 const prisma = new PrismaClient();
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     
     try {
       user = await prisma.user.findUnique({
-        where: { id: decoded.userId as number },
+        where: { id: decoded.userId },
         select: { email: true }
       });
       console.log('User lookup result:', user ? 'Found' : 'Not found');
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       careerPath,
       department,
       year,
-      createdBy: faculty.id,
+      createdBy: decoded.userId,
       isAIGenerated: false,
       semestersCount: semesters.length
     });
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
         year,
         careerPath,
         department,
-        createdBy: faculty.id,
+        createdBy: String(decoded.userId),
         isAIGenerated: false, // Manual creation
         milestones: JSON.stringify(semesters.map((semester: any) => ({
           id: semester.id,
@@ -211,7 +211,7 @@ export async function GET(request: NextRequest) {
 
     // Get user first to get email, then find faculty by email
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId as number },
+      where: { id: decoded.userId },
       select: { email: true }
     });
 

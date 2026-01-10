@@ -1,7 +1,7 @@
 import prisma from './prisma';
 
 export interface NotificationData {
-  studentId: number;
+  studentId: string;
   title: string;
   message: string;
   type: 'quiz' | 'test' | 'workshop' | 'course' | 'assignment' | 'submission' | 'mentor_talk' | 'general' | 'urgent';
@@ -63,7 +63,7 @@ export class NotificationService {
   /**
    * Get notifications for a student
    */
-  static async getStudentNotifications(studentId: number, limit: number = 50) {
+  static async getStudentNotifications(studentId: string, limit: number = 50) {
     try {
       const notifications = await prisma.notification.findMany({
         where: {
@@ -88,7 +88,7 @@ export class NotificationService {
   /**
    * Mark notification as read
    */
-  static async markAsRead(notificationId: number, studentId: number) {
+  static async markAsRead(notificationId: string, studentId: string) {
     try {
       const notification = await prisma.notification.update({
         where: {
@@ -110,7 +110,7 @@ export class NotificationService {
   /**
    * Mark all notifications as read for a student
    */
-  static async markAllAsRead(studentId: number) {
+  static async markAllAsRead(studentId: string) {
     try {
       const result = await prisma.notification.updateMany({
         where: {
@@ -151,7 +151,7 @@ export class NotificationService {
   /**
    * Get unread count for a student
    */
-  static async getUnreadCount(studentId: number) {
+  static async getUnreadCount(studentId: string) {
     try {
       const count = await prisma.notification.count({
         where: {
@@ -175,7 +175,7 @@ export class NotificationService {
   /**
    * Create daily quiz reminder notification
    */
-  static async createDailyQuizReminder(studentId: number) {
+  static async createDailyQuizReminder(studentId: string) {
     return this.createNotification({
       studentId,
       title: '📚 Daily Quiz Available!',
@@ -193,7 +193,7 @@ export class NotificationService {
   /**
    * Create daily test reminder notification
    */
-  static async createDailyTestReminder(studentId: number, testTitle: string, testId: number) {
+  static async createDailyTestReminder(studentId: string, testTitle: string, testId: string) {
     return this.createNotification({
       studentId,
       title: '📝 Daily Test Reminder',
@@ -213,9 +213,9 @@ export class NotificationService {
    * Create workshop assignment notification
    */
   static async createWorkshopAssignmentNotification(
-    studentId: number, 
+    studentId: string, 
     workshopTitle: string, 
-    workshopId: number,
+    workshopId: string,
     dueDate?: Date
   ) {
     const message = dueDate 
@@ -243,11 +243,11 @@ export class NotificationService {
    * Create course assignment notification
    */
   static async createCourseAssignmentNotification(
-    studentId: number,
+    studentId: string,
     courseTitle: string,
     assignmentTitle: string,
-    courseId: number,
-    assignmentId: number,
+    courseId: string,
+    assignmentId: string,
     dueDate?: Date
   ) {
     const message = dueDate
@@ -277,11 +277,11 @@ export class NotificationService {
    * Create submission deadline reminder
    */
   static async createSubmissionDeadlineReminder(
-    studentId: number,
+    studentId: string,
     submissionType: 'assignment' | 'certificate' | 'project',
     itemTitle: string,
     dueDate: Date,
-    itemId: number
+    itemId: string
   ) {
     const hoursUntilDue = Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60));
     const priority = hoursUntilDue <= 24 ? 'urgent' : hoursUntilDue <= 48 ? 'high' : 'normal';
@@ -309,7 +309,7 @@ export class NotificationService {
    * Create industry mentor talk notification
    */
   static async createMentorTalkNotification(
-    studentId: number,
+    studentId: string,
     mentorName: string,
     talkTitle: string,
     scheduledDate: Date,
@@ -341,9 +341,9 @@ export class NotificationService {
    * Create workshop enrollment notification
    */
   static async createWorkshopEnrollmentNotification(
-    studentId: number,
+    studentId: string,
     workshopTitle: string,
-    workshopId: number,
+    workshopId: string,
     startDate: Date
   ) {
     return this.createNotification({
@@ -366,9 +366,9 @@ export class NotificationService {
    * Create course enrollment notification
    */
   static async createCourseEnrollmentNotification(
-    studentId: number,
+    studentId: string,
     courseTitle: string,
-    courseId: number,
+    courseId: string,
     startDate: Date
   ) {
     return this.createNotification({
@@ -391,7 +391,7 @@ export class NotificationService {
    * Create achievement notification
    */
   static async createAchievementNotification(
-    studentId: number,
+    studentId: string,
     achievementTitle: string,
     achievementDescription: string,
     achievementType: string
@@ -416,7 +416,7 @@ export class NotificationService {
    * Create urgent system notification
    */
   static async createUrgentNotification(
-    studentId: number,
+    studentId: string,
     title: string,
     message: string,
     actionUrl?: string

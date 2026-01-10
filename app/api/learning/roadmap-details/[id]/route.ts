@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import prisma from '@/lib/prisma';
 
 export async function GET(
@@ -33,9 +33,9 @@ export async function GET(
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    const roadmapId = parseInt(id);
+    const roadmapId = id;
     
-    if (isNaN(roadmapId)) {
+    if (!roadmapId) {
       return NextResponse.json({ message: 'Invalid roadmap ID' }, { status: 400 });
     }
 

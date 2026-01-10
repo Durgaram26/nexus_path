@@ -10,15 +10,15 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface College {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface Department {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
-  collegeId: number;
+  collegeId: string;
   college: College;
 }
 
@@ -27,7 +27,7 @@ export default function AdminDepartmentPage() {
   const [colleges, setColleges] = useState<College[]>([]);
   const [newDepartmentName, setNewDepartmentName] = useState('');
   const [newDepartmentDescription, setNewDepartmentDescription] = useState('');
-  const [newDepartmentCollegeId, setNewDepartmentCollegeId] = useState<number | ''>('');
+  const [newDepartmentCollegeId, setNewDepartmentCollegeId] = useState<string>('');
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -99,7 +99,7 @@ export default function AdminDepartmentPage() {
     }
   };
 
-  const handleDeleteDepartment = async (id: number) => {
+  const handleDeleteDepartment = async (id: string) => {
     setLoading(true);
     try {
       await api.delete('/department', { data: { id } });
@@ -143,22 +143,28 @@ export default function AdminDepartmentPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="college">College</Label>
-                <select
-                  id="college"
-                  className="border rounded h-10 px-3 w-full"
-                  value={editingDepartment ? editingDepartment.collegeId : newDepartmentCollegeId}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => (editingDepartment ? setEditingDepartment({ ...editingDepartment, collegeId: parseInt(e.target.value) }) : setNewDepartmentCollegeId(parseInt(e.target.value)))}
-                  required
-                >
-                  <option value="">Select a College</option>
-                  {colleges.map((college) => (
-                    <option key={college.id} value={college.id}>
-                      {college.name}
-                    </option>
-                  ))}
-                </select>
+                {colleges.length === 0 ? (
+                  <div className="text-red-500 text-sm">
+                    No colleges available. Please create a college first at <a href="/admin/college" className="underline">/admin/college</a>.
+                  </div>
+                ) : (
+                  <select
+                    id="college"
+                    className="border rounded h-10 px-3 w-full"
+                    value={editingDepartment ? editingDepartment.collegeId : newDepartmentCollegeId}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => (editingDepartment ? setEditingDepartment({ ...editingDepartment, collegeId: e.target.value }) : setNewDepartmentCollegeId(e.target.value))}
+                    required
+                  >
+                    <option value="">Select a College</option>
+                    {colleges.map((college) => (
+                      <option key={college.id} value={college.id}>
+                        {college.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
-              <Button type="submit" disabled={loading} className="w-full">
+              <Button type="submit" disabled={loading || colleges.length === 0} className="w-full">
                 {loading ? (editingDepartment ? 'Updating...' : 'Creating...') : (editingDepartment ? 'Update Department' : 'Create Department')}
               </Button>
               {editingDepartment && (

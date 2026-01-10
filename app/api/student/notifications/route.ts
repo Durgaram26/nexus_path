@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import { NotificationService } from '@/lib/notification-service';
 
 function getAuthPayload(request: NextRequest) {
@@ -72,7 +72,7 @@ export async function PUT(request: NextRequest) {
           return NextResponse.json({ message: 'Notification ID is required' }, { status: 400 });
         }
         
-        result = await NotificationService.markAsRead(parseInt(notificationId), studentId);
+        result = await NotificationService.markAsRead(notificationId, studentId);
         return NextResponse.json(result, { status: 200 });
       }
     } catch (dbError) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import prisma from '@/lib/prisma';
 
 function getAuthPayload(request: NextRequest) {
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const ids = studentIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+    const ids = studentIds.split(',').map(id => id.trim()).filter(id => id.length > 0);
     console.log('🔢 Parsed student IDs:', ids);
 
     if (ids.length === 0) {

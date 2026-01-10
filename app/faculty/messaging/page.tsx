@@ -35,6 +35,8 @@ export default function FacultyMessagingPage() {
   const [faculty, setFaculty] = useState<Faculty | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('compose');
+  const [sentMessages, setSentMessages] = useState<any[]>([]);
+  const [loadingSentMessages, setLoadingSentMessages] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -63,6 +65,27 @@ export default function FacultyMessagingPage() {
 
     checkAuth();
   }, [router]);
+
+  const fetchSentMessages = async () => {
+    setLoadingSentMessages(true);
+    try {
+      const response = await api.get('/faculty/sent-messages');
+      if (response.data && response.data.messages) {
+        setSentMessages(response.data.messages);
+      }
+    } catch (error) {
+      console.error('Error fetching sent messages:', error);
+      toast.error('Failed to load sent messages');
+    } finally {
+      setLoadingSentMessages(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'sent' && faculty) {
+      fetchSentMessages();
+    }
+  }, [activeTab, faculty]);
 
   if (isLoading) {
     return (
@@ -118,10 +141,15 @@ export default function FacultyMessagingPage() {
           <Button
             variant={activeTab === 'sent' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('sent')}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 relative"
           >
             <Mail className="h-4 w-4" />
             Sent Messages
+            {sentMessages.length > 0 && (
+              <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                {sentMessages.length}
+              </span>
+            )}
           </Button>
           <Button
             variant={activeTab === 'analytics' ? 'default' : 'ghost'}
@@ -157,13 +185,48 @@ export default function FacultyMessagingPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-12">
-                  <Mail className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No messages sent yet</h3>
-                  <p className="text-gray-500">
-                    Start by composing your first message to students
-                  </p>
-                </div>
+                {loadingSentMessages ? (
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p className="text-gray-500 mt-4">Loading sent messages...</p>
+                  </div>
+                ) : sentMessages.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Mail className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No messages sent yet</h3>
+                    <p className="text-gray-500">
+                      Start by composing your first message to students
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {sentMessages.map((message) => (
+                      <div key={message.id} className="border border-green-200 bg-green-50 rounded-lg p-4 hover:bg-green-100 transition-colors">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <h4 className="font-semibold text-gray-900">{message.subject}</h4>
+                              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-200 text-green-800">
+                                Sent
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 line-clamp-2">{message.content}</p>
+                          </div>
+                          {message.isBroadcast && (
+                            <span className="ml-2 px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">
+                              Broadcast
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                          <span>Recipients: {message.recipientIds?.length || 'All'}</span>
+                          <span>{new Date(message.sentAt).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

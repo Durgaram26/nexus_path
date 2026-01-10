@@ -10,7 +10,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const courseId = parseInt(id);
+    const courseId = id;
     
     // Fetch students enrolled in this course from database
     const enrollments = await prisma.courseEnrollment.findMany({
@@ -58,7 +58,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const courseId = parseInt(id);
+    const courseId = id;
     const body = await request.json();
     
     // First, find or create the student
@@ -75,7 +75,7 @@ export async function POST(
           phoneNumber: body.phone || '',
           registerNumber: body.studentId,
           gender: 'OTHER', // Default gender
-          departmentId: 1, // TODO: Get from context
+          departmentId: '1', // TODO: Get from context
           year: 1 // TODO: Get from context
         }
       });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import prisma from '@/lib/prisma';
 
 // GET - Get assigned roadmaps for a student
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     // Find the record for this user
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId as number },
+      where: { id: decoded.userId },
       select: { email: true }
     });
 

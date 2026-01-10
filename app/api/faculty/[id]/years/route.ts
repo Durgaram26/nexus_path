@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 function getAuthPayload(request: NextRequest) {
   const bearer = request.headers.get('authorization');
@@ -25,8 +25,8 @@ export async function PUT(
 
     const { id } = await params;
     
-    const facultyId = parseInt(id);
-    if (isNaN(facultyId)) {
+    const facultyId = id;
+    if (!facultyId) {
       return NextResponse.json({ message: 'Invalid faculty ID' }, { status: 400 });
     }
 

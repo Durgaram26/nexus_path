@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
-import { GeminiAIService, type RoadmapRequest } from '@/lib/gemini-ai';
+import { verifyToken } from '@/lib/jwt';
+import { GeminiAIService, type RoadmapRequest, RateLimitError, QuotaExceededError } from '@/lib/gemini-ai';
 import prisma from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
@@ -54,84 +54,137 @@ export async function POST(request: NextRequest) {
     };
 
     const geminiService = new GeminiAIService();
-    const generatedRoadmap = await geminiService.generateRoadmap(roadmapRequest);
-
-    // Generate learning resources for this roadmap
-    const learningResources: any[] = [];
-
-    // roadmap to database
+    
     try {
-      const savedRoadmap = await prisma.roadmap.create({
-        data: {
-          title: generatedRoadmap.title,
-          description: generatedRoadmap.description,
-          totalDuration: generatedRoadmap.totalDuration,
-          year: parseInt(year),
-          careerPath,
-          department: department,
-          studentLevel,
-          milestones: JSON.stringify(generatedRoadmap.milestones),
-          learningPath: generatedRoadmap.learningPath,
-          careerOutcomes: JSON.stringify(generatedRoadmap.careerOutcomes),
-          createdBy: decoded.userId as number,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          learningResources: {
-            create: learningResources.map((resource: any) => ({
-              title: resource.title,
-              description: resource.description,
-              url: resource.url,
-              category: resource.category,
-              difficulty: resource.difficulty,
-              careerPath: careerPath
-            }))
-          }
-        }
-      });
+      const generatedRoadmap = await geminiService.generateRoadmap(roadmapRequest);
 
-      return NextResponse.json({
-        success: true,
-        roadmap: {
-          id: savedRoadmap.id,
-          ...generatedRoadmap,
-          year: parseInt(year),
-          careerPath,
-          department,
-          studentLevel,
-          createdAt: savedRoadmap.createdAt.toISOString(),
-          createdBy: {
-            id: decoded.userId as number,
-            email: decoded.email,
-            firstName: faculty.name?.split(' ')[0] || 'Faculty',
-            lastName: faculty.name?.split(' ').slice(1).join(' ') || 'Member'
+      // Generate learning resources for this roadmap
+      const learningResources: any[] = [];
+
+      // roadmap to database
+      try {
+        const savedRoadmap = await prisma.roadmap.create({
+          data: {
+            title: generatedRoadmap.title,
+            description: generatedRoadmap.description,
+            totalDuration: generatedRoadmap.totalDuration,
+            year: parseInt(year),
+            careerPath,
+            department: department,
+            studentLevel,
+            milestones: JSON.stringify(generatedRoadmap.milestones),
+            learningPath: generatedRoadmap.learningPath,
+            careerOutcomes: JSON.stringify(generatedRoadmap.careerOutcomes),
+            createdBy: String(decoded.userId),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            learningResources: {
+              create: learningResources.map((resource: any) => ({
+                title: resource.title,
+                description: resource.description,
+                url: resource.url,
+                category: resource.category,
+                difficulty: resource.difficulty,
+                careerPath: careerPath
+              }))
+            }
           }
-        }
-      });
-    } catch (dbError) {
-      console.error('Database :', dbError);
-      // Return the generated roadmap even if database save fails
-      return NextResponse.json({
-        success: true,
-        roadmap: {
-          id: Date.now(), // Temporary ID
-          ...generatedRoadmap,
-          year: parseInt(year),
-          careerPath,
-          department: department,
-          studentLevel,
-          createdAt: new Date().toISOString(),
-          createdBy: {
-            id: decoded.userId as number,
-            email: decoded.email,
-            firstName: faculty.name?.split(' ')[0] || 'Faculty',
-            lastName: faculty.name?.split(' ').slice(1).join(' ') || 'Member'
+        });
+
+        return NextResponse.json({
+          success: true,
+          roadmap: {
+            id: savedRoadmap.id,
+            ...generatedRoadmap,
+            year: parseInt(year),
+            careerPath,
+            department,
+            studentLevel,
+            createdAt: savedRoadmap.createdAt.toISOString(),
+            createdBy: {
+              id: decoded.userId,
+              email: decoded.email,
+              firstName: faculty.name?.split(' ')[0] || 'Faculty',
+              lastName: faculty.name?.split(' ').slice(1).join(' ') || 'Member'
+            }
           }
-        }
-      });
+        });
+      } catch (dbError) {
+        console.error('Database error:', dbError);
+        // Return the generated roadmap even if database save fails
+        return NextResponse.json({
+          success: true,
+          roadmap: {
+            id: Date.now(), // Temporary ID
+            ...generatedRoadmap,
+            year: parseInt(year),
+            careerPath,
+            department: department,
+            studentLevel,
+            createdAt: new Date().toISOString(),
+            createdBy: {
+              id: decoded.userId,
+              email: decoded.email,
+              firstName: faculty.name?.split(' ')[0] || 'Faculty',
+              lastName: faculty.name?.split(' ').slice(1).join(' ') || 'Member'
+            }
+          }
+        });
+      }
+    } catch (error: unknown) {
+      // Handle rate limit errors
+      if (error instanceof RateLimitError) {
+        console.error('Rate limit error:', error);
+        return NextResponse.json({
+          error: error.message,
+          errorType: 'RATE_LIMIT',
+          retryAfter: error.retryAfter.toISOString()
+        }, { status: 429 });
+      }
+
+      // Handle quota exceeded errors
+      if (error instanceof QuotaExceededError) {
+        console.error('Quota exceeded error:', error);
+        return NextResponse.json({
+          error: error.message,
+          errorType: 'QUOTA_EXCEEDED',
+          resetTime: error.resetTime.toISOString()
+        }, { status: 429 });
+      }
+
+      // Handle timeout errors
+      if ((error as any)?.message?.includes('timeout')) {
+        console.error('Timeout error:', error);
+        return NextResponse.json({
+          error: 'AI generation timed out. The roadmap may be complex. Please try again.',
+          errorType: 'TIMEOUT'
+        }, { status: 504 });
+      }
+
+      throw error;
     }
 
   } catch (error: unknown) {
     console.error('Roadmap generation error:', error);
+    
+    // Handle rate limit errors
+    if (error instanceof RateLimitError) {
+      return NextResponse.json({
+        error: error.message,
+        errorType: 'RATE_LIMIT',
+        retryAfter: error.retryAfter.toISOString()
+      }, { status: 429 });
+    }
+
+    // Handle quota exceeded errors
+    if (error instanceof QuotaExceededError) {
+      return NextResponse.json({
+        error: error.message,
+        errorType: 'QUOTA_EXCEEDED',
+        resetTime: error.resetTime.toISOString()
+      }, { status: 429 });
+    }
+
     return NextResponse.json({ 
       error: 'Failed to generate roadmap',
       details: (error as Error).message 
@@ -179,16 +232,16 @@ export async function GET(request: NextRequest) {
 
     // If user is faculty, only show their roadmaps
     if (decoded.role === 'faculty') {
-      // Get faculty info to check both user ID and faculty ID
+      // Get faculty info to check user ID
       const faculty = await prisma.faculty.findUnique({
         where: { email: decoded.email }
       });
       
       if (faculty) {
-        // Show roadmaps created by either the user ID or faculty ID
-        where.createdBy = { in: [decoded.userId as number, faculty.id] };
+        // Show roadmaps created by the user ID (createdBy is User ID, not Faculty ID)
+        where.createdBy = String(decoded.userId);
       } else {
-        where.createdBy = decoded.userId as number;
+        where.createdBy = String(decoded.userId);
       }
     }
     
@@ -282,7 +335,7 @@ export async function DELETE(request: NextRequest) {
 
     // Check if roadmap exists and belongs to the faculty
     const roadmap = await prisma.roadmap.findUnique({
-      where: { id: parseInt(roadmapId) },
+      where: { id: roadmapId },
       select: { id: true, createdBy: true }
     });
 
@@ -299,12 +352,12 @@ export async function DELETE(request: NextRequest) {
       
       if (faculty) {
         // Check if roadmap was created by either the user ID or faculty ID
-        if (roadmap.createdBy !== (decoded.userId as number) && roadmap.createdBy !== faculty.id) {
+        if (roadmap.createdBy !== String(decoded.userId) && roadmap.createdBy !== faculty.id) {
           return NextResponse.json({ error: 'You can only delete your own roadmaps' }, { status: 403 });
         }
       } else {
         // Fallback to user ID check
-        if (roadmap.createdBy !== (decoded.userId as number)) {
+        if (roadmap.createdBy !== String(decoded.userId)) {
           return NextResponse.json({ error: 'You can only delete your own roadmaps' }, { status: 403 });
         }
       }
@@ -312,7 +365,7 @@ export async function DELETE(request: NextRequest) {
 
     // Delete the roadmap
     await prisma.roadmap.delete({
-      where: { id: parseInt(roadmapId) }
+      where: { id: roadmapId }
     });
 
     return NextResponse.json({ 

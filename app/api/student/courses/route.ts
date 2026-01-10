@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 const prisma = new PrismaClient();
 
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     // Find the user record
     console.log('Looking for user with ID:', decoded.userId);
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId as number },
+      where: { id: decoded.userId },
       select: { email: true }
     });
 
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       select: { id: true }
     });
 
-    let studentId: number;
+    let studentId: string;
     if (!student) {
       console.log('Student record not found for user:', user.email);
       // For development/testing, try to find any student

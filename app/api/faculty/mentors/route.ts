@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
         timezone: timezone || 'UTC',
         availability: availability || '{}',
         preferences: preferences || null,
-        createdBy: facultyId
+        createdBy: String(facultyId)
       },
       include: {
         createdByFaculty: {

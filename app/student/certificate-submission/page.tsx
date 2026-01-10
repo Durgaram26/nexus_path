@@ -31,6 +31,7 @@ interface CertificateSubmission {
   courseProvider: string;
   completionDate: string;
   certificateFile: string;
+  certificateFileName: string;
   description: string;
   status: 'pending' | 'approved' | 'rejected';
   submittedAt: string;
@@ -327,14 +328,16 @@ export default function CertificateSubmissionPage() {
   };
 
   const handleDownload = (submission: CertificateSubmission) => {
-    if (submission.certificateFile) {
+    if (submission.certificateFileName) {
       try {
         // Create a download link with proper authentication
         const link = document.createElement('a');
-        link.href = `/api/certificate-files/${submission.certificateFile}`;
-        link.download = submission.certificateFile;
+        link.href = `/api/certificate-files/${encodeURIComponent(submission.certificateFileName)}`;
+        link.download = submission.certificateFileName;
         link.target = '_blank';
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
         toast.success('Certificate download started');
       } catch (error) {
         console.error('Download error:', error);
@@ -558,7 +561,7 @@ export default function CertificateSubmissionPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4" />
-                          <span>{submission.certificateFile}</span>
+                          <span>{submission.certificateFileName || 'Certificate'}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4" />

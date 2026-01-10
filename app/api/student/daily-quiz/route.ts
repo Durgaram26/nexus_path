@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       console.log('Specific quiz requested:', quizIdParam);
       // Return the specific quiz
       const specificQuiz = await prisma.adaptiveQuiz.findUnique({
-        where: { id: parseInt(quizIdParam) },
+        where: { id: quizIdParam },
         include: {
           student: true,
           quizAttempts: true
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     // Get the user first to get their email
     console.log('Looking up user with ID:', (payload as any).userId);
     const user = await prisma.user.findUnique({
-      where: { id: parseInt((payload as any).userId) }
+      where: { id: (payload as any).userId }
     });
     console.log('User found:', user ? 'Yes' : 'No');
     
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
 
     // Get the user first to get their email
     const user = await prisma.user.findUnique({
-      where: { id: parseInt((payload as any).userId) }
+      where: { id: (payload as any).userId }
     });
     
     if (!user) {

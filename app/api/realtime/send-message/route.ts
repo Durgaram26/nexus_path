@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import { socketManager } from '@/lib/socket';
 
 function getAuthPayload(request: NextRequest) {
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const userId = parseInt((payload as any).userId);
+    const userId = (payload as any).userId;
     const userRole = (payload as any).role;
 
     // Get sender information
@@ -130,12 +130,12 @@ export async function POST(request: NextRequest) {
         select: { id: true }
       });
       students.forEach(student => {
-        socketManager.sendNotification(student.id, notification);
+        socketManager.sendNotification(parseInt(student.id), notification);
       });
     } else {
       // Notify specific recipients
-      recipientIds.forEach((recipientId: number) => {
-        socketManager.sendNotification(recipientId, notification);
+      recipientIds.forEach((recipientId: string) => {
+        socketManager.sendNotification(parseInt(recipientId), notification);
       });
     }
 

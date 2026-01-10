@@ -440,7 +440,7 @@ export default function StudentCareerDashboardPage() {
       </div>
 
       {/* Learning Resources */}
-      <LearningResourcesSection studentId={student?.id || 0} departmentId={student?.department?.id || 0} />
+      <LearningResourcesSection studentId={student?.id ? String(student.id) : ''} departmentId={student?.department?.id ? String(student.department.id) : ''} />
 
       {/* Daily Quiz Status */}
       {quizStatus && (

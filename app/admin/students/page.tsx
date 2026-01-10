@@ -9,23 +9,23 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface College {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface Department {
-  id: number;
+  id: string;
   name: string;
   college: College;
 }
 
 interface Student {
-  id: number;
+  id: string;
   email: string;
   name: string;
   gender: 'MALE' | 'FEMALE' | 'OTHER';
   phoneNumber?: string;
-  departmentId: number;
+  departmentId: string;
   department: Department;
   year: number;
   registerNumber: string;
@@ -38,7 +38,7 @@ export default function AdminStudentPage() {
   const [newStudentName, setNewStudentName] = useState('');
   const [newStudentGender, setNewStudentGender] = useState<'MALE' | 'FEMALE' | 'OTHER'>('MALE');
   const [newStudentPhoneNumber, setNewStudentPhoneNumber] = useState('');
-  const [newStudentDepartmentId, setNewStudentDepartmentId] = useState<number | ''>('');
+  const [newStudentDepartmentId, setNewStudentDepartmentId] = useState<string>('');
   const [newStudentYear, setNewStudentYear] = useState<number | ''>('');
   const [newStudentRegisterNumber, setNewStudentRegisterNumber] = useState('');
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -49,7 +49,7 @@ export default function AdminStudentPage() {
   const [newPassword, setNewPassword] = useState('');
   
   // state
-  const [filterDepartmentId, setFilterDepartmentId] = useState<number | ''>('');
+  const [filterDepartmentId, setFilterDepartmentId] = useState<string>('');
   const [filterYear, setFilterYear] = useState<number | ''>('');
   
   // Track which students have user accounts
@@ -151,8 +151,7 @@ export default function AdminStudentPage() {
       setLoading(false);
     }
   };
-
-  const handleDeleteStudent = async (id: number) => {
+  const handleDeleteStudent = async (id: string) => {
     setLoading(true);
     try {
       await api.delete(`/student/${id}`);
@@ -246,11 +245,10 @@ export default function AdminStudentPage() {
                   value={editingStudent ? editingStudent.departmentId : newStudentDepartmentId}
                   onChange={(e) => {
                     const value = e.target.value;
-                    const numValue = value === '' ? '' : parseInt(value);
                     if (editingStudent) {
-                      setEditingStudent({ ...editingStudent, departmentId: numValue === '' ? 0 : numValue });
+                      setEditingStudent({ ...editingStudent, departmentId: value });
                     } else {
-                      setNewStudentDepartmentId(numValue);
+                      setNewStudentDepartmentId(value);
                     }
                   }}
                   required
@@ -353,7 +351,7 @@ export default function AdminStudentPage() {
                 <select 
                   className="border rounded h-10 px-3 w-full" 
                   value={filterDepartmentId} 
-                  onChange={(e) => setFilterDepartmentId(e.target.value ? parseInt(e.target.value) : '')}
+                  onChange={(e) => setFilterDepartmentId(e.target.value)}
                 >
                   <option value="">All Departments</option>
                   {departments.map(d => (

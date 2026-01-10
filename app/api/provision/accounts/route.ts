@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 // GET endpoint: Download existing user accounts with their credentials
 export async function GET(request: NextRequest) {
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const yearParam = searchParams.get('year');
     const format = searchParams.get('format') || 'csv'; // 'csv' or 'json'
 
-    const departmentId = departmentIdParam ? parseInt(departmentIdParam) : null;
+    const departmentId = departmentIdParam ? departmentIdParam : null;
     const year = yearParam ? parseInt(yearParam) : null;
 
     // Build filter for User table

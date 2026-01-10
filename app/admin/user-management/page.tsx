@@ -10,21 +10,21 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface Faculty {
-  id: number;
+  id: string;
   email: string;
   name: string;
-  departmentId: number;
+  departmentId: string;
   department?: { name: string };
 }
 
-interface College { id: number; name: string }
-interface Department { id: number; name: string; college: College }
+interface College { id: string; name: string }
+interface Department { id: string; name: string; college: College }
 
 interface Student {
-  id: number;
+  id: string;
   email: string;
   name: string;
-  departmentId: number;
+  departmentId: string;
   year: number;
 }
 
@@ -82,12 +82,12 @@ export default function AdminUserManagementPage() {
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [selectedFacultyIds, setSelectedFacultyIds] = useState<number[]>([]);
-  const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
+  const [selectedFacultyIds, setSelectedFacultyIds] = useState<string[]>([]);
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
 
-  const [filterDepartmentId, setFilterDepartmentId] = useState<number | ''>('');
+  const [filterDepartmentId, setFilterDepartmentId] = useState<string>('');
   const [filterYear, setFilterYear] = useState<number | ''>('');
-  const [filterFacultyDepartmentId, setFilterFacultyDepartmentId] = useState<number | ''>('');
+  const [filterFacultyDepartmentId, setFilterFacultyDepartmentId] = useState<string>('');
 
   const [mode, setMode] = useState<'auto' | 'smart' | 'nameReg' | 'nameDept' | 'manual'>('smart');
   const [manualPassword, setManualPassword] = useState('');
@@ -339,7 +339,7 @@ export default function AdminUserManagementPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="mb-2 block">Faculty by Department</Label>
-                <select className="border rounded h-10 px-3 w-full" value={filterFacultyDepartmentId} onChange={(e)=>setFilterFacultyDepartmentId(e.target.value ? parseInt(e.target.value) : '')}>
+                <select className="border rounded h-10 px-3 w-full" value={filterFacultyDepartmentId} onChange={(e)=>setFilterFacultyDepartmentId(e.target.value)}>
                   <option value="">All Departments</option>
                   {departments.map(d => (
                     <option key={d.id} value={d.id}>{d.name}</option>
@@ -348,7 +348,7 @@ export default function AdminUserManagementPage() {
               </div>
               <div>
                 <Label className="mb-2 block">Students by Department</Label>
-                <select className="border rounded h-10 px-3 w-full" value={filterDepartmentId} onChange={(e)=>setFilterDepartmentId(e.target.value ? parseInt(e.target.value) : '')}>
+                <select className="border rounded h-10 px-3 w-full" value={filterDepartmentId} onChange={(e)=>setFilterDepartmentId(e.target.value)}>
                   <option value="">All Departments</option>
                   {departments.map(d => (
                     <option key={d.id} value={d.id}>{d.name}</option>

@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     console.log('1. Creating CodeTestSession...');
     const testSession = await prisma.codeTestSession.create({
       data: {
-        studentId: 1,
+        studentId: '1',
         language: 'Python 3',
         languageId: 71,
         totalQuestions: 5,
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     console.log('3. Creating CodeExecutionHistory...');
     const executionHistory = await prisma.codeExecutionHistory.create({
       data: {
-        studentId: 1,
+        studentId: '1',
         language: 'Python 3',
         languageId: 71,
         code: 'print("Hello World")',
@@ -73,13 +73,13 @@ export async function GET(request: NextRequest) {
     // Test 4: Retrieve data
     console.log('4. Testing data retrieval...');
     const sessions = await prisma.codeTestSession.findMany({
-      where: { studentId: 1 },
+      where: { studentId: '1' },
       include: { questionResults: true },
       take: 5
     });
 
     const history = await prisma.codeExecutionHistory.findMany({
-      where: { studentId: 1 },
+      where: { studentId: '1' },
       take: 5
     });
 

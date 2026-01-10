@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
 
     // Get course details
     const course = await prisma.course.findUnique({
-      where: { id: parseInt(courseId) },
+      where: { id: courseId },
       include: { 
         creator: {
           include: { department: true }
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
           }
         },
         courseAssignments: {
-          where: { courseId: parseInt(courseId) },
+          where: { courseId: courseId },
           select: { id: true, isActive: true }
         }
       },

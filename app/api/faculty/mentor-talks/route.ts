@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     // TODO: Get faculty ID from JWT token
     // For now, find the first faculty member or create a default one
-    let facultyId = 1;
+    let facultyId = '1';
     
     try {
       const faculty = await prisma.faculty.findFirst();
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
             name: 'Default Faculty',
             email: 'faculty@example.com',
             gender: 'OTHER',
-            departmentId: 1
+            departmentId: '1'
           }
         });
         facultyId = defaultFaculty.id;

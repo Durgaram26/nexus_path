@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     // Get student's roadmap and skills
     const student = await prisma.student.findUnique({
-      where: { id: studentId },
+      where: { id: String(studentId) },
       include: {
         department: true,
         careerPaths: {

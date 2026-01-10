@@ -15,11 +15,11 @@ export async function GET(request: NextRequest) {
     console.log('✅ Database connection established');
 
     // Test simple query
-    const result = await prisma.$queryRaw`SELECT 1 as test`;
+    const result = await (prisma as any).$queryRaw`SELECT 1 as test`;
     console.log('✅ Raw query successful:', result);
 
     // Test if tables exist
-    const tables = await prisma.$queryRaw`
+    const tables = await (prisma as any).$queryRaw`
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public' 
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     try {
       const testRecord = await prisma.codeExecutionHistory.create({
         data: {
-          studentId: 1,
+          studentId: '1',
           language: 'Python 3',
           languageId: 71,
           code: 'print("test")',

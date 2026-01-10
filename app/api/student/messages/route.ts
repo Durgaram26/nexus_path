@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import prisma from '@/lib/prisma';
 
 function getAuthPayload(request: NextRequest) {
@@ -24,21 +24,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const studentId = searchParams.get('studentId');
-    console.log('Student ID from params:', studentId);
-
-    if (!studentId) {
-      console.log('No student ID provided');
-      return NextResponse.json({ message: 'Student ID is required' }, { status: 400 });
+    // Get the authenticated user's ID from the token
+    const userId = (payload as any).userId;
+    if (!userId) {
+      return NextResponse.json({ message: 'User ID not found in token' }, { status: 400 });
     }
 
-    // Get student's messages
-    console.log('Querying messages for studentId:', parseInt(studentId));
+    console.log('User ID from auth:', userId);
+
+    // Get student's messages using the authenticated user's ID
+    console.log('Querying messages for userId:', userId);
     const messages = await prisma.message.findMany({
       where: {
         OR: [
-          { recipientIds: { has: parseInt(studentId) } },
+          { recipientIds: { has: userId } },
           { isBroadcast: true }
         ]
       },
@@ -92,7 +91,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     await prisma.message.update({
-      where: { id: parseInt(messageId) },
+      where: { id: messageId },
       data: { isRead: true }
     });
 

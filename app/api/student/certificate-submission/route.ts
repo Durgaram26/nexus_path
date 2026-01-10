@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { verifyToken } from '@/lib/auth';
-import fs from 'fs';
-import path from 'path';
+import { verifyToken } from '@/lib/jwt';
 
 const prisma = new PrismaClient();
 
@@ -49,25 +47,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File size must be less than 10MB' }, { status: 400 });
     }
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const filename = `${timestamp}_${originalName}`;
-    
-    // Save file to uploads directory
-    const uploadDir = path.join(process.cwd(), 'uploads', 'certificates');
-    const filePath = path.join(uploadDir, filename);
-    
-    // Ensure upload directory exists
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    
-    // Save file
+    // Convert file to buffer for MongoDB storage
     const bytes = await file.arrayBuffer();
-    fs.writeFileSync(filePath, Buffer.from(bytes));
+    const buffer = Buffer.from(bytes);
     
-    console.log('✅ Certificate file saved:', filename);
+    console.log('✅ Certificate file prepared for MongoDB storage:', {
+      filename: file.name,
+      size: file.size,
+      type: file.type
+    });
 
     const body = {
       courseName: (formData.get('courseName') as string) || '',
@@ -76,10 +64,18 @@ export async function POST(request: NextRequest) {
       description: (formData.get('description') as string) || '',
       courseLink: (formData.get('courseLink') as string) || '',
       courseType: (formData.get('courseType') as string) || 'online',
-      certificateFile: filename
+      certificateFile: buffer,
+      certificateFileName: file.name,
+      fileMimeType: file.type,
+      fileSize: file.size
     };
     
-    console.log('📝 Certificate submission data:', body);
+    console.log('📝 Certificate submission data:', {
+      courseName: body.courseName,
+      courseProvider: body.courseProvider,
+      fileName: body.certificateFileName,
+      fileSize: body.fileSize
+    });
 
     // Get student information
     const user = await prisma.user.findUnique({
@@ -109,6 +105,9 @@ export async function POST(request: NextRequest) {
         courseProvider: body.courseProvider,
         completionDate: new Date(body.completionDate),
         certificateFile: body.certificateFile,
+        certificateFileName: body.certificateFileName,
+        fileMimeType: body.fileMimeType,
+        fileSize: body.fileSize,
         description: body.description || '',
         courseLink: body.courseLink || '',
         courseType: body.courseType || 'online',
@@ -116,12 +115,19 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    console.log('✅ Certificate submission created:', certificateSubmission.id);
+    console.log('✅ Certificate submission created in MongoDB:', certificateSubmission.id);
 
     return NextResponse.json({
       success: true,
       message: 'Certificate submitted successfully',
-      submission: certificateSubmission
+      submission: {
+        id: certificateSubmission.id,
+        courseName: certificateSubmission.courseName,
+        courseProvider: certificateSubmission.courseProvider,
+        status: certificateSubmission.status,
+        submittedAt: certificateSubmission.submittedAt,
+        certificateFileName: certificateSubmission.certificateFileName
+      }
     });
 
   } catch (error: any) {
@@ -173,10 +179,41 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 });
     }
 
-    // Get student's certificate submissions
+    // Get student's certificate submissions with full details including student info
     const submissions = await prisma.certificateSubmission.findMany({
       where: { studentId: student.id },
-      orderBy: { submittedAt: 'desc' }
+      orderBy: { submittedAt: 'desc' },
+      select: {
+        id: true,
+        courseName: true,
+        courseProvider: true,
+        completionDate: true,
+        certificateFile: true,
+        certificateFileName: true,
+        fileMimeType: true,
+        fileSize: true,
+        description: true,
+        courseLink: true,
+        courseType: true,
+        status: true,
+        submittedAt: true,
+        evaluatedAt: true,
+        evaluatedBy: true,
+        facultyComments: true,
+        grade: true,
+        student: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            department: {
+              select: {
+                name: true
+              }
+            }
+          }
+        }
+      }
     });
 
     console.log(`📊 Found ${submissions.length} certificate submissions for student ${student.name}`);

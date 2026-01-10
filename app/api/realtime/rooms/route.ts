@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 function getAuthPayload(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '');
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = parseInt((payload as any).userId);
+    const userId = (payload as any).userId;
     const userRole = (payload as any).role;
 
     let rooms;
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { name, description, roomType = 'general', memberIds = [] } = await request.json();
-    const userId = parseInt((payload as any).userId);
+    const userId = (payload as any).userId;
 
     if (!name?.trim()) {
       return NextResponse.json({ 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 export async function GET(
   request: NextRequest,
@@ -30,8 +30,8 @@ export async function GET(
     }
 
     const { id } = await params;
-    const workshopId = parseInt(id);
-    if (isNaN(workshopId)) {
+    const workshopId = id;
+    if (!workshopId) {
       return NextResponse.json({ error: 'Invalid workshop ID' }, { status: 400 });
     }
 
@@ -94,8 +94,8 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const workshopId = parseInt(id);
-    if (isNaN(workshopId)) {
+    const workshopId = id;
+    if (!workshopId) {
       return NextResponse.json({ error: 'Invalid workshop ID' }, { status: 400 });
     }
 
@@ -211,8 +211,8 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const workshopId = parseInt(id);
-    if (isNaN(workshopId)) {
+    const workshopId = id;
+    if (!workshopId) {
       return NextResponse.json({ error: 'Invalid workshop ID' }, { status: 400 });
     }
 

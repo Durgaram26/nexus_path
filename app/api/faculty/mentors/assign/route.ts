@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       data: assignments.map(assignment => ({
         mentorId: assignment.mentorId,
         studentId: assignment.studentId,
-        assignedBy: facultyId,
+        assignedBy: String(facultyId),
         goals: assignment.goals || null,
         notes: assignment.notes || null,
         startDate: new Date(assignment.startDate),

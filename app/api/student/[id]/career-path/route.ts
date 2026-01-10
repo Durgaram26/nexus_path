@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 function getAuthPayload(request: NextRequest) {
   const bearer = request.headers.get('authorization');
@@ -24,12 +24,12 @@ export async function GET(
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    if (isNaN(parseInt(id))) {
+    if (!id || id.length === 0) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
     const careerPaths = await prisma.studentCareerPath.findMany({
-      where: { studentId: parseInt(id) },
+      where: { studentId: id },
       include: {
         careerPath: true,
         assignedByUser: {
@@ -63,7 +63,7 @@ export async function POST(
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
-    if (isNaN(parseInt(id))) {
+    if (!id || id.length === 0) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
@@ -74,7 +74,7 @@ export async function POST(
     }
 
     // Check if student exists
-    const student = await prisma.student.findUnique({ where: { id: parseInt(id) } });
+    const student = await prisma.student.findUnique({ where: { id } });
     if (!student) {
       return NextResponse.json({ message: 'Student not found' }, { status: 404 });
     }
@@ -99,7 +99,7 @@ export async function POST(
       // Check if faculty can assign to this student's department
       const canAssign = faculty.canAssignCrossDepartment && (
         !faculty.allowedDepartments || // Can access all departments
-        faculty.allowedDepartments.split(',').map((id: string) => parseInt(id.trim())).includes(student.departmentId)
+        faculty.allowedDepartments.split(',').map((id: string) => id.trim()).includes(student.departmentId)
       );
 
       if (!canAssign && faculty.departmentId !== student.departmentId) {
@@ -111,7 +111,7 @@ export async function POST(
 
     // Check if already assigned
     const existing = await prisma.studentCareerPath.findFirst({
-      where: { studentId: parseInt(id), careerPathId }
+      where: { studentId: id, careerPathId }
     });
 
     if (existing) {
@@ -121,7 +121,7 @@ export async function POST(
     // Assign career path
     const assignment = await prisma.studentCareerPath.create({
       data: {
-        studentId: parseInt(id),
+        studentId: id,
         careerPathId,
         assignedBy: (payload as any).userId
       },
@@ -154,7 +154,7 @@ export async function DELETE(
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
-    if (isNaN(parseInt(id))) {
+    if (!id || id.length === 0) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
@@ -167,7 +167,7 @@ export async function DELETE(
     // Delete the assignment
     await prisma.studentCareerPath.deleteMany({
       where: {
-        studentId: parseInt(id),
+        studentId: id,
         careerPathId
       }
     });

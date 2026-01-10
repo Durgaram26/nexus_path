@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 function getAuthPayload(request: NextRequest) {
   const bearer = request.headers.get('authorization');
@@ -24,9 +24,9 @@ export async function GET(
     }
 
     const { id } = await params;
-    const studentId = parseInt(id);
+    const studentId = id;
     
-    if (!studentId || isNaN(studentId)) {
+    if (!studentId) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
@@ -52,7 +52,7 @@ export async function GET(
       // Check if faculty can access this student's department
       const canAccess = faculty.canAssignCrossDepartment && (
         !faculty.allowedDepartments || // Can access all departments
-        faculty.allowedDepartments.split(',').map(id => parseInt(id.trim())).includes(student.departmentId)
+        faculty.allowedDepartments.split(',').map(id => id.trim()).includes(student.departmentId)
       );
 
       if (!canAccess && faculty.departmentId !== student.departmentId) {
@@ -81,9 +81,9 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const studentId = parseInt(id);
+    const studentId = id;
     
-    if (!studentId || isNaN(studentId)) {
+    if (!studentId) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
@@ -112,7 +112,7 @@ export async function PUT(
       // Check if faculty can access this student's department
       const canAccess = faculty.canAssignCrossDepartment && (
         !faculty.allowedDepartments || // Can access all departments
-        faculty.allowedDepartments.split(',').map(id => parseInt(id.trim())).includes(existingStudent.departmentId)
+        faculty.allowedDepartments.split(',').map(id => id.trim()).includes(existingStudent.departmentId)
       );
 
       if (!canAccess && faculty.departmentId !== existingStudent.departmentId) {
@@ -122,13 +122,13 @@ export async function PUT(
       }
 
       // Check if faculty can move to new department
-      if (parseInt(departmentId) !== existingStudent.departmentId) {
+      if (departmentId !== existingStudent.departmentId) {
         const canMoveToNewDept = faculty.canAssignCrossDepartment && (
           !faculty.allowedDepartments || // Can access all departments
-          faculty.allowedDepartments.split(',').map(id => parseInt(id.trim())).includes(parseInt(departmentId))
+          faculty.allowedDepartments.split(',').map(id => id.trim()).includes(departmentId)
         );
 
-        if (!canMoveToNewDept && faculty.departmentId !== parseInt(departmentId)) {
+        if (!canMoveToNewDept && faculty.departmentId !== departmentId) {
           return NextResponse.json({ 
             message: 'You do not have permission to move this student to the selected department' 
           }, { status: 403 });
@@ -194,9 +194,9 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const studentId = parseInt(id);
+    const studentId = id;
     
-    if (!studentId || isNaN(studentId)) {
+    if (!studentId) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
@@ -222,7 +222,7 @@ export async function DELETE(
       // Check if faculty can access this student's department
       const canAccess = faculty.canAssignCrossDepartment && (
         !faculty.allowedDepartments || // Can access all departments
-        faculty.allowedDepartments.split(',').map(id => parseInt(id.trim())).includes(student.departmentId)
+        faculty.allowedDepartments.split(',').map(id => id.trim()).includes(student.departmentId)
       );
 
       if (!canAccess && faculty.departmentId !== student.departmentId) {

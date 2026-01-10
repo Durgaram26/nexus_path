@@ -68,7 +68,7 @@ export async function PUT(request: NextRequest) {
 
     // Get the user first to get their email
     const user = await prisma.user.findUnique({
-      where: { id: parseInt((payload as any).userId) }
+      where: { id: (payload as any).userId }
     });
     
     if (!user) {
@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
 
     // Get the user first to get their email
     const user = await prisma.user.findUnique({
-      where: { id: parseInt((payload as any).userId) }
+      where: { id: (payload as any).userId }
     });
     
     if (!user) {

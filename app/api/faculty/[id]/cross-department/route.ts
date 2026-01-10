@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 function getAuthPayload(request: NextRequest) {
   const bearer = request.headers.get('authorization');
@@ -12,11 +12,7 @@ function getAuthPayload(request: NextRequest) {
   return token ? verifyToken(token) : null;
 }
 
-// Helper to safely parse faculty ID (assuming it's a number)
-function parseFacultyId(id: string): number | null {
-  const parsed = parseInt(id, 10);
-  return isNaN(parsed) ? null : parsed;
-}
+// Helper to safely parse faculty ID (assuming it's a string)
 
 // PUT - Update cross-department permissions for a faculty
 export async function PUT(
@@ -30,8 +26,8 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const facultyId = parseFacultyId(id);
-    if (facultyId === null) {
+    const facultyId = id;
+    if (!facultyId) {
       return NextResponse.json({ message: 'Invalid faculty ID' }, { status: 400 });
     }
 

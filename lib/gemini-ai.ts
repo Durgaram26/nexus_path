@@ -5,6 +5,28 @@ interface RoadmapRequest {
   studentLevel?: 'beginner' | 'intermediate' | 'advanced';
 }
 
+// Custom error for rate limiting
+export class RateLimitError extends Error {
+  public retryAfter: Date;
+  
+  constructor(message: string, retryAfter: Date) {
+    super(message);
+    this.name = 'RateLimitError';
+    this.retryAfter = retryAfter;
+  }
+}
+
+// Custom error for quota exceeded
+export class QuotaExceededError extends Error {
+  public resetTime: Date;
+  
+  constructor(message: string, resetTime: Date) {
+    super(message);
+    this.name = 'QuotaExceededError';
+    this.resetTime = resetTime;
+  }
+}
+
 interface RoadmapMilestone {
   id: string;
   title: string;
@@ -64,134 +86,258 @@ interface LearningResourceRequest {
   department: string;
 }
 
+// Request queue manager for free tier rate limiting
+class RequestQueueManager {
+  private queue: Array<() => Promise<any>> = [];
+  private isProcessing = false;
+  private lastRequestTime = 0;
+  private minDelayBetweenRequests = 6000; // 6 seconds minimum between requests (10 req/min limit)
+  private dailyRequestCount = 0;
+  private dailyLimitResetTime = Date.now();
+  private dailyLimit = 20; // Free tier limit
+
+  async enqueue<T>(task: () => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.queue.push(async () => {
+        try {
+          const result = await task();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      });
+      this.processQueue();
+    });
+  }
+
+  private async processQueue() {
+    if (this.isProcessing || this.queue.length === 0) return;
+    
+    this.isProcessing = true;
+    
+    while (this.queue.length > 0) {
+      // Check daily limit (reset every 24 hours)
+      if (Date.now() - this.dailyLimitResetTime > 24 * 60 * 60 * 1000) {
+        this.dailyRequestCount = 0;
+        this.dailyLimitResetTime = Date.now();
+      }
+
+      if (this.dailyRequestCount >= this.dailyLimit) {
+        const minutesUntilReset = Math.round((24 * 60 * 60 * 1000 - (Date.now() - this.dailyLimitResetTime)) / 60000);
+        const resetTime = new Date(this.dailyLimitResetTime + 24 * 60 * 60 * 1000);
+        const errorMsg = `Daily request limit reached (${this.dailyLimit}/day). Next reset in ${minutesUntilReset} minutes.`;
+        
+        console.warn(errorMsg);
+        
+        // Reject pending task with QuotaExceededError
+        const task = this.queue.shift();
+        if (task) {
+          try {
+            // Reject with error that indicates this is a quota issue
+            throw new QuotaExceededError(errorMsg, resetTime);
+          } catch (error) {
+            console.error('Task failed due to daily limit:', error);
+          }
+        }
+        this.isProcessing = false;
+        return;
+      }
+
+      // Enforce minimum delay between requests
+      const timeSinceLastRequest = Date.now() - this.lastRequestTime;
+      if (timeSinceLastRequest < this.minDelayBetweenRequests) {
+        await new Promise(resolve => 
+          setTimeout(resolve, this.minDelayBetweenRequests - timeSinceLastRequest)
+        );
+      }
+
+      const task = this.queue.shift();
+      if (task) {
+        this.lastRequestTime = Date.now();
+        this.dailyRequestCount++;
+        await task();
+      }
+    }
+
+    this.isProcessing = false;
+  }
+}
+
 class GeminiAIService {
   private apiKey: string;
   private apiUrl: string;
   private model: string;
+  private requestQueue: RequestQueueManager;
+  private responseCache: Map<string, { data: any; timestamp: number }> = new Map();
+  private cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
 
   constructor() {
-    this.apiKey = process.env.llm_api_key || "AIzaSyA9PLlY8MT80jjPpWXrTeHnEVHRina0orQ";
-    this.model = process.env.llm_model || "gemini-2.0-flash";
-    this.apiUrl = process.env.llm_api_url || "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+    this.apiKey = process.env.llm_api_key || "";
+    this.model = process.env.llm_model || "";
+    this.apiUrl = process.env.llm_api_url || "";
+    this.requestQueue = new RequestQueueManager();
+    
+    if (!this.apiKey) {
+      throw new Error('Missing required environment variable: llm_api_key');
+    }
+    if (!this.model) {
+      throw new Error('Missing required environment variable: llm_model');
+    }
+    if (!this.apiUrl) {
+      throw new Error('Missing required environment variable: llm_api_url');
+    }
+  }
+
+  private getCacheKey(request: RoadmapRequest): string {
+    return `roadmap_${request.year}_${request.careerPath}_${request.department}_${request.studentLevel || 'beginner'}`;
+  }
+
+  private isCacheValid(timestamp: number): boolean {
+    return Date.now() - timestamp < this.cacheExpiry;
   }
 
   async generateRoadmap(request: RoadmapRequest): Promise<GeneratedRoadmap> {
-    const prompt = this.buildRoadmapPrompt(request);
+    // Check cache first
+    const cacheKey = this.getCacheKey(request);
+    const cached = this.responseCache.get(cacheKey);
     
-    try {
-      const response = await fetch(this.apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': this.apiKey
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 8192
-          }
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      
-      if (!generatedText) {
-        throw new Error('No content generated from Gemini API');
-      }
-
-      return this.parseRoadmapResponse(generatedText, request);
-    } catch (error) {
-      console.error('Error generating roadmap:', error);
-      throw new Error(`Failed to generate roadmap: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    if (cached && this.isCacheValid(cached.timestamp)) {
+      console.log(`Using cached roadmap for ${request.careerPath}`);
+      return cached.data;
     }
+
+    // Use request queue to respect rate limits
+    return this.requestQueue.enqueue(async () => {
+      const prompt = this.buildRoadmapPrompt(request);
+      const maxRetries = 3; // Reduced from 5 to 3
+      let lastError: Error | null = null;
+
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const response = await fetch(this.apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': this.apiKey
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: prompt
+                }]
+              }],
+              generationConfig: {
+                temperature: 0.5, // Reduced for more consistent output
+                topK: 20, // Reduced from 40
+                topP: 0.9, // Reduced from 0.95
+                maxOutputTokens: 4096 // Reduced from 8192 to save tokens
+              }
+            })
+          });
+
+          // Handle rate limiting with extended backoff
+          if (response.status === 429) {
+            const retryAfter = response.headers.get('Retry-After');
+            
+            if (attempt < maxRetries - 1) {
+              // Extended delays: 15s, 30s, 60s
+              const baseDelay = retryAfter 
+                ? parseInt(retryAfter) * 1000 
+                : (attempt === 0 ? 15000 : attempt === 1 ? 30000 : 60000);
+              const jitter = Math.random() * 5000; // Add up to 5 seconds of random delay
+              const delayMs = baseDelay + jitter;
+              
+              console.log(`⏳ Rate limited (429). Retrying in ${Math.round(delayMs / 1000)}s... (Attempt ${attempt + 1}/${maxRetries})`);
+              await new Promise(resolve => setTimeout(resolve, delayMs));
+              continue;
+            } else {
+              const retryAfterSeconds = retryAfter ? parseInt(retryAfter) : 60;
+              const retryAfterDate = new Date(Date.now() + retryAfterSeconds * 1000);
+              throw new RateLimitError(
+                `API rate limit exceeded (429). Please try again in ${retryAfterSeconds} seconds.`,
+                retryAfterDate
+              );
+            }
+          }
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Gemini API error response:', errorText);
+            throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          
+          if (!generatedText) {
+            throw new Error('No content generated from Gemini API');
+          }
+
+          const roadmap = this.parseRoadmapResponse(generatedText, request);
+          
+          // Cache the successful response
+          this.responseCache.set(cacheKey, {
+            data: roadmap,
+            timestamp: Date.now()
+          });
+
+          return roadmap;
+        } catch (error) {
+          lastError = error as Error;
+          
+          // Don't retry on non-retryable errors
+          if (error instanceof Error && (error.message.includes('Missing required fields') || error.message.includes('Parse error'))) {
+            throw error;
+          }
+          
+          if (attempt === maxRetries - 1) {
+            console.error('Error generating roadmap (all retries exhausted):', error);
+            throw lastError;
+          }
+        }
+      }
+
+      throw lastError || new Error('Failed to generate roadmap: Unknown error');
+    });
   }
 
   private buildRoadmapPrompt(request: RoadmapRequest): string {
-    return `You are an expert educational consultant creating a comprehensive learning roadmap. Generate a detailed, structured roadmap for a in their ${request.year} year pursuing ${request.careerPath}.
+    return `Create a structured learning roadmap for a Year ${request.year} student in ${request.careerPath} (${request.department} dept).
 
 REQUIREMENTS:
-- Create a roadmap similar to roadmap.sh but more detailed and personalized
-- Include 8-12 milestones that progressively build skills
-- Each milestone should have specific learning objectives
-- Include practical projects and real-world applications
-- Consider the academic year level (${request.year} year )
-- Focus on industry-relevant skills for ${request.careerPath}
+- 6-8 milestones (not 8-12)
+- Progressive difficulty
+- Include 3-4 resources per milestone
+- Mix of courses, projects, documentation
+- Realistic timeframes
 
-RESOURCE TYPES TO INCLUDE:
-- Coursera courses (mention specific course names and provide URLs)
-- Udemy courses (mention specific course names and provide URLs)
-- GitHub repositories (provide actual GitHub repo URLs)
-- Official documentation and tutorials
-- Books and e-books
-- Interactive coding platforms (Codecademy, freeCodeCamp, etc.)
-- Project-based learning RESPONSE FORMAT (return as valid JSON):
+RESPONSE FORMAT (valid JSON only, no extra text):
 {
-  "title": "Comprehensive ${request.careerPath} Learning Roadmap for Year ${request.year} Students",
-  "description": "A detailed learning path designed specifically for ${request.year} year students pursuing ${request.careerPath}",
-  "totalDuration": "months",
-  "learningPath": "Brief description of the learning approach",
-  "careerOutcomes": ["Outcome 1", "Outcome 2", "Outcome 3"],
+  "title": "${request.careerPath} Roadmap - Year ${request.year}",
+  "description": "Learning path for ${request.careerPath} students",
+  "totalDuration": "4-6 months",
+  "learningPath": "Progressive skill building",
+  "careerOutcomes": ["Skill 1", "Skill 2", "Skill 3"],
   "milestones": [
     {
-      "id": "milestone-1",
+      "id": "m1",
       "title": "Milestone Title",
-      "description": "Detailed description of what students will learn",
+      "description": "What students learn",
       "duration": "2 weeks",
       "difficulty": "beginner",
-      "skills": ["skill1", "skill2", "skill3"],
-       "": [
-         {
-           "type": "course",
-           "title": "Coursera: [Specific Course Name]",
-           "url": "https://www.coursera.org/learn/...",
-           "description": "University-level course on [topic]"
-         },
-         {
-           "type": "course",
-           "title": "Udemy: [Specific Course Name]",
-           "url": "https://www.udemy.com/course/...",
-           "description": "Hands-on project-based course"
-         },
-         {
-           "type": "project",
-           "title": "GitHub Repository: [Repo Name]",
-           "url": "https://github.com/...",
-           "description": "Open-source project to study and contribute to"
-         }
-       ],
-      "prerequisites": ["prerequisite1", "prerequisite2"]
+      "skills": ["skill1", "skill2"],
+      "resources": [
+        {
+          "type": "course",
+          "title": "Course Name",
+          "url": "https://example.com",
+          "description": "Brief description"
+        }
+      ],
+      "prerequisites": []
     }
   ]
-}
-
-IMPORTANT RESOURCE GUIDELINES:
-1. For Coursera: Mention specific course names and provide course URLs
-2. For Udemy: Include specific course names and URLs
-3. For GitHub: Provide actual repository URLs for relevant projects
-4. Include a mix of free and paid 5. Prioritize high-quality, well-known 6. Include beginner-friendly for early milestones
-7. Include advanced for later milestones
-
-Make sure the roadmap is:
-1. Progressive (each milestone builds on previous ones)
-2. Practical (includes hands-on projects)
-3. Industry-relevant (focuses on current job market needs)
-4. Time-appropriate (matches the academic year level)
-5. Comprehensive (covers both theoretical and practical aspects)
-6. Resource-rich (includes diverse learning materials)
-
-Generate the roadmap now:`;
+}`;
   }
 
   private parseRoadmapResponse(text: string, request: RoadmapRequest): GeneratedRoadmap {
@@ -265,109 +411,91 @@ Generate the roadmap now:`;
   }
 
   async generateQuestionsWithGemini(request: QuestionGenerationRequest): Promise<QuizQuestion[]> {
-    const prompt = this.buildQuestionPrompt(request);
-    
-    try {
-      const response = await fetch(this.apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': this.apiKey
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.8,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 4096
+    // Use request queue to respect rate limits
+    return this.requestQueue.enqueue(async () => {
+      const prompt = this.buildQuestionPrompt(request);
+      const maxRetries = 3;
+      let lastError: Error | null = null;
+
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const response = await fetch(this.apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': this.apiKey
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: prompt
+                }]
+              }],
+              generationConfig: {
+                temperature: 0.7,
+                topK: 20,
+                topP: 0.9,
+                maxOutputTokens: 3000 // Reduced from 4096
+              }
+            })
+          });
+
+          if (response.status === 429) {
+            if (attempt < maxRetries - 1) {
+              const baseDelay = attempt === 0 ? 15000 : 30000;
+              const jitter = Math.random() * 5000;
+              const delayMs = baseDelay + jitter;
+              
+              console.log(`⏳ Rate limited generating questions. Retrying in ${Math.round(delayMs / 1000)}s...`);
+              await new Promise(resolve => setTimeout(resolve, delayMs));
+              continue;
+            } else {
+              throw new Error(`API rate limit exceeded. Free tier limit (20 requests/day) reached.`);
+            }
           }
-        })
-      });
 
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+          if (!response.ok) {
+            throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          
+          if (!generatedText) {
+            throw new Error('No content generated from Gemini API');
+          }
+
+          return this.parseQuestionResponse(generatedText, request);
+        } catch (error) {
+          lastError = error as Error;
+          
+          if (error instanceof Error && error.message.includes('Missing required fields')) {
+            throw error;
+          }
+          
+          if (attempt === maxRetries - 1) {
+            console.error('Error generating questions (all retries exhausted):', error);
+            throw lastError;
+          }
+        }
       }
 
-      const data = await response.json();
-      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      
-      if (!generatedText) {
-        throw new Error('No content generated from Gemini API');
-      }
-
-      return this.parseQuestionResponse(generatedText, request);
-    } catch (error) {
-      console.error('Error generating questions:', error);
-      throw new Error(`Failed to generate questions: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+      throw lastError || new Error('Failed to generate questions: Unknown error');
+    });
   }
 
   private buildQuestionPrompt(request: QuestionGenerationRequest): string {
     const currentDate = new Date().toISOString().split('T')[0];
-    return `You are an expert quiz generator creating adaptive questions for a ${request.studentYear} year ${request.department} pursuing ${request.careerPath} career path.
+    const count = request.count || 20;
+    return `Generate ${count} quiz questions for Year ${request.studentYear} student in ${request.careerPath} (${request.department}).
 
-STUDENT CONTEXT:
-- Academic Year: ${request.studentYear}
-- Department: ${request.department}
-- Career Path: ${request.careerPath}
-- Learning Plan Week: ${request.currentWeek} of 4
-- Current Date: ${currentDate}
+Week: ${request.currentWeek}/4, Focus: ${this.getWeekFocus(request.currentWeek)}, Date: ${currentDate}
 
-REQUIREMENTS:
-- Generate exactly ${request.count || 20} questions total
-- ${Math.floor((request.count || 20) / 2)} questions about ${request.careerPath} career path topics
-- ${Math.floor((request.count || 20) / 2)} questions about coding/programming topics relevant to ${request.careerPath}
-- Questions should be appropriate for week ${request.currentWeek} of a 4-week learning plan
-- Week ${request.currentWeek} should focus on ${this.getWeekFocus(request.currentWeek)}
-- Mix of difficulty levels: ${Math.floor((request.count || 20) * 0.3)} EASY, ${Math.floor((request.count || 20) * 0.5)} MEDIUM, ${Math.floor((request.count || 20) * 0.2)} HARD questions
-- Each question should have 4 multiple choice options
-- Include detailed explanations for each answer
-- IMPORTANT: Generate fresh, unique questions for ${currentDate} - avoid repeating questions from previous days
-- Focus on current industry trends and recent developments in ${request.careerPath}
+Split: ${Math.floor(count * 0.5)} career path + ${Math.floor(count * 0.5)} technical
+Difficulty: ${Math.floor(count * 0.3)} EASY, ${Math.floor(count * 0.5)} MEDIUM, ${Math.floor(count * 0.2)} HARD
 
-CAREER PATH TOPICS (10 questions):
-- Industry knowledge, trends, and best practices in ${request.careerPath}
-- Career development, networking, and professional skills
-- Industry tools, methodologies, and frameworks
-- Real-world applications and case studies
-
-CODING TOPICS (10 questions):
-- Programming languages relevant to ${request.careerPath}
-- Data structures and algorithms
-- Software development practices
-- Problem-solving and debugging
-
-RESPONSE FORMAT (return as valid JSON array):
-[
-  {
-    "id": "q1",
-    "question": "What is the primary advantage of using version control systems like Git in software development?",
-    "options": [
-      "It makes code run faster",
-      "It allows multiple developers to collaborate and track changes",
-      "It automatically fixes bugs",
-      "It reduces the need for testing"
-    ],
-    "correctAnswer": 1,
-    "explanation": "Version control systems like Git enable multiple developers to work on the same project simultaneously, track all changes, and maintain a complete history of the codebase.",
-    "category": "Software Development",
-    "difficulty": "MEDIUM",
-    "careerPath": "${request.careerPath}",
-    "points": 2
-  }
-]
-
-DIFFICULTY GUIDELINES:
-- EASY: Basic concepts, definitions, simple applications
-- MEDIUM: Practical applications, problem-solving, intermediate concepts
-- HARD: Complex scenarios, advanced concepts, critical thinking
-
-Generate 20 questions now:`;
+JSON format:
+[{"id":"q1","question":"?","options":["A","B","C","D"],"correctAnswer":1,"explanation":"","category":"","difficulty":"MEDIUM","careerPath":"${request.careerPath}","points":2}]`;
   }
 
   private parseQuestionResponse(text: string, request: QuestionGenerationRequest): QuizQuestion[] {
@@ -485,114 +613,84 @@ Generate 20 questions now:`;
   }
 
   async generateLearningResources(request: LearningResourceRequest): Promise<LearningResource[]> {
-    const prompt = this.buildResourcePrompt(request);
-    
-    try {
-      const response = await fetch(this.apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': this.apiKey
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 4096
+    // Use request queue to respect rate limits
+    return this.requestQueue.enqueue(async () => {
+      const prompt = this.buildResourcePrompt(request);
+      const maxRetries = 3;
+      let lastError: Error | null = null;
+
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const response = await fetch(this.apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': this.apiKey
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: prompt
+                }]
+              }],
+              generationConfig: {
+                temperature: 0.7,
+                topK: 20,
+                topP: 0.9,
+                maxOutputTokens: 2000 // Reduced from 4096
+              }
+            })
+          });
+
+          if (response.status === 429) {
+            if (attempt < maxRetries - 1) {
+              const baseDelay = attempt === 0 ? 15000 : 30000;
+              const jitter = Math.random() * 5000;
+              const delayMs = baseDelay + jitter;
+              
+              console.log(`⏳ Rate limited generating resources. Retrying in ${Math.round(delayMs / 1000)}s...`);
+              await new Promise(resolve => setTimeout(resolve, delayMs));
+              continue;
+            } else {
+              throw new Error(`API rate limit exceeded. Free tier limit (20 requests/day) reached.`);
+            }
           }
-        })
-      });
 
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+          if (!response.ok) {
+            throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          
+          if (!generatedText) {
+            throw new Error('No content generated from Gemini API');
+          }
+
+          return this.parseResourceResponse(generatedText, request);
+        } catch (error) {
+          lastError = error as Error;
+          
+          if (error instanceof Error && error.message.includes('Missing required fields')) {
+            throw error;
+          }
+          
+          if (attempt === maxRetries - 1) {
+            console.error('Error generating resources (all retries exhausted):', error);
+            throw lastError;
+          }
+        }
       }
 
-      const data = await response.json();
-      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      
-      if (!generatedText) {
-        throw new Error('No content generated from Gemini API');
-      }
-
-      return this.parseResourceResponse(generatedText, request);
-    } catch (error) {
-      console.error('Error generating learning resources:', error);
-      throw new Error(`Failed to generate learning resources: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+      throw lastError || new Error('Failed to generate resources: Unknown error');
+    });
   }
 
   private buildResourcePrompt(request: LearningResourceRequest): string {
-    return `You are an expert educational consultant creating personalized learning for a ${request.studentYear} year ${request.department} pursuing ${request.careerPath} career path.
-
-STUDENT CONTEXT:
-- Academic Year: ${request.studentYear}
-- Department: ${request.department}
-- Career Path: ${request.careerPath}
-
-REQUIREMENTS:
-- Generate exactly 12 learning total
-- 3 for Programming/Technical Skills
-- 3 for Career Development
-- 3 for Documentation/Reference
-- 3 for Industry News/Trends
-- Mix of difficulty levels: 4 beginner, 6 intermediate, 2 advanced
-- Include real, working URLs for each resource
-- Focus on current, relevant for ${request.careerPath}
-
-RESOURCE CATEGORIES:
-1. Programming/Technical Skills:
-   - Coding tutorials, courses, and practice platforms
-   - Language-specific for ${request.careerPath}
-   - Algorithm and data structure learning
-
-2. Career Development:
-   - Professional development courses
-   - Industry certifications
-   - Networking and career advancement
-
-3. Documentation/Reference:
-   - Official documentation
-   - Developer communities
-   - Code repositories and examples
-
-4. Industry News/Trends:
-   - Technology news sources
-   - Industry blogs and publications
-   - Professional communities
-
-RESPONSE FORMAT (return as valid JSON array):
-[
-  {
-    "title": "FreeCodeCamp - Full Stack Development",
-    "description": "Free coding bootcamp with hands-on projects and certifications",
-    "url": "https://www.freecodecamp.org/",
-    "category": "Programming",
-    "difficulty": "beginner"
-  },
-  {
-    "title": "Coursera - ${request.careerPath} Specialization",
-    "description": "University-level courses with industry-relevant projects",
-    "url": "https://www.coursera.org/",
-    "category": "Career Development",
-    "difficulty": "intermediate"
-  }
-]
-
-IMPORTANT GUIDELINES:
-1. Use real, working URLs that are currently accessible
-2. Include a mix of free and paid 3. Prioritize high-quality, well-known platforms
-4. Ensure are relevant to ${request.careerPath}
-5. Include beginner-friendly for early learning
-6. Include advanced for skill development
-7. Focus on current industry standards and best practices
-
-Generate 12 learning now:`;
+    return `Generate 8 learning resources for Year ${request.studentYear} ${request.careerPath} student (${request.department}).
+Split: 2 technical + 2 career + 2 docs + 2 news. Difficulty: beginner-intermediate.
+Real URLs only. JSON format:
+[{"title":"","description":"","url":"","category":"","difficulty":"beginner"}]`;
   }
 
   private parseResourceResponse(text: string, request: LearningResourceRequest): LearningResource[] {

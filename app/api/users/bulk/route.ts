@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import bcrypt from 'bcrypt';
 
 // Utility to generate a random password
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'At least one of facultyIds or studentIds must be provided' }, { status: 400 });
     }
 
-    const provisionedAccounts: { id: number; email: string; role: string; plainPassword: string; name: string; }[] = [];
+    const provisionedAccounts: { id: string; email: string; role: string; plainPassword: string; name: string; }[] = [];
 
     const buildPassword = async (user: { email: string; name: string; role: string }, extra?: { registerNumber?: string; departmentName?: string }) => {
       if (mode === 'manual') {

@@ -13,9 +13,9 @@ export interface SocketUser {
 
 export interface MessageData {
   id: string;
-  senderId: number;
+  senderId: string;
   senderName: string;
-  recipientIds: number[];
+  recipientIds: string[];
   subject: string;
   content: string;
   messageType: string;

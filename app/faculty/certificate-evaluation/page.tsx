@@ -38,7 +38,9 @@ interface CertificateSubmission {
   courseName: string;
   courseProvider: string;
   completionDate: string;
-  certificateFile: string;
+  certificateFileName: string;
+  fileMimeType?: string;
+  fileSize?: number;
   description?: string;
   courseLink?: string;
   courseType: string;
@@ -151,9 +153,15 @@ export default function CertificateEvaluationPage() {
           years: []
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching submissions:', error);
-      toast.error('Failed to fetch certificate submissions');
+      const errorMessage = error?.response?.data?.details || error?.response?.data?.error || 'Failed to fetch certificate submissions';
+      console.error('Error details:', {
+        message: errorMessage,
+        status: error?.response?.status,
+        data: error?.response?.data
+      });
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -206,13 +214,12 @@ export default function CertificateEvaluationPage() {
   };
 
   const handleDownload = (submission: CertificateSubmission) => {
-    if (submission.certificateFile) {
+    if (submission.certificateFileName) {
       try {
         // Create a download link with proper authentication
         const link = document.createElement('a');
-        link.href = `/api/certificate-files/${submission.certificateFile}`;
-        link.download = submission.certificateFile;
-        link.target = '_blank';
+        link.href = `/api/certificate-files/${encodeURIComponent(submission.certificateFileName)}`;
+        link.download = submission.certificateFileName;
         link.click();
         toast.success('Certificate download started');
       } catch (error) {
@@ -842,7 +849,7 @@ export default function CertificateEvaluationPage() {
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <FileText className="w-8 h-8 text-gray-500" />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{selectedSubmission.certificateFile}</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedSubmission.certificateFileName}</p>
                       <p className="text-xs text-gray-600">Certificate Document</p>
                     </div>
                     <div className="flex gap-2">
@@ -866,8 +873,8 @@ export default function CertificateEvaluationPage() {
                   </div>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
                     <PDFViewer
-                      fileUrl={`/api/certificate-files/${selectedSubmission?.certificateFile}`}
-                      fileName={selectedSubmission?.certificateFile}
+                      fileUrl={`/api/certificate-files/${encodeURIComponent(selectedSubmission?.certificateFileName || '')}`}
+                      fileName={selectedSubmission?.certificateFileName}
                       onDownload={() => handleDownload(selectedSubmission)}
                       className="w-full"
                     />

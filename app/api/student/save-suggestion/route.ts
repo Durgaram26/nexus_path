@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 const prisma = new PrismaClient();
 
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
         duration,
         difficulty,
         skills: JSON.stringify(skills), // Store skills as JSON string
-        studentId
+        studentId: String(studentId)
       }
     });
 

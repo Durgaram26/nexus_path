@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 function getAuthPayload(request: NextRequest) {
   const bearer = request.headers.get('authorization');
@@ -24,9 +24,9 @@ export async function GET(
     }
 
     const { id } = await params;
-    const studentId = parseInt(id);
+    const studentId = id;
 
-    if (isNaN(studentId)) {
+    if (!studentId || studentId.length === 0) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
@@ -83,9 +83,9 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const studentId = parseInt(id);
+    const studentId = id;
 
-    if (isNaN(studentId)) {
+    if (!studentId || studentId.length === 0) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
 
@@ -94,13 +94,57 @@ export async function PUT(
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
-    const { name, phoneNumber } = await request.json();
+    const { name, phoneNumber, email, gender, departmentId, year, registerNumber } = await request.json();
+
+    // Validate required fields
+    if (!email || !departmentId || !year || !registerNumber) {
+      return NextResponse.json(
+        { message: 'Email, department ID, year, and register number are required' },
+        { status: 400 }
+      );
+    }
+
+    // Check if email is already taken by another student
+    const emailTaken = await prisma.student.findFirst({ 
+      where: { email, id: { not: studentId } } 
+    });
+    if (emailTaken) {
+      return NextResponse.json(
+        { message: 'Email is already taken by another student' },
+        { status: 409 }
+      );
+    }
+
+    // Check if registerNumber is already taken by another student
+    const regNumberTaken = await prisma.student.findFirst({
+      where: { registerNumber, id: { not: studentId } }
+    });
+    if (regNumberTaken) {
+      return NextResponse.json(
+        { message: 'Register number is already taken by another student' },
+        { status: 409 }
+      );
+    }
+
+    // Check if department exists
+    const department = await prisma.department.findUnique({ where: { id: departmentId } });
+    if (!department) {
+      return NextResponse.json(
+        { message: 'Department not found' },
+        { status: 404 }
+      );
+    }
 
     const updatedStudent = await prisma.student.update({
       where: { id: studentId },
       data: {
         ...(name && { name }),
-        ...(phoneNumber !== undefined && { phoneNumber })
+        ...(phoneNumber !== undefined && { phoneNumber }),
+        email,
+        ...(gender && { gender }),
+        departmentId,
+        year,
+        registerNumber
       },
       include: {
         department: {

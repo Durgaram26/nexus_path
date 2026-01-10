@@ -9,12 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 
 interface College {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface Department {
-  id: number;
+  id: string;
   name: string;
   college: College;
 }
@@ -39,7 +39,7 @@ interface Student {
   name: string;
   gender: 'MALE' | 'FEMALE' | 'OTHER';
   phoneNumber?: string;
-  departmentId: number;
+  departmentId: string;
   department: Department;
   year: number;
   registerNumber: string;
@@ -77,11 +77,11 @@ export default function FacultyStudentsPage() {
   // Career path assignment state
   const [showCareerPathModal, setShowCareerPathModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [selectedCareerPathId, setSelectedCareerPathId] = useState<number | ''>('');
+  const [selectedCareerPathId, setSelectedCareerPathId] = useState<string>('');
   const [StudentCareerPaths, setStudentCareerPaths] = useState<StudentCareerPath[]>([]);
 
   // and search state
-  const [filterDepartmentId, setFilterDepartmentId] = useState<number | ''>('');
+  const [filterDepartmentId, setFilterDepartmentId] = useState<string>('');
   const [filterYear, setFilterYear] = useState<number | ''>('');
   const [searchRegisterNumber, setSearchRegisterNumber] = useState('');
   
@@ -237,7 +237,7 @@ export default function FacultyStudentsPage() {
         email: newStudent.email,
         name: newStudent.name,
         gender: newStudent.gender,
-        departmentId: parseInt(newStudent.departmentId),
+        departmentId: newStudent.departmentId,
         year: parseInt(newStudent.year),
         registerNumber: newStudent.registerNumber
       });
@@ -278,6 +278,7 @@ export default function FacultyStudentsPage() {
       
       toast.success('Student updated successfully');
       setEditingStudent(null);
+      setShowStudentModal(false);
       fetchStudents();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -646,12 +647,15 @@ export default function FacultyStudentsPage() {
           }
       } catch (error) {
         console.error('Error fetching password:', error);
+        const errorMessage = (error as any)?.response?.data?.message || 'Error loading password';
         setStudentPasswords(prev => {
           const newMap = new Map(prev);
-          newMap.set(studentId, 'Error loading password');
+          newMap.set(studentId, errorMessage);
           return newMap;
         });
-        toast.error('Failed to fetch password');
+        toast.error('Failed to fetch password', {
+          description: errorMessage
+        });
       }
     }
   };
@@ -741,7 +745,7 @@ export default function FacultyStudentsPage() {
     
     if (facultyInfo.canAssignCrossDepartment) {
       if (facultyInfo.assignedDepartments) {
-        const allowedDeptIds = facultyInfo.assignedDepartments.split(',').map(id => parseInt(id.trim()));
+        const allowedDeptIds = facultyInfo.assignedDepartments.split(',').map(id => id.trim());
         return departments.filter(dept => allowedDeptIds.includes(dept.id));
       }
       return departments; // All departments
@@ -783,7 +787,7 @@ export default function FacultyStudentsPage() {
                   id="filterDepartment"
                   className="border rounded h-10 px-3 w-full"
                   value={filterDepartmentId}
-                  onChange={(e) => setFilterDepartmentId(e.target.value ? parseInt(e.target.value) : '')}
+                  onChange={(e) => setFilterDepartmentId(e.target.value)}
                 >
                   <option value="">All Departments</option>
                   {departments.map((dept) => (
@@ -1148,7 +1152,7 @@ export default function FacultyStudentsPage() {
                         className="border rounded h-10 px-3 w-full"
                         value={editingStudent ? editingStudent.departmentId : newStudent.departmentId}
                         onChange={(e) => editingStudent 
-                          ? setEditingStudent({...editingStudent, departmentId: parseInt(e.target.value)})
+                          ? setEditingStudent({...editingStudent, departmentId: e.target.value})
                           : setNewStudent({...newStudent, departmentId: e.target.value})
                         }
                         required
@@ -1238,7 +1242,7 @@ export default function FacultyStudentsPage() {
                       <select
                         className="border rounded h-10 px-3 flex-1"
                         value={selectedCareerPathId}
-                        onChange={(e) => setSelectedCareerPathId(parseInt(e.target.value))}
+                        onChange={(e) => setSelectedCareerPathId(e.target.value)}
                         required
                       >
                         <option value="">Select a Career Path</option>

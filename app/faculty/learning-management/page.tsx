@@ -53,7 +53,7 @@ interface Student {
   email: string;
   name: string;
   gender: 'MALE' | 'FEMALE' | 'OTHER';
-  departmentId: number;
+  departmentId: string;
   department: {
     id: number;
     name: string;

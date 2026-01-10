@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 function getAuthPayload(request: NextRequest) {
   const bearer = request.headers.get('authorization');
@@ -27,7 +27,7 @@ export async function GET(
 
     // Verify the student exists
     const student = await prisma.student.findUnique({
-      where: { id: parseInt(id) }
+      where: { id: id }
     });
     
     if (!student) {
@@ -37,7 +37,7 @@ export async function GET(
     // Get all quiz attempts for the student
     const attempts = await prisma.quizAttempt.findMany({
       where: {
-        studentId: parseInt(id)
+        studentId: id
       },
       include: {
         adaptiveQuiz: {

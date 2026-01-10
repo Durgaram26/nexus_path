@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       // Check for test sessions today
       const todaySessions = await prisma.codeTestSession.findMany({
         where: {
-          studentId: studentId,
+          studentId: String(studentId),
           sessionDate: {
             gte: today,
             lt: tomorrow

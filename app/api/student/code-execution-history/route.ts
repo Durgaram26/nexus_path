@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
 
     // Get execution history for the student
     const history = await prisma.codeExecutionHistory.findMany({
-      where: { studentId: parseInt(studentId) },
+      where: { studentId: studentId },
       orderBy: { executedAt: 'desc' },
       take: limit
     });

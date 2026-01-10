@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 function getAuthPayload(request: NextRequest) {
   const bearer = request.headers.get('authorization');
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Quiz ID is required' }, { status: 400 });
     }
 
-    const quizId = parseInt(quizIdParam);
+    const quizId = quizIdParam;
     console.log('Fetching attempts for quiz ID:', quizId);
 
     // Get the student first

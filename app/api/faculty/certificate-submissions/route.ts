@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 const prisma = new PrismaClient();
 
@@ -47,8 +47,29 @@ export async function GET(request: NextRequest) {
     const courseProvider = searchParams.get('courseProvider') || '';
     const courseAssignment = searchParams.get('courseAssignment') || '';
 
+    // Validate numeric filters
+    const yearNum = year ? parseInt(year) : null;
+    const careerPathStr = careerPath || null;
+
+    if (year && isNaN(yearNum!)) {
+      return NextResponse.json(
+        { error: 'Invalid year filter - must be a number' },
+        { status: 400 }
+      );
+    }
+
+    // Validate status filter
+    const validStatuses = ['pending', 'approved', 'rejected'];
+    if (status && !validStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: 'Invalid status filter' },
+        { status: 400 }
+      );
+    }
+
     // Build where clause for filtering
     const where: any = {};
+    const studentWhere: any = {};
 
     // Search filter
     if (search) {
@@ -67,28 +88,19 @@ export async function GET(request: NextRequest) {
 
     // Department filter
     if (department) {
-      where.student = {
-        ...where.student,
-        departmentId: parseInt(department)
-      };
+      studentWhere.departmentId = department;
     }
 
     // Year filter
-    if (year) {
-      where.student = {
-        ...where.student,
-        year: parseInt(year)
-      };
+    if (yearNum) {
+      studentWhere.year = yearNum;
     }
 
     // Career path filter
-    if (careerPath) {
-      where.student = {
-        ...where.student,
-        careerPaths: {
-          some: {
-            careerPathId: parseInt(careerPath)
-          }
+    if (careerPathStr) {
+      studentWhere.careerPaths = {
+        some: {
+          careerPathId: careerPathStr
         }
       };
     }
@@ -100,33 +112,57 @@ export async function GET(request: NextRequest) {
 
     // Course assignment filter
     if (courseAssignment === 'assigned') {
-      where.student = {
-        ...where.student,
-        roadmapAssignments: {
-          some: {
-            isActive: true
-          }
+      studentWhere.roadmapAssignments = {
+        some: {
+          isActive: true
         }
       };
     } else if (courseAssignment === 'not-assigned') {
-      where.student = {
-        ...where.student,
-        roadmapAssignments: {
-          none: {
-            isActive: true
-          }
+      studentWhere.roadmapAssignments = {
+        none: {
+          isActive: true
         }
       };
     }
 
-    console.log('🔍 Query filters:', where);
+    // Add student filters to main where clause if any exist
+    if (Object.keys(studentWhere).length > 0) {
+      where.student = studentWhere;
+    }
+
+    console.log('🔍 Query filters:', JSON.stringify(where, null, 2));
     
     const submissions = await prisma.certificateSubmission.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        courseName: true,
+        courseProvider: true,
+        completionDate: true,
+        certificateFileName: true,
+        fileMimeType: true,
+        fileSize: true,
+        description: true,
+        courseLink: true,
+        courseType: true,
+        status: true,
+        submittedAt: true,
+        evaluatedAt: true,
+        evaluatedBy: true,
+        facultyComments: true,
+        grade: true,
         student: {
-          include: {
-            department: true,
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            year: true,
+            department: {
+              select: {
+                id: true,
+                name: true
+              }
+            },
             careerPaths: {
               include: {
                 careerPath: true
@@ -143,8 +179,16 @@ export async function GET(request: NextRequest) {
           }
         },
         evaluator: {
-          include: {
-            department: true
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            department: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
           }
         }
       },
@@ -193,9 +237,17 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Error fetching certificate submissions:', error);
+    console.error('❌ Error fetching certificate submissions:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      details: error
+    });
     return NextResponse.json(
-      { error: 'Failed to fetch certificate submissions' },
+      { 
+        error: 'Failed to fetch certificate submissions',
+        details: error.message 
+      },
       { status: 500 }
     );
   }

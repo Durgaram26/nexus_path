@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface College {
-  id: number;
+  id: string;
   name: string;
 }
 
@@ -70,7 +70,7 @@ export default function AdminCollegePage() {
     }
   };
 
-  const handleDeleteCollege = async (id: number) => {
+  const handleDeleteCollege = async (id: string) => {
     setLoading(true);
     try {
       await api.delete('/college', { data: { id } });

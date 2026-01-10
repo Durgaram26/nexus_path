@@ -10,7 +10,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const courseId = parseInt(id);
+    const courseId = id;
     console.log('🔍 Fetching course with ID:', courseId);
     
     const course = await prisma.course.findUnique({
@@ -55,7 +55,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const courseId = parseInt(id);
+    const courseId = id;
     console.log('🗑️ Deleting course with ID:', courseId);
     
     // Check if course exists

@@ -30,7 +30,9 @@ interface CertificateSubmission {
   courseName: string;
   courseProvider: string;
   completionDate: string;
-  certificateFile: string;
+  certificateFile: string; // This is binary data stored as base64 or string
+  certificateFileName: string; // This is the original filename
+  fileMimeType?: string;
   description?: string;
   courseLink?: string;
   courseType: string;
@@ -98,31 +100,40 @@ export default function CertificatePreviewPage() {
     }
   };
 
-  const handleDownload = () => {
-    if (submission?.certificateFile) {
-      try {
-        // Create a download link with proper authentication
-        const link = document.createElement('a');
-        link.href = `/api/certificate-files/${submission.certificateFile}`;
-        link.download = submission.certificateFile;
-        link.target = '_blank';
-        link.click();
-        toast.success('Certificate download started');
-      } catch (error) {
-        console.error('Download error:', error);
-        toast.error('Failed to download certificate');
-      }
-    } else {
+  const handleDownload = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    
+    if (!submission?.certificateFileName) {
       toast.error('No certificate file available');
+      return;
+    }
+
+    try {
+      const link = document.createElement('a');
+      link.href = `/api/certificate-files/${encodeURIComponent(submission.certificateFileName)}`;
+      link.download = submission.certificateFileName;
+      link.setAttribute('target', '_blank');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Certificate download started');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download certificate');
     }
   };
 
-  const handlePreview = () => {
-    if (submission?.certificateFile) {
-      setShowPreview(true);
-    } else {
+  const handlePreview = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    
+    if (!submission?.certificateFileName) {
       toast.error('No certificate file available');
+      return;
     }
+    
+    setShowPreview(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -174,11 +185,14 @@ export default function CertificatePreviewPage() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 gap-4">
           <Button 
             variant="outline" 
-            onClick={() => router.back()}
-            className="flex items-center gap-2"
+            onClick={(e) => {
+              e.preventDefault();
+              router.back();
+            }}
+            className="flex items-center gap-2 cursor-pointer hover:bg-gray-100"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
@@ -188,14 +202,16 @@ export default function CertificatePreviewPage() {
             <Button 
               onClick={handlePreview}
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 cursor-pointer hover:bg-gray-100"
+              type="button"
             >
               <Eye className="w-4 h-4" />
               Preview Certificate
             </Button>
             <Button 
               onClick={handleDownload}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 cursor-pointer hover:bg-blue-700"
+              type="button"
             >
               <Download className="w-4 h-4" />
               Download Certificate
@@ -310,15 +326,15 @@ export default function CertificatePreviewPage() {
               <CardContent className="space-y-3">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Name</label>
-                  <p className="text-gray-900">{submission.student.name}</p>
+                  <p className="text-gray-900">{submission?.student?.name || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Email</label>
-                  <p className="text-gray-900">{submission.student.email}</p>
+                  <p className="text-gray-900">{submission?.student?.email || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Department</label>
-                  <p className="text-gray-900">{submission.student.department.name}</p>
+                  <p className="text-gray-900">{submission?.student?.department?.name || 'N/A'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -368,10 +384,15 @@ export default function CertificatePreviewPage() {
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <FileText className="w-8 h-8 text-gray-500" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{submission.certificateFile}</p>
+                    <p className="text-sm font-medium text-gray-900">{submission.certificateFileName}</p>
                     <p className="text-xs text-gray-600">PDF Document</p>
                   </div>
-                  <Button size="sm" onClick={handleDownload}>
+                  <Button 
+                    size="sm" 
+                    onClick={handleDownload}
+                    type="button"
+                    className="cursor-pointer hover:bg-blue-700"
+                  >
                     <Download className="w-4 h-4" />
                   </Button>
                 </div>
@@ -384,19 +405,28 @@ export default function CertificatePreviewPage() {
       {/* Certificate Preview Modal */}
       {showPreview && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-6xl max-h-[95vh] overflow-y-auto">
+          <div className="bg-white rounded-lg w-full max-w-6xl max-h-[95vh] overflow-y-auto relative">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold">Certificate Preview</h2>
-                <Button variant="outline" onClick={() => setShowPreview(false)}>
+                <Button 
+                  variant="outline" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowPreview(false);
+                  }}
+                  type="button"
+                  className="cursor-pointer hover:bg-gray-100"
+                >
                   <X className="w-4 h-4 mr-2" />
                   Close
                 </Button>
               </div>
               
               <PDFViewer
-                fileUrl={`/api/certificate-files/${submission?.certificateFile}`}
-                fileName={submission?.certificateFile}
+                fileUrl={`/api/certificate-files/${encodeURIComponent(submission?.certificateFileName || '')}`}
+                fileName={submission?.certificateFileName}
                 onDownload={handleDownload}
                 className="w-full"
               />

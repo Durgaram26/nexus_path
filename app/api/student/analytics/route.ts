@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import prisma from '@/lib/prisma';
 
 interface QuizAttempt {
-  id: number;
-  adaptiveQuizId: number | null;
-  quizId: number | null;
-  studentId: number;
+  id: string;
+  adaptiveQuizId: string | null;
+  quizId: string | null;
+  studentId: string;
   attemptNumber: number;
   answers: string;
   score: number;

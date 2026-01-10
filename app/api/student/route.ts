@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { Gender } from '@prisma/client';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 
 const prisma = new PrismaClient();
 
@@ -75,6 +75,15 @@ export async function POST(request: NextRequest) {
     if (existingStudent) {
       return NextResponse.json(
         { success: false, message: 'Student with this email already exists' },
+        { status: 409 }
+      );
+    }
+
+    // Check if student with this registerNumber already exists
+    const existingByRegNumber = await prisma.student.findUnique({ where: { registerNumber } });
+    if (existingByRegNumber) {
+      return NextResponse.json(
+        { success: false, message: 'Student with this register number already exists' },
         { status: 409 }
       );
     }
@@ -158,6 +167,17 @@ export async function PUT(request: NextRequest) {
     if (emailTaken) {
       return NextResponse.json(
         { success: false, message: 'Email is already taken by another student' },
+        { status: 409 }
+      );
+    }
+
+    // Check if registerNumber is already taken by another student
+    const regNumberTaken = await prisma.student.findFirst({
+      where: { registerNumber, id: { not: id } }
+    });
+    if (regNumberTaken) {
+      return NextResponse.json(
+        { success: false, message: 'Register number is already taken by another student' },
         { status: 409 }
       );
     }

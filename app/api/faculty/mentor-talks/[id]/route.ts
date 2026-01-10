@@ -48,7 +48,7 @@ export async function PUT(
 
     // Check if talk exists
     const existingTalk = await prisma.mentorTalk.findUnique({
-      where: { id: parseInt(talkId) }
+      where: { id: talkId }
     });
 
     if (!existingTalk) {
@@ -60,7 +60,7 @@ export async function PUT(
 
     // Update mentor talk
     const talk = await prisma.mentorTalk.update({
-      where: { id: parseInt(talkId) },
+      where: { id: talkId },
       data: {
         title,
         speakerName,
@@ -141,7 +141,7 @@ export async function DELETE(
 
     // Check if talk exists
     const existingTalk = await prisma.mentorTalk.findUnique({
-      where: { id: parseInt(talkId) }
+      where: { id: talkId }
     });
 
     if (!existingTalk) {
@@ -153,7 +153,7 @@ export async function DELETE(
 
     // Delete mentor talk (this will cascade delete related records)
     await prisma.mentorTalk.delete({
-      where: { id: parseInt(talkId) }
+      where: { id: talkId }
     });
 
     console.log('✅ Mentor talk deleted successfully:', talkId);

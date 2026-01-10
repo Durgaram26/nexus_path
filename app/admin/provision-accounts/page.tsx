@@ -30,7 +30,7 @@ export default function AdminProvisionAccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [showExistingAccounts, setShowExistingAccounts] = useState(false);
   const [selectedRole, setSelectedRole] = useState<'all' | '' | 'faculty'>('all');
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState<number | ''>('');
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
   const [selectedYear, setSelectedYear] = useState<number | ''>('');
 
   const fetchDepartments = async () => {
@@ -157,7 +157,7 @@ export default function AdminProvisionAccountsPage() {
                 <select 
                   className="border rounded h-10 px-3 w-full" 
                   value={selectedDepartmentId} 
-                  onChange={(e) => setSelectedDepartmentId(e.target.value ? parseInt(e.target.value) : '')}
+                  onChange={(e) => setSelectedDepartmentId(e.target.value)}
                 >
                   <option value="">All Departments</option>
                   {departments.map(d => (

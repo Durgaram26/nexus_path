@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
 
     // Get code test sessions for the student
     const sessions = await prisma.codeTestSession.findMany({
-      where: { studentId: parseInt(studentId) },
+      where: { studentId: studentId },
       include: {
         questionResults: true
       },

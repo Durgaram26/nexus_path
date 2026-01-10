@@ -9,12 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 
 interface College {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface Department {
-  id: number;
+  id: string;
   name: string;
   college: College;
 }
@@ -39,7 +39,7 @@ interface Student {
   name: string;
   gender: 'MALE' | 'FEMALE' | 'OTHER';
   phoneNumber?: string;
-  departmentId: number;
+  departmentId: string;
   department: Department;
   year: number;
   registerNumber: string;
@@ -77,11 +77,11 @@ export default function FacultyStudentListPage() {
   // Career path assignment state
   const [showCareerPathModal, setShowCareerPathModal] = useState(false); // Fixed useState declaration
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [selectedCareerPathId, setSelectedCareerPathId] = useState<number | ''>('');
+  const [selectedCareerPathId, setSelectedCareerPathId] = useState<string>('');
   const [studentCareerPaths, setStudentCareerPaths] = useState<StudentCareerPath[]>([]);
 
   // Filter and search state
-  const [filterDepartmentId, setFilterDepartmentId] = useState<number | ''>('');
+  const [filterDepartmentId, setFilterDepartmentId] = useState<string>('');
   const [filterYear, setFilterYear] = useState<number | ''>('');
   const [searchRegisterNumber, setSearchRegisterNumber] = useState('');
 
@@ -160,11 +160,11 @@ export default function FacultyStudentListPage() {
 
     setLoading(true);
     try {
-      await api.post('/student', { // Fixed endpoint
+      await api.post('/student', {
         email: newStudent.email,
         name: newStudent.name,
         gender: newStudent.gender,
-        departmentId: parseInt(newStudent.departmentId),
+        departmentId: newStudent.departmentId,
         year: parseInt(newStudent.year),
         registerNumber: newStudent.registerNumber
       });
@@ -316,7 +316,7 @@ export default function FacultyStudentListPage() {
     
     if (facultyInfo.canAssignCrossDepartment) {
       if (facultyInfo.allowedDepartments) {
-        const allowedDeptIds = facultyInfo.allowedDepartments.split(',').map(id => parseInt(id.trim()));
+        const allowedDeptIds = facultyInfo.allowedDepartments.split(',').map(id => id.trim());
         return departments.filter(dept => allowedDeptIds.includes(dept.id));
       }
       return departments; // All departments
@@ -363,7 +363,7 @@ export default function FacultyStudentListPage() {
                   id="filterDepartment"
                   className="border rounded h-10 px-3 w-full"
                   value={filterDepartmentId}
-                  onChange={(e) => setFilterDepartmentId(e.target.value ? parseInt(e.target.value) : '')}
+                  onChange={(e) => setFilterDepartmentId(e.target.value)}
                 >
                   <option value="">All Departments</option>
                   {departments.map((dept) => (
@@ -583,7 +583,7 @@ export default function FacultyStudentListPage() {
                       <select
                         className="border rounded h-10 px-3 flex-1"
                         value={selectedCareerPathId}
-                        onChange={(e) => setSelectedCareerPathId(e.target.value ? parseInt(e.target.value) : '')}
+                        onChange={(e) => setSelectedCareerPathId(e.target.value)}
                         required
                       >
                         <option value="">Select a Career Path</option>

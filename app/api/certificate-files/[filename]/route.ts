@@ -1,15 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
-import fs from 'fs';
-import path from 'path';
-import jsPDF from 'jspdf';
+import { verifyToken } from '@/lib/jwt';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ filename: string }> }
 ) {
   try {
-    const { filename } = await params;
+    let filename: string;
+    
+    // Safely extract and handle params
+    try {
+      const resolvedParams = await params;
+      filename = resolvedParams?.filename || '';
+      console.log('✅ Resolved params successfully');
+    } catch (paramsError) {
+      console.error('Error resolving params:', paramsError);
+      filename = '';
+    }
+    
+    if (!filename) {
+      console.error('❌ No filename provided in request');
+      return NextResponse.json({ error: 'No filename provided' }, { status: 400 });
+    }
+    
     console.log('🔍 Certificate file download requested:', filename);
     
     // Verify authentication
@@ -32,71 +48,76 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    // Serve the actual uploaded PDF file
-    const filePath = path.join(process.cwd(), 'uploads', 'certificates', filename);
+    // Fetch certificate from MongoDB using certificateFileName
+    const submission = await prisma.certificateSubmission.findFirst({
+      where: { certificateFileName: decodeURIComponent(filename) },
+      select: {
+        id: true,
+        certificateFile: true,
+        certificateFileName: true,
+        fileMimeType: true,
+        fileSize: true,
+        studentId: true,
+        student: {
+          select: {
+            email: true
+          }
+        }
+      }
+    });
     
-    // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      console.log('❌ Certificate file not found:', filePath);
-      
-      // Return a placeholder PDF for missing files
-      const placeholderPdf = new jsPDF('landscape', 'mm', 'a4');
-      const pageWidth = placeholderPdf.internal.pageSize.getWidth();
-      const pageHeight = placeholderPdf.internal.pageSize.getHeight();
-      
-      // Add background
-      placeholderPdf.setFillColor(248, 250, 252);
-      placeholderPdf.rect(0, 0, pageWidth, pageHeight, 'F');
-      
-      // Add border
-      placeholderPdf.setDrawColor('#2563eb');
-      placeholderPdf.setLineWidth(2);
-      placeholderPdf.rect(10, 10, pageWidth - 20, pageHeight - 20);
-      
-      // Add message
-      placeholderPdf.setFontSize(24);
-      placeholderPdf.setTextColor('#64748b');
-      placeholderPdf.setFont('helvetica', 'bold');
-      placeholderPdf.text('Certificate File Not Found', pageWidth / 2, pageHeight / 2 - 20, { align: 'center' });
-      
-      placeholderPdf.setFontSize(16);
-      placeholderPdf.setTextColor('#64748b');
-      placeholderPdf.setFont('helvetica', 'normal');
-      placeholderPdf.text('The certificate file for this submission', pageWidth / 2, pageHeight / 2, { align: 'center' });
-      placeholderPdf.text('could not be found or was not uploaded.', pageWidth / 2, pageHeight / 2 + 15, { align: 'center' });
-      
-      const pdfBuffer = Buffer.from(placeholderPdf.output('arraybuffer'));
-      
-      return new NextResponse(pdfBuffer, {
-        headers: {
-          'Content-Type': 'application/pdf',
-          'Content-Disposition': `inline; filename="missing-${filename}"`,
-          'Content-Length': pdfBuffer.length.toString(),
-        },
-      });
+    if (!submission) {
+      console.log('❌ Certificate not found in MongoDB:', filename);
+      return NextResponse.json({ error: 'Certificate not found' }, { status: 404 });
     }
+
+    console.log('✅ Certificate found in MongoDB:', submission.id, 'Size:', submission.fileSize);
+
+    // Handle MongoDB binary data conversion
+    let fileBuffer: any = submission.certificateFile;
+    let contentLength = submission.fileSize;
     
-    // Read the file
-    const fileBuffer = fs.readFileSync(filePath);
-    
-    // Get file stats for content length
-    const stats = fs.statSync(filePath);
-    
-    console.log('✅ Serving certificate file:', filename, 'Size:', stats.size, 'bytes');
-    
+    try {
+      // If certificateFile is a string (base64 encoded by Prisma)
+      if (typeof submission.certificateFile === 'string') {
+        console.log('Converting base64 string to Buffer...');
+        fileBuffer = Buffer.from(submission.certificateFile, 'base64');
+        contentLength = fileBuffer.length;
+      }
+      // If it's already a Buffer
+      else if (Buffer.isBuffer(submission.certificateFile)) {
+        console.log('Using Buffer directly...');
+        contentLength = submission.certificateFile.length;
+      }
+      // If it's Uint8Array
+      else if (submission.certificateFile instanceof Uint8Array) {
+        console.log('Converting Uint8Array to Buffer...');
+        fileBuffer = Buffer.from(submission.certificateFile);
+        contentLength = fileBuffer.length;
+      }
+      
+      console.log('Final buffer size:', contentLength, 'bytes');
+    } catch (conversionError) {
+      console.error('Error converting file buffer:', conversionError);
+      throw new Error('Failed to process certificate file data');
+    }
+
+    // Return the binary data from MongoDB with proper headers
     return new NextResponse(fileBuffer, {
+      status: 200,
       headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${filename}"`,
-        'Content-Length': stats.size.toString(),
-        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
-      },
+        'Content-Type': submission.fileMimeType || 'application/pdf',
+        'Content-Disposition': `inline; filename="${encodeURIComponent(submission.certificateFileName)}"`,
+        'Content-Length': contentLength.toString(),
+        'Cache-Control': 'public, max-age=3600',
+        'Accept-Ranges': 'bytes'
+      }
     });
 
   } catch (error: any) {
-    console.error('❌ Error serving certificate file:', error);
+    console.error('❌ Error downloading certificate:', error);
     return NextResponse.json(
-      { error: `Failed to serve certificate file: ${error.message}` },
+      { error: 'Failed to download certificate', details: error.message },
       { status: 500 }
     );
   }

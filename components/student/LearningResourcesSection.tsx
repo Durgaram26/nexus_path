@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface LearningResourcesSectionProps {
-  studentId: number;
-  departmentId: number;
+  studentId: string;
+  departmentId: string;
   onNavigate?: (section: string) => void;
 }
 

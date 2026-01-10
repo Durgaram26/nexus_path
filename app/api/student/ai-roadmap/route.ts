@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import prisma from '@/lib/prisma';
 
 // GET - Get or create AI-generated roadmap for student
@@ -274,7 +274,7 @@ export async function POST(request: NextRequest) {
     // Check if student already has an AI roadmap
     const existingAssignment = await prisma.roadmapAssignment.findFirst({
       where: {
-        studentId: parseInt(studentId),
+        studentId: studentId,
         isActive: true,
         roadmap: {
           isAIGenerated: true
@@ -291,8 +291,8 @@ export async function POST(request: NextRequest) {
     // Create the assignment
     const assignment = await prisma.roadmapAssignment.create({
       data: {
-        roadmapId: parseInt(roadmapId),
-        studentId: parseInt(studentId),
+        roadmapId: roadmapId,
+        studentId: studentId,
         assignedBy: decoded.userId,
         isActive: true,
         progress: 0,

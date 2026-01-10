@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client" // Corrected output path for the Prisma client
+  engineType = "wasm"
 }
 
 datasource db {
@@ -548,7 +548,10 @@ model CertificateSubmission {
   courseName      String
   courseProvider  String
   completionDate  DateTime
-  certificateFile String   // File path or URL
+  certificateFile Bytes   // PDF file stored as binary data in MongoDB
+  certificateFileName String   // Original filename for download
+  fileMimeType    String   @default("application/pdf")
+  fileSize        Int      // File size in bytes
   description     String?
   courseLink      String?  // Optional course URL
   courseType      String   @default("online-course") // online-course, workshop, certification, etc.
