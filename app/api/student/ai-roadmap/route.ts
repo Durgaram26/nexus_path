@@ -6,14 +6,14 @@ import prisma from '@/lib/prisma';
 export async function GET(request: NextRequest) {
   try {
     console.log('GET /student/ai-roadmap - Starting request');
-    
+
     // Verify authentication
     let token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
+
     if (!token) {
       token = request.cookies.get('access_token')?.value;
     }
-    
+
     if (!token) {
       console.log('No token provided');
       return NextResponse.json({ error: 'No token provided' }, { status: 401 });
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
     console.log('Student needs AI roadmap, checking for available AI roadmaps...');
 
     // Get student's career paths
-    const careerPathNames = student.careerPaths.map(scp => scp.careerPath.name);
+    const careerPathNames = student.careerPaths.map((scp: any) => scp.careerPath.name);
     console.log('Student career paths:', careerPathNames);
 
     if (careerPathNames.length === 0) {
@@ -219,7 +219,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error: unknown) {
     console.error('Get AI roadmap error:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Failed to get AI roadmap',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
@@ -230,14 +230,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     console.log('POST /student/ai-roadmap - Starting request');
-    
+
     // Verify authentication - only faculty can assign
     let token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
+
     if (!token) {
       token = request.cookies.get('access_token')?.value;
     }
-    
+
     if (!token) {
       return NextResponse.json({ error: 'No token provided' }, { status: 401 });
     }
@@ -250,8 +250,8 @@ export async function POST(request: NextRequest) {
     const { studentId, roadmapId } = await request.json();
 
     if (!studentId || !roadmapId) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: studentId, roadmapId' 
+      return NextResponse.json({
+        error: 'Missing required fields: studentId, roadmapId'
       }, { status: 400 });
     }
 
@@ -266,8 +266,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (!roadmap.isAIGenerated) {
-      return NextResponse.json({ 
-        error: 'Only AI-generated roadmaps can be assigned through this endpoint' 
+      return NextResponse.json({
+        error: 'Only AI-generated roadmaps can be assigned through this endpoint'
       }, { status: 400 });
     }
 
@@ -283,8 +283,8 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingAssignment) {
-      return NextResponse.json({ 
-        error: 'Student already has an AI-generated roadmap assigned' 
+      return NextResponse.json({
+        error: 'Student already has an AI-generated roadmap assigned'
       }, { status: 409 });
     }
 
@@ -350,7 +350,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error: unknown) {
     console.error('Assign AI roadmap error:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Failed to assign AI roadmap',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });

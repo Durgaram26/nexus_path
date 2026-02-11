@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma';
 export async function GET(request: NextRequest) {
   try {
     console.log('GET /api/faculty/sent-messages - Starting request');
-    
+
     // Verify authentication
     const bearer = request.headers.get('authorization');
     const tokenFromHeader = bearer?.startsWith('Bearer ')
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     const decoded = verifyToken(token);
-    
+
     if (!decoded || decoded.role !== 'faculty') {
       return NextResponse.json({ error: 'Unauthorized - Faculty access required' }, { status: 403 });
     }
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      messages: messages.map(msg => ({
+      messages: messages.map((msg: any) => ({
         id: msg.id,
         subject: msg.subject,
         content: msg.content,
@@ -81,9 +81,9 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching sent messages:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to fetch sent messages',
-        details: error.message 
+        details: error.message
       },
       { status: 500 }
     );

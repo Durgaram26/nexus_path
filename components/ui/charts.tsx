@@ -69,11 +69,11 @@ export function PerformanceOverviewChart({ data }: { data: unknown[] }) {
             <XAxis dataKey="month" />
             <YAxis domain={[0, 100]} />
             <Tooltip />
-            <Area 
-              type="monotone" 
-              dataKey="score" 
-              stroke="#8884d8" 
-              fill="#8884d8" 
+            <Area
+              type="monotone"
+              dataKey="score"
+              stroke="#8884d8"
+              fill="#8884d8"
               fillOpacity={0.6}
             />
           </AreaChart>
@@ -491,19 +491,19 @@ export function CodingTestPerformanceChart({ data }: { data: unknown[] }) {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
+              <XAxis
+                dataKey="date"
                 tick={{ fontSize: 12 }}
                 tickFormatter={(value) => new Date(value).toLocaleDateString()}
               />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
+              <Tooltip
                 labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                formatter={(value: number, name: string) => [
+                formatter={(value: any, name: any) => [
                   name === 'successRate' ? `${value}%` : value,
-                  name === 'successRate' ? 'Success Rate' : 
-                  name === 'totalTests' ? 'Total Tests' : 
-                  name === 'avgExecutionTime' ? 'Avg Execution Time (ms)' : name
+                  name === 'successRate' ? 'Success Rate' :
+                    name === 'totalTests' ? 'Total Tests' :
+                      name === 'avgExecutionTime' ? 'Avg Execution Time (ms)' : name
                 ]}
               />
               <Area
@@ -564,19 +564,19 @@ export function CombinedPerformanceChart({ quizData, codingData }: { quizData: u
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
+              <XAxis
+                dataKey="date"
                 tick={{ fontSize: 12 }}
                 tickFormatter={(value) => new Date(value).toLocaleDateString()}
               />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
+              <Tooltip
                 labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                formatter={(value: number, name: string) => [
-                  name === 'quizScore' ? `${value}%` : 
-                  name === 'codingSuccess' ? `${value}%` : value,
-                  name === 'quizScore' ? 'Quiz Score' : 
-                  name === 'codingSuccess' ? 'Coding Success Rate' : name
+                formatter={(value: any, name: any) => [
+                  name === 'quizScore' ? `${value}%` :
+                    name === 'codingSuccess' ? `${value}%` : value,
+                  name === 'quizScore' ? 'Quiz Score' :
+                    name === 'codingSuccess' ? 'Coding Success Rate' : name
                 ]}
               />
               <Area

@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingAssignments.length > 0) {
-      const existingStudentIds = existingAssignments.map(a => a.studentId);
+      const existingStudentIds = existingAssignments.map((a: any) => a.studentId);
       return NextResponse.json(
         { success: false, message: `Some students already have active assignments with this mentor: ${existingStudentIds.join(', ')}` },
         { status: 400 }

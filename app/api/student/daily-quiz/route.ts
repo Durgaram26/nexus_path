@@ -17,17 +17,17 @@ function getAuthPayload(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     console.log('Daily quiz API called');
-    
+
     const payload = getAuthPayload(request);
     console.log('Auth payload:', payload);
-    
+
     if (!payload) {
       console.log('No payload found - checking headers and cookies');
       console.log('Authorization header:', request.headers.get('authorization'));
       console.log('Cookies:', request.headers.get('cookie'));
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
-    
+
     if (!['student'].includes((payload as any).role)) {
       console.log('Authentication failed - invalid role:', (payload as any).role);
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
@@ -36,11 +36,11 @@ export async function GET(request: NextRequest) {
     // Check if a specific quizId is requested
     const { searchParams } = new URL(request.url);
     const quizIdParam = searchParams.get('quizId');
-    
+
     const today = new Date();
     const todayString = today.toISOString().split('T')[0];
     console.log('Student ID:', (payload as any).userId, 'Today:', todayString);
-    
+
     if (quizIdParam) {
       console.log('Specific quiz requested:', quizIdParam);
       // Return the specific quiz
@@ -51,15 +51,15 @@ export async function GET(request: NextRequest) {
           quizAttempts: true
         }
       });
-      
+
       if (!specificQuiz) {
         return NextResponse.json({ message: 'Quiz not found' }, { status: 404 });
       }
-      
+
       const questions = JSON.parse(specificQuiz.questions);
       const totalAttempts = specificQuiz.totalAttempts || 0;
       const bestScore = specificQuiz.bestScore || 0;
-      
+
       return NextResponse.json({
         success: true,
         quiz: {
@@ -78,14 +78,14 @@ export async function GET(request: NextRequest) {
         isNew: false
       });
     }
-    
+
     // Get the user first to get their email
     console.log('Looking up user with ID:', (payload as any).userId);
     const user = await prisma.user.findUnique({
       where: { id: (payload as any).userId }
     });
     console.log('User found:', user ? 'Yes' : 'No');
-    
+
     if (!user) {
       console.log('User not found for ID:', (payload as any).userId);
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       console.log('Student not found for email:', user.email);
       return NextResponse.json({ message: 'Student not found' }, { status: 404 });
     }
-    
+
     // Check if daily quiz already exists for today
     const existingQuiz = await prisma.adaptiveQuiz.findFirst({
       where: {
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
 
     if (existingQuiz) {
       console.log('Existing quiz found, returning it');
-      
+
       // Get attempt count for this quiz
       const attemptCount = await prisma.quizAttempt.count({
         where: {
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
           studentId: student.id
         }
       });
-      
+
       // Also check if there are any attempts for today (regardless of quiz ID)
       const todayAttempts = await prisma.quizAttempt.count({
         where: {
@@ -142,10 +142,10 @@ export async function GET(request: NextRequest) {
           }
         }
       });
-      
+
       console.log('Quiz attempts for this quiz:', attemptCount);
       console.log('Today attempts for student:', todayAttempts);
-      
+
       return NextResponse.json({
         success: true,
         quiz: {
@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
 
     // No quiz exists for today - return ready state for AI generation
     console.log('No quiz exists for today, ready for AI generation...');
-    
+
     return NextResponse.json({
       success: true,
       quiz: null,
@@ -178,8 +178,8 @@ export async function GET(request: NextRequest) {
       stack: error instanceof Error ? error.stack : undefined,
       name: error instanceof Error ? error.name : undefined
     });
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : 'Unknown error',
       details: error instanceof Error ? error.stack : undefined
     }, { status: 500 });
@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { id: (payload as any).userId }
     });
-    
+
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
     const student = await prisma.student.findUnique({
       where: { email: user.email }
     });
-    
+
     if (!student) {
       return NextResponse.json({ message: 'Student not found' }, { status: 404 });
     }
@@ -232,7 +232,7 @@ export async function POST(request: NextRequest) {
       // Handle both question structures: correctAnswer (number) and correct (string)
       const correctAnswer = question.correctAnswer !== undefined ? question.correctAnswer : question.correct;
       const userAnswer = answers[index];
-      
+
       console.log(`Question ${index + 1}:`, {
         questionId: question.id,
         userAnswer,
@@ -240,7 +240,7 @@ export async function POST(request: NextRequest) {
         correctAnswerType: typeof correctAnswer,
         question: question.question?.substring(0, 50) + '...'
       });
-      
+
       // Compare based on the type of correct answer
       let isCorrect = false;
       if (typeof correctAnswer === 'number') {
@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
         isCorrect = userAnswer === correctIndex;
         console.log(`String comparison: ${userAnswer} === ${correctIndex} (index of "${correctAnswer}") = ${isCorrect}`);
       }
-      
+
       if (isCorrect) {
         correctAnswers++;
         console.log(`✓ Correct answer for question ${index + 1}`);
@@ -269,7 +269,7 @@ export async function POST(request: NextRequest) {
     });
 
     const score = Math.round((correctAnswers / questions.length) * 100);
-    
+
     console.log('Quiz scoring summary:', {
       totalQuestions: questions.length,
       correctAnswers,
@@ -320,7 +320,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    const bestScore = Math.max(...allAttempts.map(attempt => attempt.score));
+    const bestScore = Math.max(...allAttempts.map((attempt: any) => attempt.score));
 
     // Update quiz status
     await prisma.adaptiveQuiz.update({
@@ -340,16 +340,16 @@ export async function POST(request: NextRequest) {
       correctAnswers: correctAnswers,
       totalQuestions: questions.length,
       wrongAnswers: wrongAnswers,
-      isNewBestScore: score > (allAttempts.length > 1 ? Math.max(...allAttempts.slice(0, -1).map(a => a.score)) : 0),
-      previousScore: allAttempts.length > 1 ? Math.max(...allAttempts.slice(0, -1).map(a => a.score)) : null,
-      improvement: allAttempts.length > 1 ? score - Math.max(...allAttempts.slice(0, -1).map(a => a.score)) : null,
+      isNewBestScore: score > (allAttempts.length > 1 ? Math.max(...allAttempts.slice(0, -1).map((a: any) => a.score)) : 0),
+      previousScore: allAttempts.length > 1 ? Math.max(...allAttempts.slice(0, -1).map((a: any) => a.score)) : null,
+      improvement: allAttempts.length > 1 ? score - Math.max(...allAttempts.slice(0, -1).map((a: any) => a.score)) : null,
       canRetake: attemptNumber < 2
     });
 
   } catch (error: unknown) {
     console.error('Quiz submission error:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

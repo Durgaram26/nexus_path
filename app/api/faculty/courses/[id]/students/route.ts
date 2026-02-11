@@ -11,7 +11,7 @@ export async function GET(
   try {
     const { id } = await params;
     const courseId = id;
-    
+
     // Fetch students enrolled in this course from database
     const enrollments = await prisma.courseEnrollment.findMany({
       where: {
@@ -21,9 +21,9 @@ export async function GET(
         student: true
       }
     });
-    
+
     // Transform to match frontend expectations
-    const students = enrollments.map(enrollment => ({
+    const students = enrollments.map((enrollment: any) => ({
       id: enrollment.student.id,
       name: enrollment.student.name,
       email: enrollment.student.email,
@@ -37,7 +37,7 @@ export async function GET(
       lastActivity: enrollment.lastActivity.toISOString(),
       attendance: enrollment.attendance
     }));
-    
+
     return NextResponse.json({
       success: true,
       students: students
@@ -60,12 +60,12 @@ export async function POST(
     const { id } = await params;
     const courseId = id;
     const body = await request.json();
-    
+
     // First, find or create the student
     let student = await prisma.student.findUnique({
       where: { email: body.email }
     });
-    
+
     if (!student) {
       // Create new student if doesn't exist
       student = await prisma.student.create({
@@ -80,7 +80,7 @@ export async function POST(
         }
       });
     }
-    
+
     // Create course enrollment
     const enrollment = await prisma.courseEnrollment.create({
       data: {
@@ -95,7 +95,7 @@ export async function POST(
         student: true
       }
     });
-    
+
     // Update course enrollment count
     await prisma.course.update({
       where: { id: courseId },
@@ -105,7 +105,7 @@ export async function POST(
         }
       }
     });
-    
+
     return NextResponse.json({
       success: true,
       student: {

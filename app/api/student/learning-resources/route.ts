@@ -16,10 +16,10 @@ function getAuthPayload(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     console.log('Learning resources API called');
-    
+
     const payload = getAuthPayload(request);
     console.log('Auth payload:', payload);
-    
+
     if (!payload || !['student'].includes((payload as any).role)) {
       console.log('Access denied - not a student');
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
@@ -27,12 +27,12 @@ export async function GET(request: NextRequest) {
 
     const studentId = (payload as any).userId;
     console.log('Student ID:', studentId);
-    
+
     // Get the user first to get their email
     const user = await prisma.user.findUnique({
       where: { id: studentId }
     });
-    
+
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       console.error('Error fetching student:', error);
       return NextResponse.json({ message: 'Database error fetching student' }, { status: 500 });
     }
-    
+
     if (!student) {
       console.log('Student not found for email:', user.email);
       return NextResponse.json({ message: 'Student not found' }, { status: 404 });
@@ -63,12 +63,12 @@ export async function GET(request: NextRequest) {
     console.log('Student found:', student.name);
 
     // Get student's career paths
-    const careerPathNames = student.careerPaths.map(scp => scp.careerPath.name);
+    const careerPathNames = student.careerPaths.map((scp: any) => scp.careerPath.name);
     console.log('Student career paths:', careerPathNames);
 
     // Get all learning resources assigned to this student or matching their career paths
     console.log('Querying learning resources for career paths:', careerPathNames);
-    
+
     let learningResources;
     try {
       learningResources = await prisma.learningResource.findMany({
@@ -113,11 +113,11 @@ export async function GET(request: NextRequest) {
       console.error('Error fetching learning resources:', error);
       return NextResponse.json({ message: 'Database error fetching learning resources' }, { status: 500 });
     }
-    
+
     console.log('Found learning resources:', learningResources.length);
 
     // Transform to include access information
-    const resourcesWithAccess = learningResources.map(resource => ({
+    const resourcesWithAccess = learningResources.map((resource: any) => ({
       ...resource,
       isAssigned: resource.studentAccess.length > 0,
       accessInfo: resource.studentAccess[0] || null
@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
 
     // Group by category
     const resourcesByCategory: { [key: string]: any[] } = {};
-    resourcesWithAccess.forEach(resource => {
+    resourcesWithAccess.forEach((resource: any) => {
       if (!resourcesByCategory[resource.category]) {
         resourcesByCategory[resource.category] = [];
       }
@@ -133,9 +133,9 @@ export async function GET(request: NextRequest) {
     });
 
     // Separate assigned vs available resources
-    const assignedToStudent = resourcesWithAccess.filter(r => r.isAssigned);
-    const availableResources = resourcesWithAccess.filter(r => !r.isAssigned);
-    
+    const assignedToStudent = resourcesWithAccess.filter((r: any) => r.isAssigned);
+    const availableResources = resourcesWithAccess.filter((r: any) => !r.isAssigned);
+
     return NextResponse.json({
       success: true,
       resourcesByCategory,
@@ -147,8 +147,8 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('GET /api/student/learning-resources error:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { id: studentId }
     });
-    
+
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
     const student = await prisma.student.findFirst({
       where: { email: user.email }
     });
-    
+
     if (!student) {
       return NextResponse.json({ message: 'Student not found' }, { status: 404 });
     }
@@ -243,8 +243,8 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('POST /api/student/learning-resources error:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }

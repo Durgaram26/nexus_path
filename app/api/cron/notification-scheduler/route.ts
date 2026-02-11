@@ -6,17 +6,17 @@ import prisma from '../../../../lib/prisma';
 function verifyCronSecret(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
-  
+
   if (!cronSecret) {
     console.error('CRON_SECRET not configured');
     return false;
   }
-  
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     console.error('Invalid authorization header');
     return false;
   }
-  
+
   const token = authHeader.substring(7);
   return token === cronSecret;
 }
@@ -54,16 +54,16 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Notification scheduler cron job completed successfully');
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'Notification scheduler completed successfully',
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
     console.error('❌ Notification scheduler cron job failed:', error);
-    return NextResponse.json({ 
-      message: 'Notification scheduler failed', 
-      error: String(error) 
+    return NextResponse.json({
+      message: 'Notification scheduler failed',
+      error: String(error)
     }, { status: 500 });
   }
 }
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 async function sendDailyQuizReminders() {
   try {
     console.log('📚 Sending daily quiz reminders...');
-    
+
     // Check if daily quiz reminders were already sent today
     const today = new Date().toISOString().split('T')[0];
     const existingReminders = await prisma.notification.findMany({
@@ -109,7 +109,7 @@ async function sendDailyQuizReminders() {
 async function sendDailyTestReminders() {
   try {
     console.log('📝 Sending daily test reminders...');
-    
+
     // Get all active tests for today
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -121,7 +121,7 @@ async function sendDailyTestReminders() {
     });
 
     // Create test reminders for each student
-    const notifications = students.map(student => ({
+    const notifications = students.map((student: any) => ({
       studentId: student.id,
       title: '📝 Daily Test Available',
       message: 'Complete today\'s coding test to improve your skills!',
@@ -149,11 +149,11 @@ async function sendDailyTestReminders() {
 async function sendWorkshopAssignmentReminders() {
   try {
     console.log('🔧 Sending workshop assignment reminders...');
-    
+
     // Get workshops starting in the next 24 hours
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     const upcomingWorkshops = await prisma.workshop.findMany({
       where: {
         startDate: {
@@ -194,11 +194,11 @@ async function sendWorkshopAssignmentReminders() {
 async function sendCourseAssignmentReminders() {
   try {
     console.log('📖 Sending course assignment reminders...');
-    
+
     // Get assignments due in the next 24 hours
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     const upcomingAssignments = await prisma.assignment.findMany({
       where: {
         dueDate: {
@@ -244,7 +244,7 @@ async function sendCourseAssignmentReminders() {
 async function sendSubmissionDeadlineReminders() {
   try {
     console.log('⏰ Sending submission deadline reminders...');
-    
+
     // Get all students
     const students = await prisma.student.findMany({
       select: { id: true }
@@ -277,11 +277,11 @@ async function sendSubmissionDeadlineReminders() {
 async function sendMentorTalkReminders() {
   try {
     console.log('🎤 Sending mentor talk reminders...');
-    
+
     // Get mentor talks scheduled for the next 24 hours
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     // Note: This would need to be implemented based on your mentor talk schema
     // For now, we'll create a placeholder that can be extended
     console.log('✅ Mentor talk reminders sent (placeholder)');

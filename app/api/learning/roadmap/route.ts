@@ -7,12 +7,12 @@ export async function POST(request: NextRequest) {
   try {
     // Verify authentication - check both Authorization header and cookies
     let token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
+
     // If no token in header, try to get from cookies
     if (!token) {
       token = request.cookies.get('access_token')?.value;
     }
-    
+
     if (!token) {
       return NextResponse.json({ error: 'No token provided' }, { status: 401 });
     }
@@ -27,13 +27,13 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!year || !careerPath || !department) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: year, careerPath, department' 
+      return NextResponse.json({
+        error: 'Missing required fields: year, careerPath, department'
       }, { status: 400 });
     }
 
     // Generate roadmap using Gemini AI
-        
+
     // Get faculty info for creator details
     const faculty = await prisma.faculty.findUnique({
       where: { email: decoded.email },
@@ -41,8 +41,8 @@ export async function POST(request: NextRequest) {
     });
 
     if (!faculty) {
-      return NextResponse.json({ 
-        error: 'Faculty record not found' 
+      return NextResponse.json({
+        error: 'Faculty record not found'
       }, { status: 404 });
     }
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     };
 
     const geminiService = new GeminiAIService();
-    
+
     try {
       const generatedRoadmap = await geminiService.generateRoadmap(roadmapRequest);
 
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error: unknown) {
     console.error('Roadmap generation error:', error);
-    
+
     // Handle rate limit errors
     if (error instanceof RateLimitError) {
       return NextResponse.json({
@@ -185,9 +185,9 @@ export async function POST(request: NextRequest) {
       }, { status: 429 });
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Failed to generate roadmap',
-      details: (error as Error).message 
+      details: (error as Error).message
     }, { status: 500 });
   }
 }
@@ -196,16 +196,16 @@ export async function GET(request: NextRequest) {
   try {
     // Verify authentication - check both Authorization header and cookies
     let token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
+
     // If no token in header, try to get from cookies
     if (!token) {
       token = request.cookies.get('access_token')?.value;
     }
-    
+
     console.log('Token found:', !!token);
     console.log('Token from header:', !!request.headers.get('authorization'));
     console.log('Token from cookie:', !!request.cookies.get('access_token')?.value);
-    
+
     if (!token) {
       console.log('No token provided');
       return NextResponse.json({ error: 'No token provided' }, { status: 401 });
@@ -213,7 +213,7 @@ export async function GET(request: NextRequest) {
 
     const decoded = verifyToken(token);
     console.log('Decoded token:', decoded);
-    
+
     if (!decoded || (decoded.role !== 'faculty' && decoded.role !== 'admin' && decoded.role !== 'student')) {
       console.log('Unauthorized - decoded:', decoded, 'role:', decoded?.role);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -236,7 +236,7 @@ export async function GET(request: NextRequest) {
       const faculty = await prisma.faculty.findUnique({
         where: { email: decoded.email }
       });
-      
+
       if (faculty) {
         // Show roadmaps created by the user ID (createdBy is User ID, not Faculty ID)
         where.createdBy = String(decoded.userId);
@@ -244,7 +244,7 @@ export async function GET(request: NextRequest) {
         where.createdBy = String(decoded.userId);
       }
     }
-    
+
     // If user is student, show roadmaps based on their career paths
     if (decoded.role === 'student') {
       // Get student's career paths to filter roadmaps
@@ -252,9 +252,9 @@ export async function GET(request: NextRequest) {
         where: { email: decoded.email },
         include: { careerPaths: { include: { careerPath: true } } }
       });
-            
+
       if (student && student.careerPaths.length > 0) {
-        const careerPathNames = student.careerPaths.map(cp => cp.careerPath.name);
+        const careerPathNames = student.careerPaths.map((cp: any) => cp.careerPath.name);
         where.careerPath = { in: careerPathNames };
       }
     }
@@ -289,7 +289,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Parse JSON fields for each roadmap
-    const parsedRoadmaps = roadmaps.map(roadmap => ({
+    const parsedRoadmaps = roadmaps.map((roadmap: any) => ({
       ...roadmap,
       milestones: roadmap.milestones ? JSON.parse(roadmap.milestones) : [],
       careerOutcomes: roadmap.careerOutcomes ? JSON.parse(roadmap.careerOutcomes) : [],
@@ -300,9 +300,9 @@ export async function GET(request: NextRequest) {
 
   } catch (error: unknown) {
     console.error('Error fetching roadmaps:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Failed to fetch roadmaps',
-      details: (error as Error).message 
+      details: (error as Error).message
     }, { status: 500 });
   }
 }
@@ -311,12 +311,12 @@ export async function DELETE(request: NextRequest) {
   try {
     // Verify authentication - check both Authorization header and cookies
     let token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
+
     // If no token in header, try to get from cookies
     if (!token) {
       token = request.cookies.get('access_token')?.value;
     }
-    
+
     if (!token) {
       return NextResponse.json({ error: 'No token provided' }, { status: 401 });
     }
@@ -328,7 +328,7 @@ export async function DELETE(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const roadmapId = searchParams.get('id');
-    
+
     if (!roadmapId) {
       return NextResponse.json({ error: 'Roadmap ID is required' }, { status: 400 });
     }
@@ -349,7 +349,7 @@ export async function DELETE(request: NextRequest) {
       const faculty = await prisma.faculty.findUnique({
         where: { email: decoded.email }
       });
-      
+
       if (faculty) {
         // Check if roadmap was created by either the user ID or faculty ID
         if (roadmap.createdBy !== String(decoded.userId) && roadmap.createdBy !== faculty.id) {
@@ -368,16 +368,16 @@ export async function DELETE(request: NextRequest) {
       where: { id: roadmapId }
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Roadmap deleted successfully' 
+    return NextResponse.json({
+      success: true,
+      message: 'Roadmap deleted successfully'
     });
 
   } catch (error: unknown) {
     console.error('Error deleting roadmap:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Failed to delete roadmap',
-      details: (error as Error).message 
+      details: (error as Error).message
     }, { status: 500 });
   }
 }

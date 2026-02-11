@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     console.log('GET /api/student/messages - Starting request');
     const payload = getAuthPayload(request);
     console.log('Auth payload:', payload);
-    
+
     if (!payload || (payload as any).role !== 'student') {
       console.log('Authentication failed - payload:', payload, 'role:', (payload as any)?.role);
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     console.log('Found messages:', messages.length);
 
     return NextResponse.json({
-      messages: messages.map(msg => ({
+      messages: messages.map((msg: any) => ({
         id: msg.id.toString(),
         senderName: msg.sender?.name || 'Unknown',
         subject: msg.subject,

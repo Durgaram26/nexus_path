@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
     // Get course details
     const course = await prisma.course.findUnique({
       where: { id: courseId },
-      include: { 
+      include: {
         creator: {
           include: { department: true }
         }
@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Filter out roadmaps that already have this course assigned
-    const availableRoadmaps = roadmaps.filter(roadmap => 
+    const availableRoadmaps = roadmaps.filter((roadmap: any) =>
       roadmap.courseAssignments.length === 0
     );
 
@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
         level: course.level,
         category: course.category
       },
-      roadmaps: availableRoadmaps.map(roadmap => ({
+      roadmaps: availableRoadmaps.map((roadmap: any) => ({
         id: roadmap.id,
         title: roadmap.title,
         description: roadmap.description,

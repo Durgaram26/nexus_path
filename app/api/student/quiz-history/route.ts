@@ -15,7 +15,7 @@ function getAuthPayload(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     console.log('Quiz history API called');
-    
+
     const payload = getAuthPayload(request);
     if (!payload) {
       console.log('No auth payload found');
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { id: userId }
     });
-    
+
     if (!user) {
       console.log('User not found');
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
@@ -39,14 +39,14 @@ export async function GET(request: NextRequest) {
     const student = await prisma.student.findUnique({
       where: { email: user.email }
     });
-    
+
     if (!student) {
       console.log('Student not found');
       return NextResponse.json({ message: 'Student not found' }, { status: 404 });
     }
 
     console.log('Student found:', student.id);
-    
+
     // Get all quiz attempts for the student
     const attempts = await prisma.quizAttempt.findMany({
       where: {
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
     console.log('Quiz attempts found:', attempts.length);
 
     // Format the attempts
-    const formattedAttempts = attempts.map(attempt => {
+    const formattedAttempts = attempts.map((attempt: any) => {
       try {
         return {
           id: attempt.id,
@@ -103,17 +103,17 @@ export async function GET(request: NextRequest) {
 
     // Group attempts by date and show only the most recent attempt for each day
     const groupedAttempts = new Map();
-    
-    formattedAttempts.forEach(attempt => {
+
+    formattedAttempts.forEach((attempt: any) => {
       if (attempt.quizDate) {
         const dateKey = new Date(attempt.quizDate).toISOString().split('T')[0];
-        
+
         // Show the most recent attempt (highest attempt number) for each day
         if (!groupedAttempts.has(dateKey) || attempt.attemptNumber > groupedAttempts.get(dateKey).attemptNumber) {
           groupedAttempts.set(dateKey, {
             ...attempt,
             dateKey,
-            totalAttemptsForDay: formattedAttempts.filter(a => 
+            totalAttemptsForDay: formattedAttempts.filter((a: any) =>
               a.quizDate && new Date(a.quizDate).toISOString().split('T')[0] === dateKey
             ).length
           });
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Convert back to array and sort by date (newest first)
-    const finalAttempts = Array.from(groupedAttempts.values()).sort((a, b) => 
+    const finalAttempts = Array.from(groupedAttempts.values()).sort((a, b) =>
       new Date(b.quizDate).getTime() - new Date(a.quizDate).getTime()
     );
 
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
     const totalAttempts = finalAttempts.length;
     let averageScore = 0;
     let bestScore = 0;
-    
+
     if (totalAttempts > 0) {
       try {
         const scores = finalAttempts.map(attempt => attempt.score || 0);
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
         bestScore = 0;
       }
     }
-    
+
     // Calculate streak using grouped attempts
     let currentStreak = 0;
     try {
@@ -161,12 +161,12 @@ export async function GET(request: NextRequest) {
     // Get recent performance (last 7 days) using grouped attempts
     let recentAttempts = [];
     let recentAverage = 0;
-    
+
     try {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      
-      recentAttempts = finalAttempts.filter(attempt => 
+
+      recentAttempts = finalAttempts.filter(attempt =>
         attempt.completedAt && attempt.completedAt >= sevenDaysAgo
       );
 
@@ -204,8 +204,8 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('GET /api/student/quiz-history error:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

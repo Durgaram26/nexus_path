@@ -41,15 +41,15 @@ export function MessageInbox({ studentId }: MessageInboxProps) {
   const markAsRead = async (messageId: string) => {
     try {
       await api.patch('/student/messages', { messageId });
-      
+
       // Update local state
-      setMessages(prev => prev.map(msg => 
+      setMessages(prev => prev.map(msg =>
         msg.id === messageId ? { ...msg, isRead: true } : msg
       ));
-      setFilteredMessages(prev => prev.map(msg => 
+      setFilteredMessages(prev => prev.map(msg =>
         msg.id === messageId ? { ...msg, isRead: true } : msg
       ));
-      
+
       // Update selected message if it's the same
       if (selectedMessage?.id === messageId) {
         setSelectedMessage(prev => prev ? { ...prev, isRead: true } : null);
@@ -65,13 +65,13 @@ export function MessageInbox({ studentId }: MessageInboxProps) {
       setIsLoading(true);
       console.log('Fetching messages for studentId:', studentId);
       console.log('API URL:', `/student/messages?studentId=${studentId}`);
-      
+
       const response = await api.get(`/student/messages?studentId=${studentId}`);
       console.log('API Response:', response.data);
-      
+
       const newMessages = response.data.messages || [];
       console.log('Messages received:', newMessages.length);
-      
+
       setMessages(newMessages);
       setFilteredMessages(newMessages);
     } catch (error: any) {
@@ -169,20 +169,20 @@ export function MessageInbox({ studentId }: MessageInboxProps) {
     const date = new Date(timestamp);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    
+
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) return `${diffInHours}h ago`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
     return `${diffInDays}d ago`;
   };
 
   const selectMessage = (message: Message) => {
     setSelectedMessage(message);
-    
+
     // Mark as read if not already read
     if (!message.isRead) {
       markAsRead(message.id);
@@ -296,11 +296,10 @@ export function MessageInbox({ studentId }: MessageInboxProps) {
           </Card>
         ) : (
           filteredMessages.map((message) => (
-            <Card 
-              key={message.id} 
-              className={`cursor-pointer transition-all hover:shadow-md ${
-                !message.isRead ? 'border-l-4 border-l-blue-500 bg-blue-50' : ''
-              }`}
+            <Card
+              key={message.id}
+              className={`cursor-pointer transition-all hover:shadow-md ${!message.isRead ? 'border-l-4 border-l-blue-500 bg-blue-50' : ''
+                }`}
               onClick={() => selectMessage(message)}
             >
               <CardContent className="p-4">
@@ -315,7 +314,7 @@ export function MessageInbox({ studentId }: MessageInboxProps) {
                         <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-2 mb-2">
                       <User className="h-4 w-4 text-gray-400" />
                       <span className="text-sm text-gray-600">{message.senderName}</span>
@@ -326,17 +325,17 @@ export function MessageInbox({ studentId }: MessageInboxProps) {
                         <Badge variant="outline">Broadcast</Badge>
                       )}
                     </div>
-                    
+
                     <p className="text-sm text-gray-600 mb-2 line-clamp-2">
                       {message.content}
                     </p>
-                    
+
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       <Clock className="h-3 w-3" />
                       <span>{formatTimestamp(message.sentAt)}</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 ml-4">
                     <Button
                       variant="ghost"

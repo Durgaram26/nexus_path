@@ -16,7 +16,7 @@ function getAuthPayload(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Checking account status for students...');
-    
+
     const payload = getAuthPayload(request);
     if (!payload || !['faculty', 'admin'].includes((payload as any).role)) {
       console.log('❌ Unauthorized access attempt');
@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
 
     if (!studentIds) {
       console.log('❌ No student IDs provided');
-      return NextResponse.json({ 
-        message: 'Student IDs are required' 
+      return NextResponse.json({
+        message: 'Student IDs are required'
       }, { status: 400 });
     }
 
@@ -39,25 +39,25 @@ export async function GET(request: NextRequest) {
 
     if (ids.length === 0) {
       console.log('❌ No valid student IDs found');
-      return NextResponse.json({ 
-        message: 'No valid student IDs provided' 
+      return NextResponse.json({
+        message: 'No valid student IDs provided'
       }, { status: 400 });
     }
 
     // Get students with their account status
     console.log('🔍 Fetching students from database...');
     console.log('🔍 Querying for student IDs:', ids);
-    
+
     const students = await prisma.student.findMany({
       where: { id: { in: ids } }
     });
     console.log(`✅ Found ${students.length} students`);
-    console.log('📝 Students found:', students.map(s => ({ id: s.id, name: s.name, email: s.email })));
+    console.log('📝 Students found:', students.map((s: any) => ({ id: s.id, name: s.name, email: s.email })));
 
     // Also check if there are any users with these emails (in case admin created accounts)
-    const studentEmails = students.map(s => s.email);
+    const studentEmails = students.map((s: any) => s.email);
     console.log('📧 Student emails:', studentEmails);
-    
+
     const usersWithEmails = await prisma.user.findMany({
       where: {
         email: { in: studentEmails }
@@ -72,14 +72,14 @@ export async function GET(request: NextRequest) {
     console.log(`👥 Found ${usersWithEmails.length} users with matching emails`);
 
     // Create a map of email to user for quick lookup
-    const userMap = new Map(usersWithEmails.map(u => [u.email, u]));
+    const userMap = new Map(usersWithEmails.map((u: any) => [u.email, u]));
 
     console.log('🔄 Processing results...');
-    const results = students.map(student => {
+    const results = students.map((student: any) => {
       // Check if there's a user account for this student's email
       const hasUserAccount = userMap.has(student.email);
-      const userAccount = userMap.get(student.email);
-      
+      const userAccount: any = userMap.get(student.email);
+
       // Determine account source based on current user's role
       let accountSource = null;
       if (hasUserAccount && userAccount) {
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
           accountSource = 'admin';
         }
       }
-      
+
       const result = {
         studentId: student.id,
         email: student.email,
@@ -105,17 +105,17 @@ export async function GET(request: NextRequest) {
         accountCreatedAt: userAccount?.createdAt || null,
         accountSource: accountSource
       };
-      
+
       console.log(`👤 Student ${student.name}: hasAccount=${result.hasAccount}, source=${result.accountSource}`);
       return result;
     });
 
     const summary = {
       total: results.length,
-      withAccounts: results.filter(r => r.hasAccount).length,
-      withoutAccounts: results.filter(r => !r.hasAccount).length
+      withAccounts: results.filter((r: any) => r.hasAccount).length,
+      withoutAccounts: results.filter((r: any) => !r.hasAccount).length
     };
-    
+
     console.log('📊 Summary:', summary);
     console.log('✅ Returning results successfully');
 
@@ -127,8 +127,8 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('GET /api/faculty/students-account-status:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }

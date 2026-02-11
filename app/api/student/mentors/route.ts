@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     // TODO: Get student ID from JWT token
-  const studentId = '1'; // Mock student ID
+    const studentId = '1'; // Mock student ID
     console.log('👥 Fetching mentors for student:', studentId);
 
     const mentors = await prisma.industryMentor.findMany({
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    const transformedMentors = mentors.map(mentor => ({
+    const transformedMentors = mentors.map((mentor: any) => ({
       id: mentor.id,
       name: mentor.name,
       email: mentor.email,

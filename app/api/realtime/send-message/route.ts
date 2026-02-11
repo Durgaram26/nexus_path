@@ -15,11 +15,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { 
-      recipientIds, 
-      subject, 
-      content, 
-      messageType = 'general', 
+    const {
+      recipientIds,
+      subject,
+      content,
+      messageType = 'general',
       priority = 'normal',
       isBroadcast = false,
       roomId,
@@ -28,14 +28,14 @@ export async function POST(request: NextRequest) {
     } = await request.json();
 
     if (!subject?.trim() || !content?.trim()) {
-      return NextResponse.json({ 
-        message: 'Subject and content are required' 
+      return NextResponse.json({
+        message: 'Subject and content are required'
       }, { status: 400 });
     }
 
     if (!isBroadcast && (!recipientIds || recipientIds.length === 0)) {
-      return NextResponse.json({ 
-        message: 'Recipients are required for non-broadcast messages' 
+      return NextResponse.json({
+        message: 'Recipients are required for non-broadcast messages'
       }, { status: 400 });
     }
 
@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (!sender) {
-      return NextResponse.json({ 
-        message: 'Sender not found' 
+      return NextResponse.json({
+        message: 'Sender not found'
       }, { status: 404 });
     }
 
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
       const students = await prisma.student.findMany({
         select: { id: true }
       });
-      students.forEach(student => {
+      students.forEach((student: any) => {
         socketManager.sendNotification(parseInt(student.id), notification);
       });
     } else {
@@ -147,8 +147,8 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('POST /api/realtime/send-message error:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }

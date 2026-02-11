@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     console.log('🚀 Starting quiz with AI generation...');
     console.log('🔍 Request headers:', Object.fromEntries(request.headers.entries()));
     console.log('🔍 Request cookies:', request.cookies.getAll());
-    
+
     // Verify authentication
     const bearer = request.headers.get('authorization');
     const tokenFromHeader = bearer?.startsWith('Bearer ')
@@ -17,14 +17,14 @@ export async function POST(request: NextRequest) {
       : undefined;
     const tokenFromCookie = request.cookies.get('access_token')?.value;
     const token = tokenFromHeader || tokenFromCookie;
-    
-    console.log('🔍 Token extraction:', { 
-      hasBearer: !!bearer, 
-      hasTokenFromHeader: !!tokenFromHeader, 
+
+    console.log('🔍 Token extraction:', {
+      hasBearer: !!bearer,
+      hasTokenFromHeader: !!tokenFromHeader,
       hasTokenFromCookie: !!tokenFromCookie,
-      hasToken: !!token 
+      hasToken: !!token
     });
-    
+
     if (!token) {
       console.log('❌ No token found');
       return NextResponse.json({ error: 'No token provided' }, { status: 401 });
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Verifying token:', token.substring(0, 20) + '...');
     const decoded = verifyToken(token);
     console.log('🔍 Decoded token:', decoded);
-    
+
     if (!decoded || decoded.role !== 'student') {
       console.log('❌ Token verification failed:', { decoded, role: decoded?.role });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     console.log('🔍 User found:', user.email);
     console.log('🔍 Looking up student with email:', user.email);
-    
+
     const student = await prisma.student.findUnique({
       where: { email: user.email },
       include: {
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       studentInfo: {
         name: student.name,
         department: student.department.name,
-        careerPaths: student.careerPaths.map(cp => cp.careerPath.name)
+        careerPaths: student.careerPaths.map((cp: any) => cp.careerPath.name)
       },
       message: 'AI quiz generated successfully'
     });
@@ -133,7 +133,7 @@ async function generateAIQuiz(student: any) {
 
   // Generate 10 general technical skill questions
   const generalQuestions = await generateRoadmapBasedQuestions(roadmapInfo, 'general', 10);
-  
+
   // Generate 10 coding MCQ questions
   const codingQuestions = await generateRoadmapBasedQuestions(roadmapInfo, 'coding', 10);
 
@@ -152,7 +152,7 @@ function extractRoadmapInfo(student: any) {
   const technologies = new Set<string>();
   const concepts = new Set<string>();
   const careerPaths = student.careerPaths.map((cp: any) => cp.careerPath.name);
-  
+
   // Add basic skills based on department and career paths
   if (student.department.name.toLowerCase().includes('computer')) {
     skills.add('Programming');
@@ -165,7 +165,7 @@ function extractRoadmapInfo(student: any) {
     technologies.add('React');
     technologies.add('Node.js');
   }
-  
+
   if (student.department.name.toLowerCase().includes('information')) {
     skills.add('Database Management');
     skills.add('System Analysis');
@@ -174,7 +174,7 @@ function extractRoadmapInfo(student: any) {
     technologies.add('MongoDB');
     technologies.add('AWS');
   }
-  
+
   // Add skills based on career paths
   careerPaths.forEach((path: string) => {
     if (path.toLowerCase().includes('developer')) {
@@ -213,31 +213,31 @@ function extractSkillsFromText(text: string): string[] {
     'DevOps', 'Cloud Computing', 'Cybersecurity', 'AI', 'Data Science',
     'Software Engineering', 'System Design', 'Networking', 'Security'
   ];
-  
+
   const foundSkills: string[] = [];
   skillKeywords.forEach(skill => {
     if (text.toLowerCase().includes(skill.toLowerCase())) {
       foundSkills.push(skill);
     }
   });
-  
+
   return foundSkills;
 }
 
 async function generateRoadmapBasedQuestions(roadmapInfo: any, quizType: string, count: number) {
   const prompt = buildRoadmapQuizPrompt(roadmapInfo, quizType, count);
-  
+
   const apiKey = process.env.llm_api_key;
   const apiUrl = process.env.llm_api_url || 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-  
+
   if (!apiKey) {
     console.error('llm_api_key environment variable is not set');
     throw new Error('AI service configuration error');
   }
-  
+
   try {
     console.log(`🤖 Generating ${count} ${quizType} questions using AI...`);
-    
+
     const response = await fetch(`${apiUrl}?key=${apiKey}`, {
       method: 'POST',
       headers: {
@@ -264,7 +264,7 @@ async function generateRoadmapBasedQuestions(roadmapInfo: any, quizType: string,
 
     const data = await response.json();
     const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
+
     if (!generatedText) {
       throw new Error('No content generated from Gemini API');
     }
@@ -280,7 +280,7 @@ async function generateRoadmapBasedQuestions(roadmapInfo: any, quizType: string,
 function buildRoadmapQuizPrompt(roadmapInfo: any, quizType: string, count: number): string {
   const isGeneral = quizType === 'general';
   const isCoding = quizType === 'coding';
-  
+
   return `You are an expert educational content creator generating ${quizType} quiz questions for a student based on their academic roadmap.
 
 STUDENT PROFILE:
@@ -340,21 +340,21 @@ function parseQuizResponse(text: string, count: number) {
   try {
     // Clean the response text to extract valid JSON
     let cleanedText = text.trim();
-    
+
     // Remove any markdown code block indicators
     cleanedText = cleanedText.replace(/^```json\s*/i, '').replace(/\s*```$/, '');
-    
+
     // Find the first [ and last ] to extract JSON array
     const startIndex = cleanedText.indexOf('[');
     const endIndex = cleanedText.lastIndexOf(']');
-    
+
     if (startIndex === -1 || endIndex === -1 || startIndex >= endIndex) {
       throw new Error('No valid JSON array found in response');
     }
-    
+
     const jsonArrayStr = cleanedText.substring(startIndex, endIndex + 1);
     const questions = JSON.parse(jsonArrayStr);
-    
+
     // Validate the structure
     if (!Array.isArray(questions) || questions.length === 0) {
       throw new Error('Invalid questions structure');
@@ -369,7 +369,7 @@ function parseQuizResponse(text: string, count: number) {
 
 function createFallbackQuizQuestions(roadmapInfo: any, quizType: string, count: number) {
   const isGeneral = quizType === 'general';
-  
+
   const fallbackQuestions = [
     {
       id: 'fallback_1',

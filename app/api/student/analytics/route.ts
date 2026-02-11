@@ -71,7 +71,7 @@ function getAuthPayload(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     console.log('Analytics API called');
-    
+
     const payload = getAuthPayload(request);
     if (!payload) {
       console.log('No auth payload found');
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     const student = await prisma.student.findUnique({
       where: { email: email }
     });
-    
+
     if (!student) {
       console.log('Student not found');
       return NextResponse.json({ message: 'Student not found' }, { status: 404 });
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate performance metrics
-    const averageScore = quizAttempts.length > 0 
+    const averageScore = quizAttempts.length > 0
       ? Math.round(quizAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0) / quizAttempts.length)
       : 0;
 
@@ -124,11 +124,11 @@ export async function GET(request: NextRequest) {
 
     // Real performance data based on actual quiz attempts
     let performanceData: PerformanceData[] = [];
-    
+
     if (quizAttempts.length > 0) {
       // Group attempts by month and calculate average scores
       const monthlyData = new Map<string, { totalScore: number; count: number }>();
-      
+
       quizAttempts.forEach(attempt => {
         if (!attempt.completedAt) return;
         const month = attempt.completedAt.toLocaleDateString('en-US', { month: 'short' });
@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
         data.totalScore += attempt.score;
         data.count += 1;
       });
-      
+
       performanceData = Array.from(monthlyData.entries()).map(([month, data]) => ({
         month,
         score: Math.round(data.totalScore / data.count)
@@ -154,22 +154,22 @@ export async function GET(request: NextRequest) {
       const highScores = quizAttempts.filter(attempt => attempt.score >= 80).length;
       const mediumScores = quizAttempts.filter(attempt => attempt.score >= 60 && attempt.score < 80).length;
       const lowScores = quizAttempts.filter(attempt => attempt.score < 60).length;
-      
+
       quizData = [
-        { 
-          subject: 'High Performance', 
-          score: highScores > 0 ? Math.round((highScores / totalAttempts) * 100) : 0, 
-          attempts: highScores 
+        {
+          subject: 'High Performance',
+          score: highScores > 0 ? Math.round((highScores / totalAttempts) * 100) : 0,
+          attempts: highScores
         },
-        { 
-          subject: 'Medium Performance', 
-          score: mediumScores > 0 ? Math.round((mediumScores / totalAttempts) * 100) : 0, 
-          attempts: mediumScores 
+        {
+          subject: 'Medium Performance',
+          score: mediumScores > 0 ? Math.round((mediumScores / totalAttempts) * 100) : 0,
+          attempts: mediumScores
         },
-        { 
-          subject: 'Needs Improvement', 
-          score: lowScores > 0 ? Math.round((lowScores / totalAttempts) * 100) : 0, 
-          attempts: lowScores 
+        {
+          subject: 'Needs Improvement',
+          score: lowScores > 0 ? Math.round((lowScores / totalAttempts) * 100) : 0,
+          attempts: lowScores
         }
       ];
     }
@@ -179,7 +179,7 @@ export async function GET(request: NextRequest) {
     if (quizAttempts.length > 0) {
       // Group attempts by date and calculate real scores
       const dailyData = new Map<string, { quizScores: number[]; totalAttempts: number }>();
-      
+
       quizAttempts.forEach(attempt => {
         if (!attempt.completedAt) return;
         const date = attempt.completedAt.toISOString().split('T')[0];
@@ -190,13 +190,13 @@ export async function GET(request: NextRequest) {
         data.quizScores.push(attempt.score);
         data.totalAttempts += 1;
       });
-      
+
       // Convert to array and calculate real metrics
       combinedPerformanceData = Array.from(dailyData.entries()).map(([date, data]) => {
         const avgQuizScore = Math.round(data.quizScores.reduce((sum, score) => sum + score, 0) / data.quizScores.length);
         // For now, coding success is based on quiz performance (you can add real coding test data later)
         const codingSuccess = Math.max(0, avgQuizScore - 10);
-        
+
         return {
           date,
           quizScore: avgQuizScore,
@@ -211,7 +211,7 @@ export async function GET(request: NextRequest) {
       const completedQuizzes = quizAttempts.length;
       const highPerformingQuizzes = quizAttempts.filter(attempt => attempt.score >= 80).length;
       const totalPossibleQuizzes = Math.max(completedQuizzes, 10); // Assume 10 as baseline
-      
+
       learningData.push(
         { name: 'Completed', value: Math.min(completedQuizzes, 100) },
         { name: 'High Performance', value: Math.min(highPerformingQuizzes, 100) },
@@ -224,14 +224,14 @@ export async function GET(request: NextRequest) {
     if (quizAttempts.length > 0) {
       // Calculate real skill levels based on performance patterns
       const recentAttempts = quizAttempts.slice(0, Math.min(10, quizAttempts.length));
-      const consistency = recentAttempts.length > 1 
+      const consistency = recentAttempts.length > 1
         ? 100 - Math.abs(recentAttempts[0].score - recentAttempts[recentAttempts.length - 1].score)
         : averageScore;
-      
+
       const improvement = recentAttempts.length > 1
         ? Math.max(0, recentAttempts[0].score - recentAttempts[recentAttempts.length - 1].score)
         : 0;
-      
+
       skillsData.push(
         { subject: 'Overall Performance', level: Math.min(averageScore, 100) },
         { subject: 'Consistency', level: Math.min(consistency, 100) },
@@ -242,7 +242,7 @@ export async function GET(request: NextRequest) {
 
     // Get study time data based on actual quiz performance and time spent
     let studyTimeData: StudyTimeData[] = [];
-    
+
     if (quizAttempts.length > 0) {
       try {
         // Get actual time spent on quizzes from database
@@ -258,26 +258,26 @@ export async function GET(request: NextRequest) {
         });
 
         // Calculate total study time from actual quiz attempts
-        const totalTimeSpent = timeSpentData.reduce((sum, attempt) => sum + (attempt.timeSpent || 0), 0);
+        const totalTimeSpent = timeSpentData.reduce((sum: any, attempt: any) => sum + (attempt.timeSpent || 0), 0);
         const totalHours = Math.round(totalTimeSpent / 3600); // Convert seconds to hours
 
         // Distribute study time based on performance patterns
-                        
+
         studyTimeData = [
-          { 
-            subject: 'Core Studies', 
+          {
+            subject: 'Core Studies',
             hours: Math.max(1, Math.round(totalHours * 0.4)) // 40% for core studies
           },
-          { 
-            subject: 'Practice Sessions', 
+          {
+            subject: 'Practice Sessions',
             hours: Math.max(1, Math.round(totalHours * 0.25)) // 25% for practice
           },
-          { 
-            subject: 'Review & Revision', 
+          {
+            subject: 'Review & Revision',
             hours: Math.max(1, Math.round(totalHours * 0.2)) // 20% for review
           },
-          { 
-            subject: 'Applied Learning', 
+          {
+            subject: 'Applied Learning',
             hours: Math.max(1, Math.round(totalHours * 0.15)) // 15% for applied learning
           }
         ];
@@ -352,7 +352,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate study hours (estimated from quiz activity)
     const studyHours = Math.min(quizAttempts.length * 3, 200);
-    
+
     // Calculate streak (estimated from quiz activity)
     const streak = Math.min(Math.floor(quizAttempts.length / 2), 30);
 
@@ -388,7 +388,7 @@ export async function GET(request: NextRequest) {
       // Use actual quiz performance as a proxy for coding test performance
       // In the future, you can add real coding test data from a separate table
       const dailyData = new Map<string, { scores: number[]; attempts: number }>();
-      
+
       quizAttempts.forEach(attempt => {
         if (!attempt.completedAt) return;
         const date = attempt.completedAt.toISOString().split('T')[0];
@@ -399,13 +399,13 @@ export async function GET(request: NextRequest) {
         data.scores.push(attempt.score);
         data.attempts += 1;
       });
-      
+
       codingTestPerformanceData = Array.from(dailyData.entries()).map(([date, data]) => {
         const avgScore = Math.round(data.scores.reduce((sum, score) => sum + score, 0) / data.scores.length);
         const successRate = Math.min(100, avgScore);
         const totalTests = data.attempts;
         const avgExecutionTime = Math.floor(Math.random() * 1000) + 500; // This would come from real coding test data
-        
+
         return {
           date,
           successRate,
@@ -436,8 +436,8 @@ export async function GET(request: NextRequest) {
     console.error('GET /api/student/analytics error:', error);
     console.error('Error details:', error instanceof Error ? error.message : String(error));
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : String(error),
       details: 'Check server logs for more information'
     }, { status: 500 });

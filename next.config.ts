@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   basePath: "",
+  turbopack: {},
   webpack: (config) => {
     // Handle PDF.js worker
     config.resolve.alias = {

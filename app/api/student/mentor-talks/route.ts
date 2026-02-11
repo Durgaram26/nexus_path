@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    const transformedTalks = talks.map(talk => ({
+    const transformedTalks = talks.map((talk: any) => ({
       id: talk.id,
       title: talk.title,
       speakerName: talk.speakerName,

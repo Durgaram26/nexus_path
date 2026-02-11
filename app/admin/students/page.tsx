@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 interface College {
   id: string;
@@ -188,10 +188,10 @@ export default function AdminStudentPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
         <Card className="mb-6">
-          <>
-            <>{editingStudent ? 'Edit Student' : 'Create Student'}</>
-            <>{editingStudent ? 'Update an existing .' : 'Add a new to a department.'}</>
-          </>
+          <CardHeader>
+            <CardTitle>{editingStudent ? 'Edit Student' : 'Create Student'}</CardTitle>
+            <CardDescription>{editingStudent ? 'Update an existing student.' : 'Add a new student to a department.'}</CardDescription>
+          </CardHeader>
           <CardContent>
             <form onSubmit={editingStudent ? handleUpdateStudent : handleCreateStudent} className="space-y-4">
               <div className="space-y-2">
@@ -304,10 +304,10 @@ export default function AdminStudentPage() {
         {/* Password Change Card */}
         {changingPasswordFor && (
           <Card className="mb-6 border-yellow-500">
-            <>
-              <>Change Password for {changingPasswordFor.name}</>
-              <>Set a new password for {changingPasswordFor.email}</>
-            </>
+            <CardHeader>
+              <CardTitle>Change Password for {changingPasswordFor.name}</CardTitle>
+              <CardDescription>Set a new password for {changingPasswordFor.email}</CardDescription>
+            </CardHeader>
             <CardContent>
               <form onSubmit={handleChangePassword} className="space-y-4">
                 <div className="space-y-2">
@@ -339,10 +339,10 @@ export default function AdminStudentPage() {
         )}
 
         <Card>
-          <>
-            <>Existing Students</>
-            <>Manage your members. and search through the list.</>
-          </>
+          <CardHeader>
+            <CardTitle>Existing Students</CardTitle>
+            <CardDescription>Manage your students and search through the list.</CardDescription>
+          </CardHeader>
           <CardContent>
             {/* Filters */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

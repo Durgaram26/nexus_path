@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     // For students, fetch register number and year from table, then filter by year if needed
     const enrichedAccounts = await Promise.all(
-      users.map(async (user) => {
+      users.map(async (user: any) => {
         let registerNumber = '';
         let departmentName = '';
         let studentYear: number | null = null;
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
       account.password,
     ]);
 
-    const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
+    const csv = [headers.join(','), ...rows.map((r: any) => r.map((v: any) => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
 
     return new NextResponse(csv, {
       status: 200,

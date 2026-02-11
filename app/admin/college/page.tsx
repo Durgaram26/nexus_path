@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 interface College {
   id: string;
@@ -87,11 +87,11 @@ export default function AdminCollegePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
         <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>{editingCollege ? 'Edit College' : 'Create College'}</CardTitle>
+            <CardDescription>{editingCollege ? 'Update an existing college.' : 'Add a new college to the system.'}</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">{editingCollege ? 'Edit College' : 'Create College'}</h2>
-              <p className="text-gray-600">{editingCollege ? 'Update an existing college.' : 'Add a new college to the system.'}</p>
-            </div>
             <form onSubmit={editingCollege ? handleUpdateCollege : handleCreateCollege} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="collegeName">College Name</Label>
@@ -116,11 +116,11 @@ export default function AdminCollegePage() {
         </Card>
 
         <Card>
+          <CardHeader>
+            <CardTitle>Existing Colleges</CardTitle>
+            <CardDescription>Manage your colleges.</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">Existing Colleges</h2>
-              <p className="text-gray-600">Manage your colleges.</p>
-            </div>
             {loading && colleges.length === 0 ? (
               <div>Loading colleges...</div>
             ) : colleges.length === 0 ? (

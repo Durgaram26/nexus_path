@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 interface CareerPath {
   id: number;
@@ -94,11 +94,11 @@ export default function AdminCareerPathsPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
         <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>{editingCareerPath ? 'Edit Career Path' : 'Create Career Path'}</CardTitle>
+            <CardDescription>{editingCareerPath ? 'Update an existing career path.' : 'Add a new career path to the system.'}</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">{editingCareerPath ? 'Edit Career Path' : 'Create Career Path'}</h2>
-              <p className="text-gray-600">{editingCareerPath ? 'Update an existing career path.' : 'Add a new career path to the system.'}</p>
-            </div>
             <form onSubmit={editingCareerPath ? handleUpdateCareerPath : handleCreateCareerPath} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="careerPathName">Career Path Name</Label>
@@ -132,11 +132,11 @@ export default function AdminCareerPathsPage() {
         </Card>
 
         <Card>
+          <CardHeader>
+            <CardTitle>Existing Career Paths</CardTitle>
+            <CardDescription>Manage your career paths.</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">Existing Career Paths</h2>
-              <p className="text-gray-600">Manage your career paths.</p>
-            </div>
             {loading && careerPaths.length === 0 ? (
               <div>Loading career paths...</div>
             ) : careerPaths.length === 0 ? (

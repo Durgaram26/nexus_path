@@ -213,12 +213,12 @@ export class NotificationService {
    * Create workshop assignment notification
    */
   static async createWorkshopAssignmentNotification(
-    studentId: string, 
-    workshopTitle: string, 
+    studentId: string,
+    workshopTitle: string,
     workshopId: string,
     dueDate?: Date
   ) {
-    const message = dueDate 
+    const message = dueDate
       ? `New workshop assignment: ${workshopTitle}. Due: ${dueDate.toLocaleDateString()}`
       : `New workshop assignment: ${workshopTitle}`;
 
@@ -459,7 +459,7 @@ export class NotificationService {
   static async createBulkDailyQuizReminders() {
     try {
       const students = await this.getAllStudents();
-      const notifications = students.map(student => ({
+      const notifications = students.map((student: any) => ({
         studentId: student.id,
         title: '📚 Daily Quiz Available!',
         message: 'Your daily quiz is ready. Complete it to maintain your learning streak!',

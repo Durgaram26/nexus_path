@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Certificate submissions API called');
-    
+
     // Verify authentication
     const bearer = request.headers.get('authorization');
     const tokenFromHeader = bearer?.startsWith('Bearer ')
@@ -15,14 +15,14 @@ export async function GET(request: NextRequest) {
       : undefined;
     const tokenFromCookie = request.cookies.get('access_token')?.value;
     const token = tokenFromHeader || tokenFromCookie;
-    
-    console.log('🔍 Token extraction:', { 
-      hasBearer: !!bearer, 
-      hasTokenFromHeader: !!tokenFromHeader, 
+
+    console.log('🔍 Token extraction:', {
+      hasBearer: !!bearer,
+      hasTokenFromHeader: !!tokenFromHeader,
       hasTokenFromCookie: !!tokenFromCookie,
-      hasToken: !!token 
+      hasToken: !!token
     });
-    
+
     if (!token) {
       console.log('❌ No token found');
       return NextResponse.json({ error: 'No token provided' }, { status: 401 });
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Verifying token:', token.substring(0, 20) + '...');
     const decoded = verifyToken(token);
     console.log('🔍 Decoded token:', decoded);
-    
+
     if (!decoded || decoded.role !== 'faculty') {
       console.log('❌ Token verification failed:', { decoded, role: decoded?.role });
       return NextResponse.json({ error: 'Unauthorized - Faculty access required' }, { status: 403 });
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('🔍 Query filters:', JSON.stringify(where, null, 2));
-    
+
     const submissions = await prisma.certificateSubmission.findMany({
       where,
       select: {
@@ -231,8 +231,8 @@ export async function GET(request: NextRequest) {
       filterOptions: {
         departments,
         careerPaths,
-        courseProviders: courseProviders.map(cp => cp.courseProvider),
-        years: years.map(y => y.year)
+        courseProviders: courseProviders.map((cp: any) => cp.courseProvider),
+        years: years.map((y: any) => y.year)
       }
     });
 
@@ -244,9 +244,9 @@ export async function GET(request: NextRequest) {
       details: error
     });
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to fetch certificate submissions',
-        details: error.message 
+        details: error.message
       },
       { status: 500 }
     );

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/jwt';
-import { CodeExecution, CodeTestResult } from '@prisma/client';
+
 
 function getAuthPayload(request: NextRequest) {
   const bearer = request.headers.get('authorization');
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const studentId = (payload as any).userId;
 
     // Try to get code execution history
-    let codeExecutions: CodeExecution[] = [];
+    let codeExecutions: any[] = [];
     try {
       codeExecutions = await prisma.codeExecution.findMany({
         where: {
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Try to get code test results
-    let codeTestResults: CodeTestResult[] = [];
+    let codeTestResults: any[] = [];
     try {
       codeTestResults = await prisma.codeTestResult.findMany({
         where: {
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     const completedTests = codeTestResults.filter(result => result.status === 'completed').length;
     const totalSessions = codeExecutions.length;
     const codeExecutionsCount = codeExecutions.length;
-    
+
     // Calculate average score
     const scores = codeTestResults.map(result => result.score || 0);
     const averageScore = scores.length > 0 ? scores.reduce((sum, score) => sum + score, 0) / scores.length : 0;
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     const currentStreak = calculateCurrentStreak(codeExecutions);
 
     // Get unique languages used
-    const languages = [...new Set(codeExecutions.map(exec => exec.language))];
+    const languages = [...new Set(codeExecutions.map((exec: any) => exec.language))];
 
     const stats = {
       totalTests,
@@ -92,30 +92,30 @@ export async function GET(request: NextRequest) {
 
 function calculateCurrentStreak(executions: any[]): number {
   if (executions.length === 0) return 0;
-  
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   let streak = 0;
   const currentDate = new Date(today);
-  
+
   // Group executions by date
   const executionsByDate = new Map();
-  executions.forEach(execution => {
+  executions.forEach((execution: any) => {
     const date = new Date(execution.executedAt);
     date.setHours(0, 0, 0, 0);
     const dateKey = date.toISOString().split('T')[0];
-    
+
     if (!executionsByDate.has(dateKey)) {
       executionsByDate.set(dateKey, []);
     }
     executionsByDate.get(dateKey).push(execution);
   });
-  
+
   // Calculate streak backwards from today
   while (currentDate >= new Date('2020-01-01')) { // Reasonable start date
     const dateKey = currentDate.toISOString().split('T')[0];
-    
+
     if (executionsByDate.has(dateKey)) {
       streak++;
       currentDate.setDate(currentDate.getDate() - 1);
@@ -123,6 +123,6 @@ function calculateCurrentStreak(executions: any[]): number {
       break;
     }
   }
-  
+
   return streak;
 }

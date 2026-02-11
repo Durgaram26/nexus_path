@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       skip: offset
     });
 
-    const formattedMessages = messages.map(msg => ({
+    const formattedMessages = messages.map((msg: any) => ({
       id: msg.id.toString(),
       senderId: msg.senderId,
       senderName: msg.sender.name,
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
       sentAt: msg.sentAt.toISOString(),
       isRead: msg.readBy.length > 0,
       readAt: msg.readBy[0]?.readAt.toISOString(),
-      replies: msg.replies.map(reply => ({
+      replies: msg.replies.map((reply: any) => ({
         id: reply.id.toString(),
         senderId: reply.senderId,
         senderName: reply.sender.name,
@@ -111,9 +111,9 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('GET /api/realtime/messages error:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
-      error: String(error) 
+    return NextResponse.json({
+      message: 'Internal Server Error',
+      error: String(error)
     }, { status: 500 });
   }
 }
@@ -130,8 +130,8 @@ export async function PATCH(request: NextRequest) {
     const userId = (payload as any).userId;
 
     if (!messageId) {
-      return NextResponse.json({ 
-        message: 'Message ID is required' 
+      return NextResponse.json({
+        message: 'Message ID is required'
       }, { status: 400 });
     }
 
@@ -148,8 +148,8 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!message) {
-      return NextResponse.json({ 
-        message: 'Message not found or access denied' 
+      return NextResponse.json({
+        message: 'Message not found or access denied'
       }, { status: 404 });
     }
 
@@ -171,15 +171,15 @@ export async function PATCH(request: NextRequest) {
       }
     });
 
-    return NextResponse.json({ 
-      message: 'Message marked as read' 
+    return NextResponse.json({
+      message: 'Message marked as read'
     });
 
   } catch (error) {
     console.error('PATCH /api/realtime/messages error:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
-      error: String(error) 
+    return NextResponse.json({
+      message: 'Internal Server Error',
+      error: String(error)
     }, { status: 500 });
   }
 }

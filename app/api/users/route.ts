@@ -49,7 +49,9 @@ export async function POST(request: NextRequest) {
         password: hashed,
         plainPassword: password,
         role: derivedRole,
-        departmentId: departmentId}});
+        departmentId: departmentId
+      }
+    });
 
     return NextResponse.json({ id: user.id, email: user.email, role: user.role }, { status: 201 });
   } catch (error: unknown) {
@@ -78,7 +80,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const role = searchParams.get('role');
     const format = searchParams.get('format') || 'csv'; // 'csv' or 'json'
-    
+
     if (!role || !['faculty', 'student'].includes(role)) {
       return NextResponse.json({ message: 'role must be faculty or student' }, { status: 400 });
     }
@@ -87,7 +89,8 @@ export async function GET(request: NextRequest) {
       where: { role },
       select: { id: true, email: true, role: true, plainPassword: true, createdAt: true },
       orderBy: { id: 'asc' },
-      take: 1000});
+      take: 1000
+    });
 
     // Return JSON if requested
     if (format === 'json') {
@@ -96,7 +99,7 @@ export async function GET(request: NextRequest) {
 
     // Return CSV by default
     const headers = ['id', 'email', 'role', 'password', 'createdAt'];
-    const rows = users.map(u => [
+    const rows = users.map((u: any) => [
       String(u.id),
       u.email,
       u.role,
@@ -104,13 +107,15 @@ export async function GET(request: NextRequest) {
       u.createdAt.toISOString(),
     ]);
 
-    const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
+    const csv = [headers.join(','), ...rows.map((r: any) => r.map((v: any) => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
 
     return new NextResponse(csv, {
       status: 200,
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename=${role}-users.csv`}});
+        'Content-Disposition': `attachment; filename=${role}-users.csv`
+      }
+    });
   } catch (error: unknown) {
     console.error('GET /users error:', error);
     return NextResponse.json({ message: 'Internal Server Error', error: String(error) }, { status: 500 });

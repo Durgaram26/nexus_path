@@ -9,11 +9,11 @@ export async function GET(request: NextRequest) {
   try {
     // Get student from token
     let token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
+
     if (!token) {
       token = request.cookies.get('access_token')?.value;
     }
-    
+
     if (!token) {
       console.log('No token provided');
       return NextResponse.json({ error: 'No token provided' }, { status: 401 });
@@ -119,11 +119,11 @@ export async function GET(request: NextRequest) {
 
     // Extract courses from roadmap assignments
     const courses: any[] = [];
-    
+
     for (const roadmapAssignment of roadmapAssignments) {
       for (const courseAssignment of roadmapAssignment.roadmap.courseAssignments) {
         const course = courseAssignment.course;
-        
+
         // Check if student is enrolled in this course
         const enrollment = await prisma.courseEnrollment.findUnique({
           where: {
@@ -174,7 +174,7 @@ export async function GET(request: NextRequest) {
           isMandatory: course.isMandatory,
           enrolledStudents: course.enrolledStudents,
           maxStudents: course.maxStudents,
-          assignments: course.assignments.map(assignment => ({
+          assignments: course.assignments.map((assignment: any) => ({
             id: assignment.id,
             title: assignment.title,
             description: assignment.description,
@@ -182,7 +182,7 @@ export async function GET(request: NextRequest) {
             maxPoints: assignment.maxPoints,
             isMandatory: assignment.isMandatory,
             submissionType: assignment.submissionType,
-            submissions: assignment.submissions.map(submission => ({
+            submissions: assignment.submissions.map((submission: any) => ({
               id: submission.id,
               submittedAt: submission.submittedAt.toISOString(),
               status: submission.status,
@@ -208,7 +208,7 @@ export async function GET(request: NextRequest) {
     console.log(`✅ Found ${courses.length} courses for student`);
 
     // Get career paths for this student
-    const careerPaths = studentWithCareerPaths.careerPaths.map(cp => ({
+    const careerPaths = studentWithCareerPaths.careerPaths.map((cp: any) => ({
       id: cp.careerPath.id,
       name: cp.careerPath.name,
       description: cp.careerPath.description,
@@ -228,8 +228,8 @@ export async function GET(request: NextRequest) {
       stack: error instanceof Error ? error.stack : 'No stack trace'
     });
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: 'Failed to fetch courses',
         error: error instanceof Error ? error.message : 'Unknown error'
       },

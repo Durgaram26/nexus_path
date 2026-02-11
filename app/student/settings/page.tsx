@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Settings, User, Bell, Shield, Palette } from 'lucide-react';
+import { Settings, User, Bell, Shield, Palette, Save } from 'lucide-react';
+import ThemeSwitcher from '@/components/ThemeSwitcher';
+import { toast } from 'sonner';
 
 export default function StudentSettingsPage() {
   const router = useRouter();
@@ -24,9 +26,9 @@ export default function StudentSettingsPage() {
   // Auth Helper
   const getAuthPayload = () => {
     if (typeof window === 'undefined') return null;
-    
+
     let token = localStorage.getItem('access_token');
-    
+
     if (!token) {
       const cookies = document.cookie.split(';');
       const accessTokenCookie = cookies.find(cookie => cookie.trim().startsWith('access_token='));
@@ -34,12 +36,12 @@ export default function StudentSettingsPage() {
         token = accessTokenCookie.split('=')[1];
       }
     }
-    
+
     if (!token) {
       localStorage.removeItem('access_token');
       return null;
     }
-    
+
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       if (payload.exp && payload.exp < Date.now() / 1000) {
@@ -59,17 +61,17 @@ export default function StudentSettingsPage() {
       setIsAuth(!!authPayload);
       setAuthChecked(true);
     };
-    
+
     checkAuth();
   }, []);
 
   // Show loading while checking authentication
   if (!authChecked) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
+      <div className="flex items-center justify-center h-screen bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-secondary border-t-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -82,65 +84,82 @@ export default function StudentSettingsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-8 pb-10">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
-        <p className="text-gray-600">Manage your account settings and preferences</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
+          <Settings className="w-8 h-8 text-primary" />
+          Settings
+        </h1>
+        <p className="text-muted-foreground">Manage your account settings and preferences</p>
       </div>
 
       {/* Settings Content */}
       <div className="space-y-6">
+        {/* Theme Customization - NEW SECTION */}
+        <ThemeSwitcher />
+
         {/* Profile Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Profile Settings
-            </CardTitle>
-            <CardDescription>
-              Update your personal information and profile details
-            </CardDescription>
+        <Card className="bg-card border-border/60 shadow-sm">
+          <CardHeader className="border-b border-border/40">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <User className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Profile Settings</CardTitle>
+                <CardDescription>
+                  Update your personal information and profile details
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" placeholder="Enter your first name" />
+                <Input id="firstName" placeholder="Enter your first name" className="mt-1.5" />
               </div>
               <div>
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" placeholder="Enter your last name" />
+                <Input id="lastName" placeholder="Enter your last name" className="mt-1.5" />
               </div>
             </div>
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="Enter your email" />
+              <Input id="email" type="email" placeholder="Enter your email" className="mt-1.5" />
             </div>
             <div>
               <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" placeholder="Enter your phone number" />
+              <Input id="phone" placeholder="Enter your phone number" className="mt-1.5" />
             </div>
-            <Button>Save Changes</Button>
+            <Button className="mt-2" onClick={() => toast.success('Profile updated successfully!')}>
+              <Save className="w-4 h-4 mr-2" />
+              Save Changes
+            </Button>
           </CardContent>
         </Card>
 
         {/* Notification Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
-              Notification Settings
-            </CardTitle>
-            <CardDescription>
-              Choose how you want to be notified about updates and activities
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
+        <Card className="bg-card border-border/60 shadow-sm">
+          <CardHeader className="border-b border-border/40">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Bell className="h-5 w-5 text-primary" />
+              </div>
               <div>
-                <Label htmlFor="email-notifications">Email Notifications</Label>
-                <p className="text-sm text-gray-600">Receive notifications via email</p>
+                <CardTitle>Notification Settings</CardTitle>
+                <CardDescription>
+                  Choose how you want to be notified about updates and activities
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-6">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/40">
+              <div>
+                <Label htmlFor="email-notifications" className="text-base font-semibold">Email Notifications</Label>
+                <p className="text-sm text-muted-foreground mt-1">Receive notifications via email</p>
               </div>
               <Switch
                 id="email-notifications"
@@ -148,10 +167,10 @@ export default function StudentSettingsPage() {
                 onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, email: checked }))}
               />
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/40">
               <div>
-                <Label htmlFor="push-notifications">Push Notifications</Label>
-                <p className="text-sm text-gray-600">Receive push notifications in browser</p>
+                <Label htmlFor="push-notifications" className="text-base font-semibold">Push Notifications</Label>
+                <p className="text-sm text-muted-foreground mt-1">Receive push notifications in browser</p>
               </div>
               <Switch
                 id="push-notifications"
@@ -159,10 +178,10 @@ export default function StudentSettingsPage() {
                 onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, push: checked }))}
               />
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/40">
               <div>
-                <Label htmlFor="sms-notifications">SMS Notifications</Label>
-                <p className="text-sm text-gray-600">Receive notifications via SMS</p>
+                <Label htmlFor="sms-notifications" className="text-base font-semibold">SMS Notifications</Label>
+                <p className="text-sm text-muted-foreground mt-1">Receive notifications via SMS</p>
               </div>
               <Switch
                 id="sms-notifications"
@@ -174,63 +193,36 @@ export default function StudentSettingsPage() {
         </Card>
 
         {/* Privacy Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Privacy & Security
-            </CardTitle>
-            <CardDescription>
-              Manage your privacy settings and account security
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
+        <Card className="bg-card border-border/60 shadow-sm">
+          <CardHeader className="border-b border-border/40">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Shield className="h-5 w-5 text-primary" />
+              </div>
               <div>
-                <Label htmlFor="profile-visibility">Profile Visibility</Label>
-                <p className="text-sm text-gray-600">Make your profile visible to other students</p>
+                <CardTitle>Privacy & Security</CardTitle>
+                <CardDescription>
+                  Manage your privacy settings and account security
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-6">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/40">
+              <div>
+                <Label htmlFor="profile-visibility" className="text-base font-semibold">Profile Visibility</Label>
+                <p className="text-sm text-muted-foreground mt-1">Make your profile visible to other students</p>
               </div>
               <Switch id="profile-visibility" defaultChecked />
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/40">
               <div>
-                <Label htmlFor="activity-tracking">Activity Tracking</Label>
-                <p className="text-sm text-gray-600">Allow tracking of your learning activities</p>
+                <Label htmlFor="activity-tracking" className="text-base font-semibold">Activity Tracking</Label>
+                <p className="text-sm text-muted-foreground mt-1">Allow tracking of your learning activities</p>
               </div>
               <Switch id="activity-tracking" defaultChecked />
             </div>
-            <Button variant="outline">Change Password</Button>
-          </CardContent>
-        </Card>
-
-        {/* Appearance Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
-              Appearance
-            </CardTitle>
-            <CardDescription>
-              Customize the look and feel of your dashboard
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="theme">Theme</Label>
-              <select id="theme" className="w-full p-2 border rounded-md">
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="auto">Auto</option>
-              </select>
-            </div>
-            <div>
-              <Label htmlFor="language">Language</Label>
-              <select id="language" className="w-full p-2 border rounded-md">
-                <option value="en">English</option>
-                <option value="es">Spanish</option>
-                <option value="fr">French</option>
-              </select>
-            </div>
+            <Button variant="outline" className="mt-2">Change Password</Button>
           </CardContent>
         </Card>
       </div>

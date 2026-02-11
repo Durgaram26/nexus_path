@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     console.log('📚 Simple courses API called');
-    
+
     // Get the first student for testing
     const student = await prisma.student.findFirst({
       select: { id: true, email: true, name: true }
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     // For now, let's get courses directly without roadmaps
     // This is a simplified approach that should work with existing data
     const courses: any[] = [];
-    
+
     // Get all courses and create mock data for testing
     const allCourses = await prisma.course.findMany({
       include: {
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
         isMandatory: course.isMandatory,
         enrolledStudents: actualEnrollmentCount,
         maxStudents: course.maxStudents,
-        assignments: course.assignments.map(assignment => ({
+        assignments: course.assignments.map((assignment: any) => ({
           id: assignment.id,
           title: assignment.title,
           description: assignment.description,
@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
           maxPoints: assignment.maxPoints,
           isMandatory: assignment.isMandatory,
           submissionType: assignment.submissionType,
-          submissions: assignment.submissions.map(submission => ({
+          submissions: assignment.submissions.map((submission: any) => ({
             id: submission.id,
             submittedAt: submission.submittedAt.toISOString(),
             status: submission.status,
@@ -162,21 +162,21 @@ export async function GET(request: NextRequest) {
 
     // Get career paths for this student with faculty names
     const careerPathsWithFacultyNames = await Promise.all(
-      (studentWithCareerPaths?.careerPaths || []).map(async (cp) => {
+      (studentWithCareerPaths?.careerPaths || []).map(async (cp: any) => {
         let facultyName = null;
-        
+
         if (cp.assignedByUser) {
           // Check if this user is a faculty member
           const faculty = await prisma.faculty.findUnique({
             where: { email: cp.assignedByUser.email },
             select: { name: true }
           });
-          
+
           if (faculty) {
             facultyName = faculty.name;
           }
         }
-        
+
         return {
           id: cp.careerPath.id,
           name: cp.careerPath.name,
@@ -187,8 +187,8 @@ export async function GET(request: NextRequest) {
             firstName: cp.assignedByUser.firstName,
             lastName: cp.assignedByUser.lastName,
             email: cp.assignedByUser.email,
-            name: facultyName || (cp.assignedByUser.firstName && cp.assignedByUser.lastName 
-              ? `${cp.assignedByUser.firstName} ${cp.assignedByUser.lastName}` 
+            name: facultyName || (cp.assignedByUser.firstName && cp.assignedByUser.lastName
+              ? `${cp.assignedByUser.firstName} ${cp.assignedByUser.lastName}`
               : cp.assignedByUser.email)
           } : null
         };
@@ -208,8 +208,8 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('❌ Error in simple courses API:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: 'Failed to fetch courses',
         error: error instanceof Error ? error.message : 'Unknown error'
       },

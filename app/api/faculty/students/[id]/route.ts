@@ -25,7 +25,7 @@ export async function GET(
 
     const { id } = await params;
     const studentId = id;
-    
+
     if (!studentId) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
@@ -52,12 +52,12 @@ export async function GET(
       // Check if faculty can access this student's department
       const canAccess = faculty.canAssignCrossDepartment && (
         !faculty.allowedDepartments || // Can access all departments
-        faculty.allowedDepartments.split(',').map(id => id.trim()).includes(student.departmentId)
+        faculty.allowedDepartments.split(',').map((id: any) => id.trim()).includes(student.departmentId)
       );
 
       if (!canAccess && faculty.departmentId !== student.departmentId) {
-        return NextResponse.json({ 
-          message: 'You do not have permission to access this student' 
+        return NextResponse.json({
+          message: 'You do not have permission to access this student'
         }, { status: 403 });
       }
     }
@@ -82,7 +82,7 @@ export async function PUT(
 
     const { id } = await params;
     const studentId = id;
-    
+
     if (!studentId) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
@@ -112,12 +112,12 @@ export async function PUT(
       // Check if faculty can access this student's department
       const canAccess = faculty.canAssignCrossDepartment && (
         !faculty.allowedDepartments || // Can access all departments
-        faculty.allowedDepartments.split(',').map(id => id.trim()).includes(existingStudent.departmentId)
+        faculty.allowedDepartments.split(',').map((id: any) => id.trim()).includes(existingStudent.departmentId)
       );
 
       if (!canAccess && faculty.departmentId !== existingStudent.departmentId) {
-        return NextResponse.json({ 
-          message: 'You do not have permission to update this student' 
+        return NextResponse.json({
+          message: 'You do not have permission to update this student'
         }, { status: 403 });
       }
 
@@ -125,12 +125,12 @@ export async function PUT(
       if (departmentId !== existingStudent.departmentId) {
         const canMoveToNewDept = faculty.canAssignCrossDepartment && (
           !faculty.allowedDepartments || // Can access all departments
-          faculty.allowedDepartments.split(',').map(id => id.trim()).includes(departmentId)
+          faculty.allowedDepartments.split(',').map((id: any) => id.trim()).includes(departmentId)
         );
 
         if (!canMoveToNewDept && faculty.departmentId !== departmentId) {
-          return NextResponse.json({ 
-            message: 'You do not have permission to move this student to the selected department' 
+          return NextResponse.json({
+            message: 'You do not have permission to move this student to the selected department'
           }, { status: 403 });
         }
       }
@@ -152,8 +152,8 @@ export async function PUT(
     });
 
     if (duplicateStudent) {
-      return NextResponse.json({ 
-        message: 'Student with this email or register number already exists' 
+      return NextResponse.json({
+        message: 'Student with this email or register number already exists'
       }, { status: 409 });
     }
 
@@ -166,14 +166,21 @@ export async function PUT(
         gender,
         departmentId: departmentId,
         year: parseInt(year),
-        registerNumber},
+        registerNumber
+      },
       include: {
         department: {
           include: {
-            college: true}},
+            college: true
+          }
+        },
         careerPaths: {
           include: {
-            careerPath: true}}}});
+            careerPath: true
+          }
+        }
+      }
+    });
 
     return NextResponse.json(updatedStudent, { status: 200 });
   } catch (error) {
@@ -195,7 +202,7 @@ export async function DELETE(
 
     const { id } = await params;
     const studentId = id;
-    
+
     if (!studentId) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
@@ -204,7 +211,7 @@ export async function DELETE(
     const student = await prisma.student.findUnique({
       where: { id: studentId }
     });
-    
+
     if (!student) {
       return NextResponse.json({ message: 'Student not found' }, { status: 404 });
     }
@@ -222,12 +229,12 @@ export async function DELETE(
       // Check if faculty can access this student's department
       const canAccess = faculty.canAssignCrossDepartment && (
         !faculty.allowedDepartments || // Can access all departments
-        faculty.allowedDepartments.split(',').map(id => id.trim()).includes(student.departmentId)
+        faculty.allowedDepartments.split(',').map((id: any) => id.trim()).includes(student.departmentId)
       );
 
       if (!canAccess && faculty.departmentId !== student.departmentId) {
-        return NextResponse.json({ 
-          message: 'You do not have permission to delete this student' 
+        return NextResponse.json({
+          message: 'You do not have permission to delete this student'
         }, { status: 403 });
       }
     }

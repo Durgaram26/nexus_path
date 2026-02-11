@@ -38,8 +38,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get students based on faculty's department and assigned career paths
-    const assignedCareerPaths = faculty.careerPaths.map(cp => cp.careerPath.name);
-    
+    const assignedCareerPaths = faculty.careerPaths.map((cp: any) => cp.careerPath.name);
+
     let students;
     if (assignedCareerPaths.length === 0) {
       // Faculty manages all students in their department
@@ -97,8 +97,8 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('GET /api/faculty/assigned-students:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }

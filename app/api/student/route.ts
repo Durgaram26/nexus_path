@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { Gender } from '@prisma/client';
+const Gender = {
+  MALE: 'MALE',
+  FEMALE: 'FEMALE',
+  OTHER: 'OTHER'
+};
 import { verifyToken } from '@/lib/jwt';
 
 const prisma = new PrismaClient();
@@ -161,8 +165,8 @@ export async function PUT(request: NextRequest) {
     }
 
     // Check if email is already taken by another student
-    const emailTaken = await prisma.student.findFirst({ 
-      where: { email, id: { not: id } } 
+    const emailTaken = await prisma.student.findFirst({
+      where: { email, id: { not: id } }
     });
     if (emailTaken) {
       return NextResponse.json(
@@ -225,7 +229,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     console.log('🗑️ Student deletion requested...');
-    
+
     // Check authentication
     const payload = getAuthPayload(request);
     if (!payload || !['faculty', 'admin'].includes((payload as any).role)) {

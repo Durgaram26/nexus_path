@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     console.log('🔧 Simple workshops API called');
-    
+
     // Get the first student for testing
     const student = await prisma.student.findFirst({
       select: { id: true, email: true, name: true }
@@ -66,9 +66,9 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform workshops to match the expected structure
-    const transformedWorkshops = workshops.map(workshop => {
+    const transformedWorkshops = workshops.map((workshop: any) => {
       const enrollment = workshop.enrollments[0]; // Get student's enrollment
-      
+
       return {
         id: workshop.id,
         title: workshop.title,
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Get career paths for this student
-    const careerPaths = studentWithCareerPaths?.careerPaths.map(cp => ({
+    const careerPaths = studentWithCareerPaths?.careerPaths.map((cp: any) => ({
       id: cp.careerPath.id,
       name: cp.careerPath.name,
       description: cp.careerPath.description,
@@ -116,8 +116,8 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('❌ Error in simple workshops API:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: 'Failed to fetch workshops',
         error: error instanceof Error ? error.message : 'Unknown error'
       },

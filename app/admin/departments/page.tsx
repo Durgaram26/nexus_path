@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 interface College {
   id: string;
@@ -116,11 +116,11 @@ export default function AdminDepartmentPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
         <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>{editingDepartment ? 'Edit Department' : 'Create Department'}</CardTitle>
+            <CardDescription>{editingDepartment ? 'Update an existing department.' : 'Add a new department to a college.'}</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">{editingDepartment ? 'Edit Department' : 'Create Department'}</h2>
-              <p className="text-gray-600">{editingDepartment ? 'Update an existing department.' : 'Add a new department to a college.'}</p>
-            </div>
             <form onSubmit={editingDepartment ? handleUpdateDepartment : handleCreateDepartment} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="departmentName">Department Name</Label>
@@ -177,11 +177,11 @@ export default function AdminDepartmentPage() {
         </Card>
 
         <Card>
+          <CardHeader>
+            <CardTitle>Existing Departments</CardTitle>
+            <CardDescription>Manage your departments, grouped by college.</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">Existing Departments</h2>
-              <p className="text-gray-600">Manage your departments, grouped by college.</p>
-            </div>
             {loading && departments.length === 0 ? (
               <div>Loading departments...</div>
             ) : departments.length === 0 ? (

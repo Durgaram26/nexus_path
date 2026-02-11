@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import RoadmapCard from '@/components/student/RoadmapCard';
-import { BookOpen, Target, Calendar, User } from 'lucide-react';
+import { BookOpen, Target, MessageSquare, Compass } from 'lucide-react';
 
 interface Roadmap {
   id: number;
@@ -40,12 +40,11 @@ export default function StudentRoadmapsPage() {
   const [isAuth, setIsAuth] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
-  // Auth Helper
   const getAuthPayload = () => {
     if (typeof window === 'undefined') return null;
-    
+
     let token = localStorage.getItem('access_token');
-    
+
     if (!token) {
       const cookies = document.cookie.split(';');
       const accessTokenCookie = cookies.find(cookie => cookie.trim().startsWith('access_token='));
@@ -53,12 +52,12 @@ export default function StudentRoadmapsPage() {
         token = accessTokenCookie.split('=')[1];
       }
     }
-    
+
     if (!token) {
       localStorage.removeItem('access_token');
       return null;
     }
-    
+
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       if (payload.exp && payload.exp < Date.now() / 1000) {
@@ -76,7 +75,7 @@ export default function StudentRoadmapsPage() {
     try {
       setIsLoading(true);
       const response = await api.get('/student/assigned-roadmaps');
-      
+
       if (response.status === 200) {
         setRoadmaps(response.data.roadmaps || []);
         setRoadmapProgress(response.data.progress || {});
@@ -94,68 +93,71 @@ export default function StudentRoadmapsPage() {
       const authPayload = getAuthPayload();
       setIsAuth(!!authPayload);
       setAuthChecked(true);
-      
+
       if (authPayload) {
         fetchRoadmaps();
       }
     };
-    
+
     checkAuth();
   }, []);
 
-  useEffect(() => {
-    if (isAuth) {
-      fetchRoadmaps();
-    }
-  }, [isAuth]);
-
-  // Show loading while checking authentication
   if (!authChecked) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
+      <div className="flex items-center justify-center h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="w-10 h-10 border-4 border-border border-t-primary rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm text-muted-foreground font-medium">Loading roadmaps...</p>
         </div>
       </div>
     );
   }
 
-  // Redirect if not authenticated
   if (!isAuth) {
     router.push('/auth/login');
     return null;
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-[1600px] mx-auto space-y-6 pb-10">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Learning Roadmaps</h1>
-        <p className="text-gray-600">Assigned learning roadmaps based on your career paths</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Learning Roadmaps</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Your personalized learning journey based on career goals
+          </p>
+        </div>
+        {roadmaps.length > 0 && (
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/5 border border-primary/20">
+            <Target className="w-4 h-4 text-primary" />
+            <span className="text-sm font-semibold text-foreground">
+              {roadmapProgress[roadmaps[0]?.id] || 0}% Complete
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Roadmaps Content */}
+      {/* Content */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-200 rounded"></div>
-                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+        <div className="max-w-4xl mx-auto">
+          <Card className="animate-pulse border border-border/60">
+            <CardContent className="p-8">
+              <div className="space-y-4">
+                <div className="h-6 bg-secondary rounded w-3/4" />
+                <div className="h-4 bg-secondary rounded w-1/2" />
+                <div className="h-4 bg-secondary rounded w-2/3" />
+                <div className="space-y-2 mt-6">
+                  <div className="h-3 bg-secondary rounded" />
+                  <div className="h-3 bg-secondary rounded w-5/6" />
+                  <div className="h-3 bg-secondary rounded w-4/6" />
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       ) : roadmaps.length > 0 ? (
         <div className="max-w-4xl mx-auto">
-          {/* Show only the first (and should be only) roadmap */}
           <RoadmapCard
             key={roadmaps[0].id}
             roadmap={roadmaps[0]}
@@ -163,24 +165,31 @@ export default function StudentRoadmapsPage() {
           />
         </div>
       ) : (
-        <Card>
-          <CardContent className="text-center py-12">
-            <div className="flex flex-col items-center">
-              <div className="p-4 bg-gray-100 rounded-full mb-4">
-                <BookOpen className="h-12 w-12 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Roadmaps Assigned</h3>
-              <p className="text-gray-500 mb-6 max-w-md">
-                You haven't been assigned any learning roadmaps yet. Contact your faculty members to get started with your learning journey.
-              </p>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => router.push('/student/messages')}>
-                  Contact Faculty
-                </Button>
-                <Button onClick={() => router.push('/student/career-paths')}>
-                  View Career Paths
-                </Button>
-              </div>
+        <Card className="border-dashed border-2 border-border max-w-2xl mx-auto">
+          <CardContent className="text-center py-16">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mx-auto mb-6">
+              <Compass className="w-10 h-10 text-primary" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground mb-2">No Roadmaps Assigned</h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto mb-8">
+              You haven't been assigned any learning roadmaps yet. Contact your faculty to get started with your personalized learning journey.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button
+                variant="outline"
+                onClick={() => router.push('/student/messages')}
+                className="gap-2"
+              >
+                <MessageSquare className="w-4 h-4" />
+                Contact Faculty
+              </Button>
+              <Button
+                onClick={() => router.push('/student/career-paths')}
+                className="gap-2"
+              >
+                <Target className="w-4 h-4" />
+                View Career Paths
+              </Button>
             </div>
           </CardContent>
         </Card>

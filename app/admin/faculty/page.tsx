@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 interface College {
   id: string;
@@ -442,13 +442,13 @@ export default function AdminFacultyPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
         <Card className="mb-6">
-          <>
-            <>{editingFaculty ? 'Edit Faculty' : 'Create Faculty'}</>
-            <>{editingFaculty ? 'Update an existing faculty member.' : 'Add a new faculty member to a department.'}</>
-          </>
+          <CardHeader>
+            <CardTitle>{editingFaculty ? 'Edit Faculty' : 'Create Faculty'}</CardTitle>
+            <CardDescription>{editingFaculty ? 'Update an existing faculty member.' : 'Add a new faculty member to a department.'}</CardDescription>
+          </CardHeader>
           <CardContent>
-            <form onSubmit={editingFaculty ? handleUpdateFaculty : handleCreateFaculty} className="space-y-4">
-              <div className="space-y-2">
+            <form onSubmit={editingFaculty ? handleUpdateFaculty : handleCreateFaculty} className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div className="col-span-1 md:col-span-5 space-y-2">
                 <Label htmlFor="facultyEmail">Email</Label>
                 <Input
                   id="facultyEmail"
@@ -456,22 +456,26 @@ export default function AdminFacultyPage() {
                   value={editingFaculty ? editingFaculty.email : newFacultyEmail}
                   onChange={(e) => (editingFaculty ? setEditingFaculty({ ...editingFaculty, email: e.target.value }) : setNewFacultyEmail(e.target.value))}
                   required
+                  className="bg-[#EEF6FF] border-transparent placeholder:text-[#64748B] rounded-full h-12 px-4"
                 />
               </div>
-              <div className="space-y-2">
+
+              <div className="col-span-1 md:col-span-5 space-y-2">
                 <Label htmlFor="facultyName">Name (Optional)</Label>
                 <Input
                   id="facultyName"
                   type="text"
                   value={editingFaculty ? editingFaculty.name : newFacultyName}
                   onChange={(e) => (editingFaculty ? setEditingFaculty({ ...editingFaculty, name: e.target.value }) : setNewFacultyName(e.target.value))}
+                  className="bg-[#EEF6FF] border-transparent placeholder:text-[#64748B] rounded-full h-12 px-4"
                 />
               </div>
-              <div className="space-y-2">
+
+              <div className="col-span-1 md:col-span-2 space-y-2 self-start">
                 <Label htmlFor="facultyGender">Gender</Label>
                 <select
                   id="facultyGender"
-                  className="border rounded h-10 px-3 w-full"
+                  className="border border-border rounded-full h-12 px-4 w-full bg-[#EEF6FF]"
                   value={editingFaculty ? editingFaculty.gender : newFacultyGender}
                   onChange={(e) => (editingFaculty ? setEditingFaculty({ ...editingFaculty, gender: e.target.value as 'MALE' | 'FEMALE' | 'OTHER' }) : setNewFacultyGender(e.target.value as 'MALE' | 'FEMALE' | 'OTHER'))}
                   required
@@ -481,11 +485,12 @@ export default function AdminFacultyPage() {
                   <option value="OTHER">Other</option>
                 </select>
               </div>
-              <div className="space-y-2">
+
+              <div className="col-span-1 md:col-span-6 space-y-2">
                 <Label htmlFor="facultyDepartment">Department</Label>
                 <select
                   id="facultyDepartment"
-                  className="border rounded h-10 px-3 w-full"
+                  className="border border-border rounded-full h-12 px-4 w-full bg-[#EEF6FF]"
                   value={editingFaculty ? editingFaculty.departmentId : newFacultyDepartmentId}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -505,14 +510,17 @@ export default function AdminFacultyPage() {
                   ))}
                 </select>
               </div>
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? (editingFaculty ? 'Updating...' : 'Creating...') : (editingFaculty ? 'Update Faculty' : 'Create Faculty')}
-              </Button>
-              {editingFaculty && (
-                <Button variant="outline" onClick={() => setEditingFaculty(null)} className="w-full mt-2">
-                  Cancel
+
+              <div className="col-span-1 md:col-span-12">
+                <Button type="submit" disabled={loading} className="w-full rounded-full h-12 bg-[#F59E0B] text-black hover:bg-[#f59a00]">
+                  {loading ? (editingFaculty ? 'Updating...' : 'Creating...') : (editingFaculty ? 'Update Faculty' : 'Create Faculty')}
                 </Button>
-              )}
+                {editingFaculty && (
+                  <Button variant="outline" onClick={() => setEditingFaculty(null)} className="w-full mt-2">
+                    Cancel
+                  </Button>
+                )}
+              </div>
             </form>
           </CardContent>
         </Card>
@@ -520,10 +528,10 @@ export default function AdminFacultyPage() {
         {/* Password Change Card */}
         {changingPasswordFor && (
           <Card className="mb-6 border-yellow-500">
-            <>
-              <>Change Password for {changingPasswordFor.name}</>
-              <>Set a new password for {changingPasswordFor.email}</>
-            </>
+            <CardHeader>
+              <CardTitle>Change Password for {changingPasswordFor.name}</CardTitle>
+              <CardDescription>Set a new password for {changingPasswordFor.email}</CardDescription>
+            </CardHeader>
             <CardContent>
               <form onSubmit={handleChangePassword} className="space-y-4">
                 <div className="space-y-2">
@@ -557,10 +565,10 @@ export default function AdminFacultyPage() {
         {/* Career Path Assignment Modal */}
         {showCareerPathModal && selectedStudent && (
           <Card className="mb-6 border-blue-500">
-            <>
-              <>Manage Career Paths for {selectedStudent.name}</>
-              <>Assign career paths to {selectedStudent.email}</>
-            </>
+            <CardHeader>
+              <CardTitle>Manage Career Paths for {selectedStudent.name}</CardTitle>
+              <CardDescription>Assign career paths to {selectedStudent.email}</CardDescription>
+            </CardHeader>
             <CardContent>
               <div className="space-y-6">
                 {/* Assign new career path */}
@@ -636,10 +644,10 @@ export default function AdminFacultyPage() {
         )}
 
         <Card className="mb-6">
-          <>
-            <>Student List - Assign Career Paths</>
-            <>Select a to assign career paths.</>
-          </>
+          <CardHeader>
+            <CardTitle>Student List - Assign Career Paths</CardTitle>
+            <CardDescription>Select a student to assign career paths.</CardDescription>
+          </CardHeader>
           <CardContent>
             {/* students */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -691,12 +699,10 @@ export default function AdminFacultyPage() {
         {/* Faculty Assignment Modal */}
         {showFacultyAssignmentModal && selectedFaculty && (
           <Card className="mb-6 border-purple-500">
-            <>
-              <>Configure Assignments for {selectedFaculty?.name}</>
-              <>
-                Set which career paths and years this faculty will manage
-              </>
-            </>
+            <CardHeader>
+              <CardTitle>Configure Assignments for {selectedFaculty?.name}</CardTitle>
+              <CardDescription>Set which career paths and years this faculty will manage</CardDescription>
+            </CardHeader>
             <CardContent>
               <div className="space-y-6">
                 {/* Year Assignment Section */}
@@ -884,10 +890,10 @@ export default function AdminFacultyPage() {
         )}
 
         <Card>
-          <>
-            <>Existing Faculty</>
-            <>Manage your faculty members and their assignments. and search through the list.</>
-          </>
+          <CardHeader>
+            <CardTitle>Existing Faculty</CardTitle>
+            <CardDescription>Manage your faculty members and their assignments and search through the list.</CardDescription>
+          </CardHeader>
           <CardContent>
             {/* Filters */}
             <div className="mb-6">

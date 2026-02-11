@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+
 import prisma from './prisma';
 import { signToken, verifyToken } from './jwt';
 

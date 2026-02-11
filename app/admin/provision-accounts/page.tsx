@@ -28,7 +28,7 @@ export default function AdminProvisionAccountsPage() {
   const [loading, setLoading] = useState(false);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [showExistingAccounts, setShowExistingAccounts] = useState(false);
+  const [showExistingAccounts, setShowExistingAccounts] = useState(true);
   const [selectedRole, setSelectedRole] = useState<'all' | '' | 'faculty'>('all');
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
   const [selectedYear, setSelectedYear] = useState<number | ''>('');
@@ -47,6 +47,14 @@ export default function AdminProvisionAccountsPage() {
     fetchDepartments();
     // Don't automatically fetch accounts - let user choose
   }, []);
+
+  useEffect(() => {
+    if (showExistingAccounts) {
+      // Auto-fetch accounts when the view is enabled by default
+      fetchAccounts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showExistingAccounts]);
 
   const fetchAccounts = async () => {
     setLoading(true);

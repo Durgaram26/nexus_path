@@ -29,18 +29,18 @@ export async function GET(request: NextRequest) {
 
     if (role === 'faculty') {
       let facultyEmail = email;
-      
+
       // If email is not in  get it from the user table
       if (!facultyEmail) {
         const user = await prisma.user.findUnique({
           where: { id: userId },
           select: { email: true }
         });
-        
+
         if (!user) {
           return NextResponse.json({ message: 'User not found' }, { status: 404 });
         }
-        
+
         facultyEmail = user.email;
       }
 
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
               }
             }
           });
-          
+
           console.log(`Successfully created faculty record for: ${facultyEmail}`);
           return NextResponse.json({
             id: newFaculty.id,
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
           }, { status: 200 });
         } catch (error) {
           console.log(`Failed to create Faculty record for email: ${facultyEmail}`, error);
-          return NextResponse.json({ 
+          return NextResponse.json({
             message: 'Faculty record not found. Please contact administrator to set up your faculty profile.',
             email: facultyEmail,
             error: error instanceof Error ? error.message : String(error)
@@ -126,7 +126,8 @@ export async function GET(request: NextRequest) {
         canAssignCrossDepartment: faculty.canAssignCrossDepartment,
         college: faculty.department.college,
         assignedYears: faculty.assignedYears,
-        careerPaths: faculty.careerPaths.map(fcp => fcp.careerPath)}, { status: 200 });
+        careerPaths: faculty.careerPaths.map((fcp: any) => fcp.careerPath)
+      }, { status: 200 });
     } else if (role === 'admin') {
       // Get admin information
       const user = await prisma.user.findUnique({
@@ -179,28 +180,28 @@ export async function GET(request: NextRequest) {
 
       // For each career path, get the faculty name if assignedByUser is a faculty
       const careerPathsWithFacultyNames = await Promise.all(
-        (student?.careerPaths || []).map(async (cp) => {
+        (student?.careerPaths || []).map(async (cp: any) => {
           let facultyName = null;
-          
+
           if (cp.assignedByUser) {
             // Check if this user is a faculty member
             const faculty = await prisma.faculty.findUnique({
               where: { email: cp.assignedByUser.email },
               select: { name: true }
             });
-            
+
             if (faculty) {
               facultyName = faculty.name;
             }
           }
-          
+
           return {
             ...cp,
             facultyName: facultyName
           };
         })
       );
-      
+
       if (!student) {
         return NextResponse.json({ message: 'Student not found' }, { status: 404 });
       }
@@ -218,8 +219,8 @@ export async function GET(request: NextRequest) {
           firstName: cp.assignedByUser.firstName,
           lastName: cp.assignedByUser.lastName,
           email: cp.assignedByUser.email,
-          name: cp.facultyName || (cp.assignedByUser.firstName && cp.assignedByUser.lastName 
-            ? `${cp.assignedByUser.firstName} ${cp.assignedByUser.lastName}` 
+          name: cp.facultyName || (cp.assignedByUser.firstName && cp.assignedByUser.lastName
+            ? `${cp.assignedByUser.firstName} ${cp.assignedByUser.lastName}`
             : cp.assignedByUser.email)
         } : null
       }));

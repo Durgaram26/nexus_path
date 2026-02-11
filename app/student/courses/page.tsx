@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  BookOpen, 
-  Calendar, 
-  Clock, 
-  Users, 
-  MapPin, 
-  Link, 
+import {
+  BookOpen,
+  Calendar,
+  Clock,
+  Users,
+  MapPin,
+  Link,
   Play,
   FileText,
   CheckCircle,
@@ -18,10 +18,10 @@ import {
   Target,
   GraduationCap,
   User,
-  Mail,
-  Phone,
   Award,
-  X
+  X,
+  TrendingUp,
+  ArrowRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/api';
@@ -96,9 +96,8 @@ export default function StudentCourses() {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      // Use the simplified database API
       const response = await api.get('/student/courses-simple');
-      
+
       if (response.data.success) {
         setCourses(response.data.courses || []);
         setCareerPaths(response.data.careerPaths || []);
@@ -117,19 +116,19 @@ export default function StudentCourses() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'enrolled': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
-      case 'dropped': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'enrolled': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'completed': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'dropped': return 'bg-red-100 text-red-700 border-red-200';
+      default: return 'bg-slate-100 text-slate-700 border-slate-200';
     }
   };
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case 'beginner': return 'bg-green-100 text-green-800';
-      case 'intermediate': return 'bg-yellow-100 text-yellow-800';
-      case 'advanced': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'beginner': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'intermediate': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'advanced': return 'bg-red-50 text-red-700 border-red-200';
+      default: return 'bg-slate-50 text-slate-700 border-slate-200';
     }
   };
 
@@ -149,261 +148,221 @@ export default function StudentCourses() {
     if (!assignment.submissions || assignment.submissions.length === 0) {
       return isAssignmentOverdue(assignment.dueDate) ? 'overdue' : 'pending';
     }
-    
+
     const latestSubmission = assignment.submissions[assignment.submissions.length - 1];
     return latestSubmission.status;
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your courses...</p>
+          <div className="w-10 h-10 border-4 border-border border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-sm text-muted-foreground font-medium">Loading your courses...</p>
         </div>
       </div>
     );
   }
 
+  const enrolledCount = courses.filter(c => c.enrollment?.status === 'enrolled').length;
+  const totalAssignments = courses.reduce((acc, c) => acc + (c.assignments?.length || 0), 0);
+  const overdueCount = courses.reduce((acc, c) => {
+    const overdue = c.assignments?.filter(a => getSubmissionStatus(a) === 'overdue').length || 0;
+    return acc + overdue;
+  }, 0);
+
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="max-w-[1600px] mx-auto space-y-6 pb-10">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Courses</h1>
-          <p className="text-gray-600 mt-2">Courses assigned through your career roadmap</p>
+          <h1 className="text-2xl font-bold text-foreground">My Courses</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Track your learning progress and manage course assignments
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Target className="w-5 h-5 text-blue-600" />
-          <span className="text-sm text-gray-600">{courses.length} courses</span>
+        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/5 border border-primary/20">
+          <BookOpen className="w-4 h-4 text-primary" />
+          <span className="text-sm font-semibold text-foreground">{courses.length} Total</span>
         </div>
       </div>
 
-      {/* Career Paths Section */}
+      {/* Career Paths */}
       {careerPaths.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-purple-600" />
-              My Career Paths
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {careerPaths.map((careerPath) => (
-                <div key={careerPath.id} className="p-4 border rounded-lg bg-gradient-to-r from-purple-50 to-blue-50">
-                  <h3 className="font-semibold text-gray-900 mb-2">{careerPath.name}</h3>
-                  {careerPath.description && (
-                    <p className="text-sm text-gray-600 mb-3">{careerPath.description}</p>
-                  )}
-                  <div className="text-xs text-gray-500 space-y-1">
-                    <div>Assigned: {new Date(careerPath.assignedAt).toLocaleDateString()}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {careerPaths.map((careerPath) => (
+            <Card key={careerPath.id} className="border border-border/60 bg-gradient-to-br from-primary/5 to-primary/10 hover:shadow-lg transition-all">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <GraduationCap className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground text-sm">{careerPath.name}</h3>
+                    {careerPath.description && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{careerPath.description}</p>
+                    )}
+                    <p className="text-[10px] text-muted-foreground/70 mt-2">
+                      Assigned {new Date(careerPath.assignedAt).toLocaleDateString()}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <BookOpen className="w-8 h-8 text-blue-600" />
-              <div>
-                <div className="text-2xl font-bold">{courses.length}</div>
-                <div className="text-sm text-gray-600">Total Courses</div>
+        <Card className="border border-border/60 hover:shadow-lg hover:border-primary/30 transition-all">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-indigo-50 rounded-lg">
+                <BookOpen className="w-5 h-5 text-indigo-600" />
               </div>
+              <TrendingUp className="w-4 h-4 text-indigo-600" />
             </div>
+            <div className="text-3xl font-bold text-foreground mb-1">{courses.length}</div>
+            <p className="text-xs text-muted-foreground">Total Courses</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-8 h-8 text-green-600" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {courses.filter(c => c.enrollment?.status === 'enrolled').length}
-                </div>
-                <div className="text-sm text-gray-600">Enrolled</div>
+        <Card className="border border-border/60 hover:shadow-lg hover:border-emerald-300 transition-all">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-emerald-50 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-emerald-600" />
               </div>
             </div>
+            <div className="text-3xl font-bold text-foreground mb-1">{enrolledCount}</div>
+            <p className="text-xs text-muted-foreground">Active Enrollments</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <FileText className="w-8 h-8 text-purple-600" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {courses.reduce((acc, c) => acc + (c.assignments?.length || 0), 0)}
-                </div>
-                <div className="text-sm text-gray-600">Assignments</div>
+        <Card className="border border-border/60 hover:shadow-lg hover:border-purple-300 transition-all">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-purple-50 rounded-lg">
+                <FileText className="w-5 h-5 text-purple-600" />
               </div>
             </div>
+            <div className="text-3xl font-bold text-foreground mb-1">{totalAssignments}</div>
+            <p className="text-xs text-muted-foreground">Total Assignments</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-8 h-8 text-orange-600" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {courses.reduce((acc, c) => {
-                    const overdue = c.assignments?.filter(a => 
-                      getSubmissionStatus(a) === 'overdue'
-                    ).length || 0;
-                    return acc + overdue;
-                  }, 0)}
-                </div>
-                <div className="text-sm text-gray-600">Overdue</div>
+        <Card className={`border transition-all ${overdueCount > 0 ? 'border-orange-300 bg-orange-50/50 hover:shadow-lg hover:shadow-orange-100' : 'border-border/60 hover:shadow-lg'}`}>
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className={`p-2 rounded-lg ${overdueCount > 0 ? 'bg-orange-100' : 'bg-slate-50'}`}>
+                <AlertCircle className={`w-5 h-5 ${overdueCount > 0 ? 'text-orange-600' : 'text-slate-600'}`} />
               </div>
             </div>
+            <div className={`text-3xl font-bold mb-1 ${overdueCount > 0 ? 'text-orange-600' : 'text-foreground'}`}>
+              {overdueCount}
+            </div>
+            <p className="text-xs text-muted-foreground">Overdue Tasks</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Courses Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {courses.map((course) => (
-          <Card 
-            key={course.id} 
-            className="hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => setSelectedCourse(course)}
-          >
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-lg font-semibold text-gray-900 mb-2">
-                    {course.title}
-                  </CardTitle>
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {course.description}
-                  </p>
-                </div>
-                <div className="flex flex-col gap-1 ml-2">
-                  <Badge className={getLevelColor(course.level)}>
-                    {course.level}
-                  </Badge>
-                  {course.enrollment && (
-                    <Badge className={getStatusColor(course.enrollment.status)}>
-                      {course.enrollment.status}
+      {courses.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {courses.map((course) => (
+            <Card
+              key={course.id}
+              className="border border-border/60 hover:shadow-xl hover:border-primary/30 transition-all duration-300 cursor-pointer group"
+              onClick={() => setSelectedCourse(course)}
+            >
+              <CardContent className="p-5">
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-foreground text-base group-hover:text-primary transition-colors line-clamp-2">
+                        {course.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        {course.description}
+                      </p>
+                    </div>
+                    <Badge className={`${getLevelColor(course.level)} text-[10px] shrink-0`}>
+                      {course.level}
                     </Badge>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            
-            <CardContent>
-              <div className="space-y-3">
-                {/* Course Info */}
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <User className="w-4 h-4" />
-                  <span>{course.instructor}</span>
-                </div>
-                
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Clock className="w-4 h-4" />
-                  <span>{course.duration}</span>
-                </div>
-                
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Calendar className="w-4 h-4" />
-                  <span>{formatDate(course.startDate)} - {formatDate(course.endDate)}</span>
-                </div>
-
-                {course.location && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <MapPin className="w-4 h-4" />
-                    <span>{course.location}</span>
                   </div>
-                )}
 
-                {/* Assignment Status */}
-                {course.assignments && course.assignments.length > 0 && (
-                  <div className="pt-2 border-t">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Assignments</span>
-                      <span className="font-medium">
-                        {course.assignments.filter(a => 
-                          getSubmissionStatus(a) === 'graded'
-                        ).length}/{course.assignments.length}
-                      </span>
+                  {/* Course Info */}
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <User className="w-3.5 h-3.5" />
+                      <span className="truncate">{course.instructor}</span>
                     </div>
-                    
-                    {/* Progress Bar */}
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all"
-                        style={{ 
-                          width: `${(course.assignments.filter(a => 
-                            getSubmissionStatus(a) === 'graded'
-                          ).length / course.assignments.length) * 100}%` 
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>{course.duration}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span className="truncate">{formatDate(course.startDate)}</span>
+                    </div>
+                  </div>
+
+                  {/* Assignment Progress */}
+                  {course.assignments && course.assignments.length > 0 && (
+                    <div className="pt-3 border-t border-border/40">
+                      <div className="flex items-center justify-between text-xs mb-2">
+                        <span className="text-muted-foreground">Progress</span>
+                        <span className="font-semibold text-foreground">
+                          {course.assignments.filter(a => getSubmissionStatus(a) === 'graded').length}/{course.assignments.length}
+                        </span>
+                      </div>
+                      <div className="w-full bg-secondary rounded-full h-1.5">
+                        <div
+                          className="bg-gradient-to-r from-primary to-primary/80 h-1.5 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${(course.assignments.filter(a => getSubmissionStatus(a) === 'graded').length / course.assignments.length) * 100}%`
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Status Badge */}
+                  {course.enrollment && (
+                    <div className="flex items-center justify-between pt-2">
+                      <Badge className={`${getStatusColor(course.enrollment.status)} text-[10px]`}>
+                        {course.enrollment.status}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 text-xs text-primary hover:text-primary/80 hover:bg-primary/5"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCourse(course);
                         }}
-                      />
+                      >
+                        View Details
+                        <ArrowRight className="w-3 h-3 ml-1" />
+                      </Button>
                     </div>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="flex gap-2 pt-2">
-                  <Button 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent card click
-                      setSelectedCourse(course);
-                    }}
-                  >
-                    <Play className="w-4 h-4 mr-1" />
-                    View Course
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => {
-                      // Navigate to certificate submission with pre-filled course data
-                      const params = new URLSearchParams({
-                        courseName: course.title,
-                        courseProvider: course.instructor,
-                        courseLink: course.meetingLink || '',
-                        courseType: 'online-course',
-                        description: course.description
-                      });
-                      window.open(`/student/certificate-submission?${params.toString()}`, '_blank');
-                    }}
-                    title="Submit Certificate for this Course"
-                  >
-                    <Award className="w-4 h-4" />
-                  </Button>
-                  {course.meetingLink && (
-                    <Button size="sm" variant="outline">
-                      <Link className="w-4 h-4" />
-                    </Button>
                   )}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Empty State */}
-      {courses.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-12">
-            <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Courses Assigned</h3>
-            <p className="text-gray-600 mb-4">
-              You don't have any courses assigned through your career roadmap yet.
-            </p>
-            <p className="text-sm text-gray-500">
-              Contact your faculty to get courses assigned to your roadmap.
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card className="border-dashed border-2 border-border">
+          <CardContent className="text-center py-16">
+            <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">No Courses Assigned</h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              You don't have any courses assigned through your career roadmap yet. Contact your faculty to get started.
             </p>
           </CardContent>
         </Card>
@@ -411,185 +370,186 @@ export default function StudentCourses() {
 
       {/* Course Details Modal */}
       {selectedCourse && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Course Details</h2>
-                <Button variant="outline" onClick={() => setSelectedCourse(null)}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border border-border">
+            <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 z-10">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-foreground">Course Details</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedCourse(null)}
+                  className="h-8 w-8 p-0"
+                >
                   <X className="w-4 h-4" />
                 </Button>
               </div>
-              
-              <div className="space-y-6">
-                {/* Course Header */}
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-semibold text-gray-900 mb-2">{selectedCourse.title}</h3>
-                    <p className="text-gray-600 mb-4">{selectedCourse.description}</p>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        <span>{selectedCourse.instructor}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        <span>{selectedCourse.duration}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        <span>{formatDate(selectedCourse.startDate)} - {formatDate(selectedCourse.endDate)}</span>
-                      </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Course Header */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-foreground mb-2">{selectedCourse.title}</h3>
+                  <p className="text-muted-foreground">{selectedCourse.description}</p>
+                  <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      <span>{selectedCourse.instructor}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      <span>{selectedCourse.duration}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      <span>{formatDate(selectedCourse.startDate)} - {formatDate(selectedCourse.endDate)}</span>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 ml-4">
-                    <Badge className={getLevelColor(selectedCourse.level)}>
-                      {selectedCourse.level}
-                    </Badge>
-                    <Badge variant="outline">
-                      {selectedCourse.category}
-                    </Badge>
-                    {selectedCourse.enrollment && (
-                      <Badge className={getStatusColor(selectedCourse.enrollment.status)}>
-                        {selectedCourse.enrollment.status}
-                      </Badge>
-                    )}
-                  </div>
                 </div>
+                <div className="flex flex-col gap-2">
+                  <Badge className={getLevelColor(selectedCourse.level)}>
+                    {selectedCourse.level}
+                  </Badge>
+                  <Badge variant="outline" className="border-border">
+                    {selectedCourse.category}
+                  </Badge>
+                  {selectedCourse.enrollment && (
+                    <Badge className={getStatusColor(selectedCourse.enrollment.status)}>
+                      {selectedCourse.enrollment.status}
+                    </Badge>
+                  )}
+                </div>
+              </div>
 
-                {/* Course Info Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-3">Course Information</h4>
-                    <div className="space-y-2 text-sm">
+              {/* Course Info Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="border border-border/40">
+                  <CardContent className="p-4">
+                    <h4 className="font-semibold text-foreground mb-3 text-sm">Course Information</h4>
+                    <div className="space-y-2 text-xs">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Instructor:</span>
-                        <span className="font-medium">{selectedCourse.instructor}</span>
+                        <span className="text-muted-foreground">Instructor:</span>
+                        <span className="font-medium text-foreground">{selectedCourse.instructor}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Duration:</span>
-                        <span className="font-medium">{selectedCourse.duration}</span>
+                        <span className="text-muted-foreground">Duration:</span>
+                        <span className="font-medium text-foreground">{selectedCourse.duration}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Level:</span>
-                        <span className="font-medium">{selectedCourse.level}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Category:</span>
-                        <span className="font-medium">{selectedCourse.category}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Type:</span>
-                        <span className="font-medium">{selectedCourse.courseType}</span>
+                        <span className="text-muted-foreground">Type:</span>
+                        <span className="font-medium text-foreground">{selectedCourse.courseType}</span>
                       </div>
                       {selectedCourse.location && (
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Location:</span>
-                          <span className="font-medium">{selectedCourse.location}</span>
+                          <span className="text-muted-foreground">Location:</span>
+                          <span className="font-medium text-foreground">{selectedCourse.location}</span>
                         </div>
                       )}
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-3">Enrollment Details</h4>
-                    <div className="space-y-2 text-sm">
+                <Card className="border border-border/40">
+                  <CardContent className="p-4">
+                    <h4 className="font-semibold text-foreground mb-3 text-sm">Enrollment Details</h4>
+                    <div className="space-y-2 text-xs">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Status:</span>
-                        <span className="font-medium">
+                        <span className="text-muted-foreground">Status:</span>
+                        <span className="font-medium text-foreground">
                           {selectedCourse.enrollment ? selectedCourse.enrollment.status : 'Not Enrolled'}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Enrolled Students:</span>
-                        <span className="font-medium">{selectedCourse.enrolledStudents}/{selectedCourse.maxStudents}</span>
+                        <span className="text-muted-foreground">Students:</span>
+                        <span className="font-medium text-foreground">{selectedCourse.enrolledStudents}/{selectedCourse.maxStudents}</span>
                       </div>
                       {selectedCourse.enrollment && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Enrolled At:</span>
-                          <span className="font-medium">{formatDate(selectedCourse.enrollment.enrolledAt)}</span>
-                        </div>
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Enrolled:</span>
+                            <span className="font-medium text-foreground">{formatDate(selectedCourse.enrollment.enrolledAt)}</span>
+                          </div>
+                          {selectedCourse.enrollment.grade && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Grade:</span>
+                              <span className="font-semibold text-primary">{selectedCourse.enrollment.grade}%</span>
+                            </div>
+                          )}
+                        </>
                       )}
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Mandatory:</span>
-                        <span className="font-medium">{selectedCourse.isMandatory ? 'Yes' : 'No'}</span>
+                        <span className="text-muted-foreground">Mandatory:</span>
+                        <span className={`font-medium ${selectedCourse.isMandatory ? 'text-orange-600' : 'text-foreground'}`}>
+                          {selectedCourse.isMandatory ? 'Yes' : 'No'}
+                        </span>
                       </div>
-                      {selectedCourse.enrollment && selectedCourse.enrollment.grade && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Grade:</span>
-                          <span className="font-medium">{selectedCourse.enrollment.grade}</span>
-                        </div>
-                      )}
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
+              </div>
 
-                {/* Assignments Section */}
-                {selectedCourse.assignments && selectedCourse.assignments.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-3">Assignments</h4>
-                    <div className="space-y-3">
-                      {selectedCourse.assignments.map((assignment) => (
-                        <div key={assignment.id} className="border rounded-lg p-4">
-                          <div className="flex items-start justify-between">
+              {/* Assignments Section */}
+              {selectedCourse.assignments && selectedCourse.assignments.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-foreground mb-3">Assignments ({selectedCourse.assignments.length})</h4>
+                  <div className="space-y-3">
+                    {selectedCourse.assignments.map((assignment) => (
+                      <Card key={assignment.id} className="border border-border/40 hover:border-primary/30 transition-colors">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
-                              <h5 className="font-medium text-gray-900">{assignment.title}</h5>
-                              <p className="text-sm text-gray-600 mt-1">{assignment.description}</p>
-                              <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                                <span>Due: {formatDate(assignment.dueDate)}</span>
+                              <h5 className="font-semibold text-foreground text-sm">{assignment.title}</h5>
+                              <p className="text-xs text-muted-foreground mt-1">{assignment.description}</p>
+                              <div className="flex flex-wrap items-center gap-3 mt-3 text-[10px] text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="w-3 h-3" />
+                                  Due: {formatDate(assignment.dueDate)}
+                                </span>
                                 <span>Points: {assignment.maxPoints}</span>
-                                <span className={assignment.isMandatory ? 'text-red-600' : 'text-gray-500'}>
+                                <span className={assignment.isMandatory ? 'text-orange-600 font-semibold' : ''}>
                                   {assignment.isMandatory ? 'Mandatory' : 'Optional'}
                                 </span>
                               </div>
                             </div>
-                            <div className="ml-4">
-                              <Badge variant="outline" className={getStatusColor(getSubmissionStatus(assignment))}>
-                                {getSubmissionStatus(assignment)}
-                              </Badge>
-                            </div>
+                            <Badge className={`${getStatusColor(getSubmissionStatus(assignment))} text-[10px] shrink-0`}>
+                              {getSubmissionStatus(assignment)}
+                            </Badge>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="flex gap-3 pt-4 border-t">
-                  <Button 
-                    onClick={() => {
-                      // Navigate to certificate submission with pre-filled course data
-                      const params = new URLSearchParams({
-                        courseName: selectedCourse.title,
-                        courseProvider: selectedCourse.instructor,
-                        courseLink: selectedCourse.meetingLink || '',
-                        courseType: selectedCourse.courseType,
-                        description: selectedCourse.description
-                      });
-                      window.open(`/student/certificate-submission?${params.toString()}`, '_blank');
-                    }}
-                    className="flex-1"
-                  >
-                    <Award className="w-4 h-4 mr-2" />
-                    Submit Certificate
-                  </Button>
-                  {selectedCourse.meetingLink && (
-                    <Button 
-                      variant="outline"
-                      onClick={() => window.open(selectedCourse.meetingLink, '_blank')}
-                    >
-                      <Link className="w-4 h-4 mr-2" />
-                      Join Meeting
-                    </Button>
-                  )}
-                  <Button 
-                    variant="outline"
-                    onClick={() => setSelectedCourse(null)}
-                  >
-                    Close
-                  </Button>
                 </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4 border-t border-border">
+                <Button
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      courseName: selectedCourse.title,
+                      courseProvider: selectedCourse.instructor,
+                      courseLink: selectedCourse.meetingLink || '',
+                      courseType: selectedCourse.courseType,
+                      description: selectedCourse.description
+                    });
+                    window.open(`/student/certificate-submission?${params.toString()}`, '_blank');
+                  }}
+                  className="flex-1"
+                >
+                  <Award className="w-4 h-4 mr-2" />
+                  Submit Certificate
+                </Button>
+                {selectedCourse.meetingLink && (
+                  <Button
+                    variant="outline"
+                    onClick={() => window.open(selectedCourse.meetingLink, '_blank')}
+                  >
+                    <Link className="w-4 h-4 mr-2" />
+                    Join Meeting
+                  </Button>
+                )}
               </div>
             </div>
           </div>

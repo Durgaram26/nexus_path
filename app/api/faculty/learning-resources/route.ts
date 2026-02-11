@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
-        
+
     // Get faculty information to determine their department and assigned career paths
     const faculty = await prisma.faculty.findUnique({
       where: { email: (payload as any).email },
@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all learning for the faculty's assigned career paths
-    const assignedCareerPaths = faculty.careerPaths.map(cp => cp.careerPath.name);
-    
+    const assignedCareerPaths = faculty.careerPaths.map((cp: any) => cp.careerPath.name);
+
     // If no specific career paths assigned, get all for their department
     let learningResources;
     if (assignedCareerPaths.length === 0) {
@@ -157,8 +157,8 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('GET /api/faculty/learning-resources:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
@@ -179,8 +179,8 @@ export async function POST(request: NextRequest) {
       const { title, description, url, category, difficulty, careerPath, studentIds } = data;
 
       if (!title || !description || !url || !category || !careerPath) {
-        return NextResponse.json({ 
-          message: 'Missing required fields: title, description, url, category, careerPath' 
+        return NextResponse.json({
+          message: 'Missing required fields: title, description, url, category, careerPath'
         }, { status: 400 });
       }
 
@@ -225,8 +225,8 @@ export async function POST(request: NextRequest) {
       const { resourceId, studentIds } = data;
 
       if (!resourceId || !studentIds || studentIds.length === 0) {
-        return NextResponse.json({ 
-          message: 'Missing resourceId or studentIds' 
+        return NextResponse.json({
+          message: 'Missing resourceId or studentIds'
         }, { status: 400 });
       }
 
@@ -255,8 +255,8 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('POST /api/faculty/learning-resources:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
@@ -297,8 +297,8 @@ export async function PUT(request: NextRequest) {
 
   } catch (error) {
     console.error('PUT /api/faculty/learning-resources:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
@@ -315,7 +315,7 @@ export async function DELETE(request: NextRequest) {
     const url = new URL(request.url);
     const resourceIdStr = url.searchParams.get('resourceId');
     const studentIdStr = url.searchParams.get('studentId');
-    
+
     const resourceId = resourceIdStr || null;
     const studentId = studentIdStr || null;
 
@@ -350,8 +350,8 @@ export async function DELETE(request: NextRequest) {
 
   } catch (error) {
     console.error('DELETE /api/faculty/learning-resources:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }

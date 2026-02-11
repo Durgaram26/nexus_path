@@ -80,12 +80,12 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' }
       });
     } else {
-      return NextResponse.json({ 
-        message: 'Access denied' 
+      return NextResponse.json({
+        message: 'Access denied'
       }, { status: 403 });
     }
 
-    const formattedRooms = rooms.map(room => ({
+    const formattedRooms = rooms.map((room: any) => ({
       id: room.id,
       name: room.name,
       description: room.description,
@@ -94,16 +94,16 @@ export async function GET(request: NextRequest) {
       creatorName: room.creator.name,
       createdAt: room.createdAt.toISOString(),
       memberCount: room._count.members,
-      isMember: room.members.some(member => member.userId === userId)
+      isMember: room.members.some((member: any) => member.userId === userId)
     }));
 
     return NextResponse.json({ rooms: formattedRooms });
 
   } catch (error) {
     console.error('GET /api/realtime/rooms error:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
-      error: String(error) 
+    return NextResponse.json({
+      message: 'Internal Server Error',
+      error: String(error)
     }, { status: 500 });
   }
 }
@@ -118,8 +118,8 @@ export async function POST(request: NextRequest) {
 
     const userRole = (payload as any).role;
     if (userRole !== 'faculty') {
-      return NextResponse.json({ 
-        message: 'Only faculty can create rooms' 
+      return NextResponse.json({
+        message: 'Only faculty can create rooms'
       }, { status: 403 });
     }
 
@@ -127,8 +127,8 @@ export async function POST(request: NextRequest) {
     const userId = (payload as any).userId;
 
     if (!name?.trim()) {
-      return NextResponse.json({ 
-        message: 'Room name is required' 
+      return NextResponse.json({
+        message: 'Room name is required'
       }, { status: 400 });
     }
 
@@ -188,9 +188,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('POST /api/realtime/rooms error:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
-      error: String(error) 
+    return NextResponse.json({
+      message: 'Internal Server Error',
+      error: String(error)
     }, { status: 500 });
   }
 }

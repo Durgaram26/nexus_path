@@ -6,14 +6,14 @@ import prisma from '@/lib/prisma';
 export async function GET(request: NextRequest) {
   try {
     console.log('GET ///assigned-roadmaps - Starting request');
-    
+
     // Verify authentication
     let token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
+
     if (!token) {
       token = request.cookies.get('access_token')?.value;
     }
-    
+
     if (!token) {
       console.log('No token provided');
       return NextResponse.json({ error: 'No token provided' }, { status: 401 });
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Student record not found' }, { status: 404 });
     }
 
-    
+
     console.log('Student authorized, fetching assignments for:', student.name);
 
     // Get assigned roadmaps for this student (only active ones)
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
     console.log('Found assignments:', assignments.length);
 
     // Transform the data to include assignment details
-    const roadmaps = assignments.map(assignment => ({
+    const roadmaps = assignments.map((assignment: any) => ({
       ...assignment.roadmap,
       assignmentId: assignment.id,
       assignedAt: assignment.assignedAt,
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error: unknown) {
     console.error('Get assigned roadmaps error:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Failed to fetch assigned roadmaps',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });

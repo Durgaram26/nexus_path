@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/jwt';
-import { Gender } from '@prisma/client';
+// import { Gender } from '@prisma/client';
+const Gender = { MALE: 'MALE', FEMALE: 'FEMALE', OTHER: 'OTHER' };
 
 // Create Faculty
 export async function POST(request: NextRequest) {
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Email, name, gender, and department ID are required' }, { status: 400 });
     }
     if (!Object.values(Gender).includes(gender)) {
-        return NextResponse.json({ message: 'Invalid gender' }, { status: 400 });
+      return NextResponse.json({ message: 'Invalid gender' }, { status: 400 });
     }
 
     const existingFaculty = await prisma.faculty.findUnique({ where: { email } });
@@ -50,7 +51,8 @@ export async function GET(request: NextRequest) {
 
     const faculties = await prisma.faculty.findMany({
       include: { department: { include: { college: true } } },
-      orderBy: { email: 'asc' }});
+      orderBy: { email: 'asc' }
+    });
     return NextResponse.json(faculties, { status: 200 });
   } catch (error: unknown) {
     console.error('GET /faculty error:', error);
@@ -73,7 +75,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ message: 'Faculty ID, email, name, gender, and department ID are required' }, { status: 400 });
     }
     if (!Object.values(Gender).includes(gender)) {
-        return NextResponse.json({ message: 'Invalid gender' }, { status: 400 });
+      return NextResponse.json({ message: 'Invalid gender' }, { status: 400 });
     }
 
     const existingFaculty = await prisma.faculty.findUnique({ where: { email } });
@@ -88,7 +90,8 @@ export async function PUT(request: NextRequest) {
 
     const faculty = await prisma.faculty.update({
       where: { id },
-      data: { email, name, gender, departmentId }});
+      data: { email, name, gender, departmentId }
+    });
     return NextResponse.json(faculty, { status: 200 });
   } catch (error: unknown) {
     console.error('PUT /faculty error:', error);

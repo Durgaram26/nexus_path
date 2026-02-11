@@ -19,7 +19,7 @@ export async function GET(
   try {
     const { id } = await params;
     console.log('Quiz history API called for student ID:', id);
-    
+
     const payload = getAuthPayload(request);
     if (!payload) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -29,11 +29,11 @@ export async function GET(
     const student = await prisma.student.findUnique({
       where: { id: id }
     });
-    
+
     if (!student) {
       return NextResponse.json({ message: 'Student not found' }, { status: 404 });
     }
-    
+
     // Get all quiz attempts for the student
     const attempts = await prisma.quizAttempt.findMany({
       where: {
@@ -53,7 +53,7 @@ export async function GET(
     });
 
     // Format the attempts
-    const formattedAttempts = attempts.map(attempt => ({
+    const formattedAttempts = attempts.map((attempt: any) => ({
       id: attempt.id,
       attemptNumber: attempt.attemptNumber,
       score: attempt.score,
@@ -69,13 +69,13 @@ export async function GET(
 
     // Calculate additional statistics
     const totalAttempts = attempts.length;
-    const averageScore = totalAttempts > 0 
-      ? attempts.reduce((sum, attempt) => sum + attempt.score, 0) / totalAttempts 
+    const averageScore = totalAttempts > 0
+      ? attempts.reduce((sum: any, attempt: any) => sum + attempt.score, 0) / totalAttempts
       : 0;
-    const bestScore = totalAttempts > 0 
-      ? Math.max(...attempts.map(attempt => attempt.score)) 
+    const bestScore = totalAttempts > 0
+      ? Math.max(...attempts.map((attempt: any) => attempt.score))
       : 0;
-    
+
     // Calculate streak
     let currentStreak = 0;
     for (const attempt of attempts) {
@@ -89,13 +89,13 @@ export async function GET(
     // Get recent performance (last 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
-    const recentAttempts = attempts.filter(attempt => 
+
+    const recentAttempts = attempts.filter((attempt: any) =>
       attempt.completedAt && attempt.completedAt >= sevenDaysAgo
     );
 
     const recentAverage = recentAttempts.length > 0
-      ? recentAttempts.reduce((sum, attempt) => sum + attempt.score, 0) / recentAttempts.length
+      ? recentAttempts.reduce((sum: any, attempt: any) => sum + attempt.score, 0) / recentAttempts.length
       : 0;
 
     return NextResponse.json({
@@ -113,8 +113,8 @@ export async function GET(
 
   } catch (error) {
     console.error('GET /api/student/[id]/quiz-history error:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

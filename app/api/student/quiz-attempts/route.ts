@@ -15,7 +15,7 @@ function getAuthPayload(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     console.log('Quiz attempts API called');
-    
+
     const payload = getAuthPayload(request);
     if (!payload || !['student'].includes((payload as any).role)) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const quizIdParam = searchParams.get('quizId');
-    
+
     if (!quizIdParam) {
       return NextResponse.json({ error: 'Quiz ID is required' }, { status: 400 });
     }
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     console.log(`Found ${attempts.length} attempts for quiz ${quizId}`);
 
     // Transform the attempts data
-    const transformedAttempts = attempts.map(attempt => ({
+    const transformedAttempts = attempts.map((attempt: any) => ({
       id: attempt.id,
       attemptNumber: attempt.attemptNumber,
       score: attempt.score,

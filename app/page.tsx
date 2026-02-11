@@ -10,14 +10,14 @@ export default function Home() {
 
   useEffect(() => {
     if (authLoading) return;
-    
+
     // Check if user wants to stay on login page (by checking URL params or hash)
     const urlParams = new URLSearchParams(window.location.search);
     const forceLogin = urlParams.get('login') === 'true';
     const showLogin = window.location.hash === '#login';
-    
+
     console.log('Main page routing:', { isAuthenticated, user: user?.role, forceLogin, showLogin });
-    
+
     if (!isAuthenticated || forceLogin || showLogin) {
       console.log('Redirecting to login');
       router.push('/auth/login');
@@ -41,22 +41,22 @@ export default function Home() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading...</h2>
-          <p className="text-gray-600">Checking authentication...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-secondary border-t-primary mx-auto mb-4 shadow-lg shadow-primary/20"></div>
+          <h2 className="text-xl font-bold text-foreground mb-1">Checking Access</h2>
+          <p className="text-sm text-muted-foreground animate-pulse">Verifying your credentials...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading...</h2>
-        <p className="text-gray-600">Redirecting you to the appropriate dashboard...</p>
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-center animate-fade-in">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-secondary border-t-primary mx-auto mb-4 shadow-lg shadow-primary/20"></div>
+        <h2 className="text-xl font-bold text-foreground mb-1">Almost There</h2>
+        <p className="text-sm text-muted-foreground animate-pulse">Taking you to your dashboard...</p>
       </div>
     </div>
   );

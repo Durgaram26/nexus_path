@@ -24,16 +24,16 @@ export async function GET(request: NextRequest) {
     const studentIds = searchParams.get('studentIds');
 
     if (!studentIds) {
-      return NextResponse.json({ 
-        message: 'Student IDs are required' 
+      return NextResponse.json({
+        message: 'Student IDs are required'
       }, { status: 400 });
     }
 
     const ids = studentIds.split(',').map(id => id.trim()).filter(id => id.length > 0);
 
     if (ids.length === 0) {
-      return NextResponse.json({ 
-        message: 'No valid student IDs provided' 
+      return NextResponse.json({
+        message: 'No valid student IDs provided'
       }, { status: 400 });
     }
 
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Get student emails
-    const studentEmails = students.map(s => s.email);
+    const studentEmails = students.map((s: any) => s.email);
 
     // Find users with matching emails (like admin account creation approach)
     const users = await prisma.user.findMany({
@@ -62,10 +62,10 @@ export async function GET(request: NextRequest) {
     });
 
     // Create a map of email to user for quick lookup
-    const userMap = new Map(users.map(u => [u.email, u]));
+    const userMap = new Map(users.map((u: any) => [u.email, u]));
 
-    const results = students.map(student => {
-      const user = userMap.get(student.email);
+    const results = students.map((student: any) => {
+      const user: any = userMap.get(student.email);
       const result = {
         studentId: student.id,
         registerNumber: student.registerNumber,
@@ -81,8 +81,8 @@ export async function GET(request: NextRequest) {
 
     const summary = {
       total: results.length,
-      withPasswords: results.filter(r => r.password).length,
-      withoutPasswords: results.filter(r => !r.password).length
+      withPasswords: results.filter((r: any) => r.password).length,
+      withoutPasswords: results.filter((r: any) => !r.password).length
     };
 
     return NextResponse.json({
@@ -93,8 +93,8 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('GET /api/faculty/students-passwords:', error);
-    return NextResponse.json({ 
-      message: 'Internal Server Error', 
+    return NextResponse.json({
+      message: 'Internal Server Error',
       error: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }

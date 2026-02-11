@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     console.log(`✅ Found ${talks.length} mentor talks`);
 
     // Transform the data to include basic info
-    const transformedTalks = talks.map(talk => ({
+    const transformedTalks = talks.map((talk: any) => ({
       id: talk.id,
       title: talk.title,
       speakerName: talk.speakerName,
@@ -53,8 +53,8 @@ export async function GET(request: NextRequest) {
       stack: (error as Error).stack
     });
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: 'Failed to fetch mentor talks',
         error: (error as Error).message
       },
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     // TODO: Get faculty ID from JWT token
     // For now, find the first faculty member or create a default one
     let facultyId = '1';
-    
+
     try {
       const faculty = await prisma.faculty.findFirst();
       if (faculty) {
@@ -170,8 +170,8 @@ export async function POST(request: NextRequest) {
       stack: (error as Error).stack
     });
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: 'Failed to create mentor talk',
         error: (error as Error).message
       },

@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
-import { 
-  LayoutDashboard, 
-  Users, 
-  GraduationCap, 
-  BookOpen, 
+import {
+  LayoutDashboard,
+  Users,
+  GraduationCap,
+  BookOpen,
   MessageSquare,
   BarChart3,
   Settings,
@@ -21,7 +21,6 @@ import {
   Mail,
   Building,
   Phone,
-  Calendar,
   BookMarked,
   Wrench,
   Award
@@ -41,23 +40,21 @@ export default function FacultyLayout({ children }: FacultyLayoutProps) {
   const [facultyData, setFacultyData] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  // Navigation items for faculty
   const navigationItems = [
     { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard, href: '/faculty/dashboard' },
     { id: 'students', title: 'Student Management', icon: Users, href: '/faculty/students' },
-    { id: 'student-list', title: 'My Assigned Students', icon: GraduationCap, href: '/faculty/student-list' },
+    { id: 'student-list', title: 'Assigned Students', icon: GraduationCap, href: '/faculty/student-list' },
     { id: 'learning-management', title: 'Learning Management', icon: BookOpen, href: '/faculty/learning-management' },
     { id: 'course-management', title: 'Course Management', icon: BookMarked, href: '/faculty/course-management' },
-    { id: 'workshop-management', title: 'Workshop Management', icon: Wrench, href: '/faculty/workshop-management' },
-    { id: 'mentor-talks', title: 'Industry Mentor Talks', icon: Users, href: '/faculty/mentor-talks' },
-    { id: 'certificate-evaluation', title: 'Certificate Evaluation', icon: Award, href: '/faculty/certificate-evaluation' },
-    { id: 'resource-management', title: 'Resource Management', icon: BookOpen, href: '/faculty/resource-management' },
+    { id: 'workshop-management', title: 'Workshops', icon: Wrench, href: '/faculty/workshop-management' },
+    { id: 'mentor-talks', title: 'Mentor Talks', icon: Users, href: '/faculty/mentor-talks' },
+    { id: 'certificate-evaluation', title: 'Certificates', icon: Award, href: '/faculty/certificate-evaluation' },
+    { id: 'resource-management', title: 'Resources', icon: BookOpen, href: '/faculty/resource-management' },
     { id: 'messaging', title: 'Messaging', icon: MessageSquare, href: '/faculty/messaging' },
-    { id: 'analytics', title: 'Student Analytics', icon: BarChart3, href: '/faculty/analytics' },
+    { id: 'analytics', title: 'Analytics', icon: BarChart3, href: '/faculty/analytics' },
     { id: 'settings', title: 'Settings', icon: Settings, href: '/faculty/settings' }
   ];
 
-  // Get current section from pathname
   const getCurrentSection = () => {
     if (!pathname) return 'dashboard';
     if (pathname === '/faculty/dashboard') return 'dashboard';
@@ -67,7 +64,6 @@ export default function FacultyLayout({ children }: FacultyLayoutProps) {
 
   const currentSection = getCurrentSection();
 
-  // Get section title
   const getSectionTitle = (section: string) => {
     const item = navigationItems.find(item => item.id === section);
     return item ? item.title : 'Faculty Dashboard';
@@ -75,18 +71,17 @@ export default function FacultyLayout({ children }: FacultyLayoutProps) {
 
   useEffect(() => {
     if (isLoading) return;
-    
+
     if (!isAuthenticated) {
       router.push('/auth/login');
       return;
     }
-    
+
     if (user?.role !== 'faculty') {
       router.push('/unauthorized');
       return;
     }
 
-    // Fetch faculty data on load
     fetchFacultyData();
   }, [isAuthenticated, user, isLoading, router]);
 
@@ -116,122 +111,145 @@ export default function FacultyLayout({ children }: FacultyLayoutProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading...</h2>
-          <p className="text-gray-600">Loading faculty portal...</p>
+          <div className="w-10 h-10 border-3 border-[#E2E8F0] border-t-[#4F46E5] rounded-full animate-spin mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-[#0F172A] mb-1">Loading</h2>
+          <p className="text-sm text-[#64748B]">Loading faculty portal...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-[#F8FAFC] flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
         </div>
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
-        <div className="p-6 h-full flex flex-col">
-          {/* Logo/Title */}
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Faculty Portal</h1>
+      <div className={`fixed inset-y-0 left-0 z-50 w-[260px] bg-[#1E1B4B] transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
+        <div className="flex flex-col h-full">
+          {/* Logo */}
+          <div className="flex items-center justify-between px-5 h-16 border-b border-white/8">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 bg-[#4F46E5] rounded-lg flex items-center justify-center">
+                <BookOpen className="w-4.5 h-4.5 text-white" />
+              </div>
+              <div>
+                <span className="text-white font-semibold text-[15px] tracking-tight">Profectus</span>
+                <span className="block text-[11px] text-indigo-300/60 font-medium -mt-0.5">Faculty Portal</span>
+              </div>
+            </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-md hover:bg-gray-100"
+              className="lg:hidden p-1.5 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4.5 h-4.5 text-indigo-200" />
             </button>
           </div>
-          
+
           {/* Navigation */}
-          <nav className="space-y-2 flex-1">
+          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
             {navigationItems.map((item) => {
               const IconComponent = item.icon;
               const isActive = currentSection === item.id;
-              
+
               return (
                 <Link
                   key={item.id}
                   href={item.href}
-                  className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                    isActive 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
+                  className={`flex items-center gap-3 px-3 py-2.5 text-[13px] font-medium rounded-lg transition-all duration-200 cursor-pointer ${isActive
+                      ? 'bg-[#4F46E5] text-white shadow-md shadow-indigo-900/30'
+                      : 'text-indigo-200/70 hover:bg-white/8 hover:text-white'
+                    }`}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <IconComponent className="w-5 h-5 mr-3" />
-                  {item.title}
+                  <IconComponent className="w-[18px] h-[18px] flex-shrink-0" />
+                  <span>{item.title}</span>
                 </Link>
               );
             })}
           </nav>
+
+          {/* Faculty Info */}
+          <div className="px-3 py-4 border-t border-white/8">
+            <div className="flex items-center gap-3 px-3 py-2">
+              <div className="w-9 h-9 bg-[#4F46E5] rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-sm font-semibold">
+                  {(facultyData?.name || user?.email || 'F').charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">
+                  {facultyData?.name || user?.email || 'Faculty'}
+                </p>
+                <p className="text-[11px] text-indigo-300/50 truncate">
+                  {facultyData?.department?.name || 'Faculty'}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col lg:ml-0">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-md hover:bg-gray-100"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-
-            {/* Section title */}
-            <h1 className="text-xl font-semibold text-gray-900">
-              {getSectionTitle(currentSection)}
-            </h1>
-            
-            {/* Profile menu */}
-            <div className="flex items-center space-x-4">
-              {/* Notifications */}
-              <button className="p-2 rounded-md hover:bg-gray-100 relative">
-                <Bell className="w-5 h-5 text-gray-600" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-[#E2E8F0] px-6 h-16 flex items-center flex-shrink-0">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-2 rounded-lg hover:bg-[#F1F5F9] transition-colors cursor-pointer"
+              >
+                <Menu className="w-5 h-5 text-[#64748B]" />
               </button>
 
-              {/* Profile dropdown */}
+              <h1 className="text-[17px] font-semibold text-[#0F172A]">
+                {getSectionTitle(currentSection)}
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button className="p-2 rounded-lg hover:bg-[#F1F5F9] relative transition-colors cursor-pointer">
+                <Bell className="w-[18px] h-[18px] text-[#64748B]" />
+              </button>
+
               <div className="relative">
                 <button
                   onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                  className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100"
+                  className="flex items-center gap-2.5 p-1.5 pr-3 rounded-lg hover:bg-[#F1F5F9] transition-colors cursor-pointer"
                 >
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
+                  <div className="w-8 h-8 bg-[#4F46E5] rounded-lg flex items-center justify-center">
+                    <span className="text-white text-xs font-semibold">
+                      {(facultyData?.name || user?.email || 'F').charAt(0).toUpperCase()}
+                    </span>
                   </div>
-                  <span className="text-sm font-medium text-gray-700">{facultyData?.name || user?.email || 'Faculty'}</span>
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium text-[#334155] hidden sm:block">{facultyData?.name || user?.email || 'Faculty'}</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-[#94A3B8]" />
                 </button>
 
-                {/* Profile dropdown menu */}
                 {showProfileDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50">
-                    <div className="py-1">
-                      <div className="px-4 py-2 border-b border-gray-200">
-                        <p className="text-sm font-medium text-gray-900">{facultyData?.name || user?.email || 'Faculty'}</p>
-                        <p className="text-xs text-gray-500">{user?.email}</p>
-                      </div>
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-[#E2E8F0] z-50 animate-scale-in overflow-hidden">
+                    <div className="px-4 py-3 border-b border-[#F1F5F9]">
+                      <p className="text-sm font-semibold text-[#0F172A]">{facultyData?.name || user?.email || 'Faculty'}</p>
+                      <p className="text-[12px] text-[#94A3B8] mt-0.5">{user?.email}</p>
+                    </div>
+                    <div className="py-1.5">
                       <button
                         onClick={() => {
                           setShowProfileDropdown(false);
                           fetchFacultyData();
                           setShowProfileModal(true);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="w-full text-left px-4 py-2.5 text-sm text-[#334155] hover:bg-[#F8FAFC] flex items-center gap-3 transition-colors cursor-pointer"
                       >
+                        <User className="w-4 h-4 text-[#94A3B8]" />
                         Profile Settings
                       </button>
                       <button
@@ -239,9 +257,9 @@ export default function FacultyLayout({ children }: FacultyLayoutProps) {
                           setShowProfileDropdown(false);
                           logout();
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                        className="w-full text-left px-4 py-2.5 text-sm text-[#EF4444] hover:bg-red-50 flex items-center gap-3 transition-colors cursor-pointer"
                       >
-                        <LogOut className="w-4 h-4 mr-2" />
+                        <LogOut className="w-4 h-4" />
                         Sign Out
                       </button>
                     </div>
@@ -253,8 +271,8 @@ export default function FacultyLayout({ children }: FacultyLayoutProps) {
         </header>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
-          <div className="p-6">
+        <main className="flex-1 overflow-y-auto">
+          <div className="p-6 max-w-[1440px] mx-auto">
             {children}
           </div>
         </main>
@@ -263,7 +281,7 @@ export default function FacultyLayout({ children }: FacultyLayoutProps) {
       {/* Click outside to close profile dropdown */}
       {showProfileDropdown && (
         <div
-          className="fixed inset-0 z-30"
+          className="fixed inset-0 z-20"
           onClick={() => setShowProfileDropdown(false)}
         />
       )}
@@ -271,55 +289,55 @@ export default function FacultyLayout({ children }: FacultyLayoutProps) {
       {/* Profile Modal */}
       {showProfileModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowProfileModal(false)} />
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowProfileModal(false)} />
           <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900">Profile Settings</h2>
+            <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden animate-scale-in">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#F1F5F9]">
+                <h2 className="text-lg font-semibold text-[#0F172A]">Profile Settings</h2>
                 <button
                   onClick={() => setShowProfileModal(false)}
-                  className="p-2 rounded-md hover:bg-gray-100"
+                  className="p-2 rounded-lg hover:bg-[#F1F5F9] transition-colors cursor-pointer"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4.5 h-4.5 text-[#64748B]" />
                 </button>
               </div>
-              <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+              <div className="overflow-y-auto max-h-[calc(90vh-72px)]">
                 <div className="p-6 space-y-6">
                   {profileLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <div className="flex items-center justify-center py-12">
+                      <div className="w-8 h-8 border-3 border-[#E2E8F0] border-t-[#4F46E5] rounded-full animate-spin" />
                     </div>
                   ) : facultyData ? (
                     <>
                       {/* Personal Information */}
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Name</label>
-                            <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md">
-                              <User className="h-4 w-4 text-gray-500" />
-                              <span>{facultyData.name || 'Not provided'}</span>
+                        <h3 className="text-sm font-semibold text-[#0F172A] uppercase tracking-wider mb-4">Personal Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="space-y-1.5">
+                            <label className="text-[12px] font-medium text-[#64748B] uppercase tracking-wide">Name</label>
+                            <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#F8FAFC] rounded-lg border border-[#F1F5F9]">
+                              <User className="h-3.5 w-3.5 text-[#94A3B8]" />
+                              <span className="text-sm text-[#0F172A]">{facultyData.name || 'Not provided'}</span>
                             </div>
                           </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Email</label>
-                            <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md">
-                              <Mail className="h-4 w-4 text-gray-500" />
-                              <span>{facultyData.email}</span>
+                          <div className="space-y-1.5">
+                            <label className="text-[12px] font-medium text-[#64748B] uppercase tracking-wide">Email</label>
+                            <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#F8FAFC] rounded-lg border border-[#F1F5F9]">
+                              <Mail className="h-3.5 w-3.5 text-[#94A3B8]" />
+                              <span className="text-sm text-[#0F172A]">{facultyData.email}</span>
                             </div>
                           </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Gender</label>
-                            <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md">
-                              <span className="capitalize">{facultyData.gender?.toLowerCase() || 'Not specified'}</span>
+                          <div className="space-y-1.5">
+                            <label className="text-[12px] font-medium text-[#64748B] uppercase tracking-wide">Gender</label>
+                            <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#F8FAFC] rounded-lg border border-[#F1F5F9]">
+                              <span className="capitalize text-sm text-[#0F172A]">{facultyData.gender?.toLowerCase() || 'Not specified'}</span>
                             </div>
                           </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Phone</label>
-                            <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md">
-                              <Phone className="h-4 w-4 text-gray-500" />
-                              <span>{facultyData.phoneNumber || 'Not provided'}</span>
+                          <div className="space-y-1.5">
+                            <label className="text-[12px] font-medium text-[#64748B] uppercase tracking-wide">Phone</label>
+                            <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#F8FAFC] rounded-lg border border-[#F1F5F9]">
+                              <Phone className="h-3.5 w-3.5 text-[#94A3B8]" />
+                              <span className="text-sm text-[#0F172A]">{facultyData.phoneNumber || 'Not provided'}</span>
                             </div>
                           </div>
                         </div>
@@ -327,20 +345,20 @@ export default function FacultyLayout({ children }: FacultyLayoutProps) {
 
                       {/* Department Information */}
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Department Information</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">College</label>
-                            <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md">
-                              <Building className="h-4 w-4 text-gray-500" />
-                              <span>{facultyData.department?.college?.name || 'Not assigned'}</span>
+                        <h3 className="text-sm font-semibold text-[#0F172A] uppercase tracking-wider mb-4">Department Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="space-y-1.5">
+                            <label className="text-[12px] font-medium text-[#64748B] uppercase tracking-wide">College</label>
+                            <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#F8FAFC] rounded-lg border border-[#F1F5F9]">
+                              <Building className="h-3.5 w-3.5 text-[#94A3B8]" />
+                              <span className="text-sm text-[#0F172A]">{facultyData.department?.college?.name || 'Not assigned'}</span>
                             </div>
                           </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Department</label>
-                            <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md">
-                              <GraduationCap className="h-4 w-4 text-gray-500" />
-                              <span>{facultyData.department?.name || 'Not assigned'}</span>
+                          <div className="space-y-1.5">
+                            <label className="text-[12px] font-medium text-[#64748B] uppercase tracking-wide">Department</label>
+                            <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#F8FAFC] rounded-lg border border-[#F1F5F9]">
+                              <GraduationCap className="h-3.5 w-3.5 text-[#94A3B8]" />
+                              <span className="text-sm text-[#0F172A]">{facultyData.department?.name || 'Not assigned'}</span>
                             </div>
                           </div>
                         </div>
@@ -348,40 +366,37 @@ export default function FacultyLayout({ children }: FacultyLayoutProps) {
 
                       {/* Faculty Permissions */}
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Faculty Permissions</h3>
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                        <h3 className="text-sm font-semibold text-[#0F172A] uppercase tracking-wider mb-4">Permissions</h3>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between p-4 bg-[#EEF2FF] rounded-xl border border-[#E0E7FF]">
                             <div>
-                              <h4 className="font-medium text-blue-900">Cross-Department Access</h4>
-                              <p className="text-sm text-blue-700">
-                                {facultyData.canAssignCrossDepartment 
-                                  ? 'You can manage students across multiple departments'
-                                  : 'You can only manage students in your department'
+                              <h4 className="font-semibold text-[#312E81] text-sm">Cross-Department Access</h4>
+                              <p className="text-[13px] text-[#4338CA]/70 mt-0.5">
+                                {facultyData.canAssignCrossDepartment
+                                  ? 'Can manage students across multiple departments'
+                                  : 'Can only manage students in your department'
                                 }
                               </p>
                             </div>
-                            <div className="text-right">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                facultyData.canAssignCrossDepartment 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-gray-100 text-gray-800'
+                            <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${facultyData.canAssignCrossDepartment
+                                ? 'bg-[#10B981]/10 text-[#059669]'
+                                : 'bg-[#F1F5F9] text-[#64748B]'
                               }`}>
-                                {facultyData.canAssignCrossDepartment ? 'Enabled' : 'Disabled'}
-                              </span>
-                            </div>
+                              {facultyData.canAssignCrossDepartment ? 'Enabled' : 'Disabled'}
+                            </span>
                           </div>
 
                           {facultyData.assignedYears && (
-                            <div className="p-4 bg-gray-50 rounded-lg">
-                              <h4 className="font-medium text-gray-900 mb-2">Assigned Years</h4>
-                              <p className="text-sm text-gray-600">{facultyData.assignedYears}</p>
+                            <div className="p-4 bg-[#F8FAFC] rounded-xl border border-[#F1F5F9]">
+                              <h4 className="font-semibold text-[#0F172A] text-sm mb-1">Assigned Years</h4>
+                              <p className="text-[13px] text-[#64748B]">{facultyData.assignedYears}</p>
                             </div>
                           )}
 
                           {facultyData.allowedDepartments && (
-                            <div className="p-4 bg-gray-50 rounded-lg">
-                              <h4 className="font-medium text-gray-900 mb-2">Allowed Departments</h4>
-                              <p className="text-sm text-gray-600">{facultyData.allowedDepartments}</p>
+                            <div className="p-4 bg-[#F8FAFC] rounded-xl border border-[#F1F5F9]">
+                              <h4 className="font-semibold text-[#0F172A] text-sm mb-1">Allowed Departments</h4>
+                              <p className="text-[13px] text-[#64748B]">{facultyData.allowedDepartments}</p>
                             </div>
                           )}
                         </div>
@@ -389,25 +404,33 @@ export default function FacultyLayout({ children }: FacultyLayoutProps) {
 
                       {/* Account Information */}
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Account Information</h3>
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <h3 className="text-sm font-semibold text-[#0F172A] uppercase tracking-wider mb-4">Account Information</h3>
+                        <div className="flex items-center justify-between p-4 bg-[#F8FAFC] rounded-xl border border-[#F1F5F9]">
                           <div>
-                            <h4 className="font-medium text-gray-900">Account Status</h4>
-                            <p className="text-sm text-gray-600">
+                            <h4 className="font-semibold text-[#0F172A] text-sm">Account Status</h4>
+                            <p className="text-[13px] text-[#64748B] mt-0.5">
                               Created: {facultyData.createdAt ? new Date(facultyData.createdAt).toLocaleDateString() : 'Unknown'}
                             </p>
                           </div>
-                          <div className="text-right">
-                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                              Active
-                            </span>
-                          </div>
+                          <span className="px-2.5 py-1 bg-[#10B981]/10 text-[#059669] rounded-full text-[11px] font-semibold">
+                            Active
+                          </span>
                         </div>
+                      </div>
+
+                      {/* Close button */}
+                      <div className="flex justify-end pt-4 border-t border-[#F1F5F9]">
+                        <button
+                          onClick={() => setShowProfileModal(false)}
+                          className="px-5 py-2.5 text-sm font-medium text-[#334155] bg-[#F1F5F9] rounded-lg hover:bg-[#E2E8F0] transition-colors cursor-pointer"
+                        >
+                          Close
+                        </button>
                       </div>
                     </>
                   ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500">Failed to load profile data</p>
+                    <div className="text-center py-12">
+                      <p className="text-[#64748B]">Failed to load profile data</p>
                     </div>
                   )}
                 </div>

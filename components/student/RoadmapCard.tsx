@@ -1,8 +1,19 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  ArrowRight,
+  Clock,
+  Map,
+  Target,
+  CheckCircle,
+  BookOpen,
+  Calendar,
+  Layers
+} from 'lucide-react';
 
 interface RoadmapCardProps {
   roadmap: {
@@ -18,11 +29,18 @@ interface RoadmapCardProps {
     learningPath: string;
     careerOutcomes: string;
     createdAt: string;
+    updatedAt: string;
+    createdBy: number;
+    createdByUser: {
+      id: number;
+      email: string;
+      firstName: string;
+      lastName: string;
+    };
   };
   progress?: number;
 }
 
-// Utility function to safely parse JSON and extract text content
 const safeJsonParse = (data: unknown, fallback: unknown = []) => {
   if (typeof data === 'string') {
     try {
@@ -31,32 +49,13 @@ const safeJsonParse = (data: unknown, fallback: unknown = []) => {
       return fallback;
     }
   }
-  if (Array.isArray(data)) {
-    return data;
-  }
-  if (typeof data === 'object' && data !== null) {
-    return Object.values(data);
-  }
+  if (Array.isArray(data)) return data;
+  if (typeof data === 'object' && data !== null) return Object.values(data);
   return fallback;
 };
 
-// Extract text content from milestone objects
-const extractMilestoneText = (milestone: unknown): string => {
-  if (typeof milestone === 'string') {
-    return milestone;
-  }
-  if (typeof milestone === 'object' && milestone !== null) {
-    const obj = milestone as any;
-    return obj.title || obj.description || obj.name || String(milestone);
-  }
-  return String(milestone || '');
-};
-
-// Extract text content from any object
-const extractTextContent = (item: unknown): string => {
-  if (typeof item === 'string') {
-    return item;
-  }
+const extractText = (item: unknown): string => {
+  if (typeof item === 'string') return item;
   if (typeof item === 'object' && item !== null) {
     const obj = item as any;
     return obj.title || obj.description || obj.name || obj.text || String(item);
@@ -65,153 +64,119 @@ const extractTextContent = (item: unknown): string => {
 };
 
 export default function RoadmapCard({ roadmap, progress = 0 }: RoadmapCardProps) {
-  // Safely parse JSON data
-  const milestones = safeJsonParse(roadmap.milestones, []);
-  const careerOutcomes = safeJsonParse(roadmap.careerOutcomes, []);
-  const learningPath = safeJsonParse(roadmap.learningPath, []);
+  const router = useRouter();
+  const milestones = safeJsonParse(roadmap.milestones, []) as any[];
+
+  // Calculate phases based on progress
+  const currentWeek = Math.floor((progress / 100) * 4) + 1;
 
   return (
-    <Card className="mb-4 hover:shadow-lg transition-shadow">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-lg font-semibold">{roadmap.title}</h3>
-            <p className="text-sm text-gray-600 mt-1">{roadmap.description}</p>
+    <Card className="glass border-border/60 overflow-hidden group hover:shadow-xl transition-all duration-300 relative">
+      <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+
+      <CardHeader className="p-6 pb-2">
+        <div className="flex justify-between items-start gap-4">
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 px-2.5 py-0.5 rounded-full font-medium">
+                {roadmap.careerPath}
+              </Badge>
+              <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-slate-200 px-2.5 py-0.5 rounded-full font-medium">
+                {roadmap.studentLevel}
+              </Badge>
+            </div>
+
+            <h3 className="text-xl font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
+              {roadmap.title}
+            </h3>
+
+            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+              {roadmap.description}
+            </p>
           </div>
-          <div className="flex flex-col items-end space-y-2">
-            <Badge variant="outline" className="text-xs">
-              {roadmap.careerPath}
-            </Badge>
-            <Badge variant="secondary" className="text-xs">
-              {roadmap.studentLevel}
-            </Badge>
+
+          <div className="p-3 bg-secondary rounded-xl group-hover:bg-primary/10 group-hover:text-primary transition-all duration-300 transform group-hover:rotate-12 ring-1 ring-border shadow-sm">
+            <Map className="w-6 h-6 text-foreground/70 group-hover:text-primary" />
           </div>
         </div>
       </CardHeader>
-      
-      <CardContent>
-        <div className="space-y-4">
-          {/* Bar */}
-          <div>
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-600">Week 1 </span>
-              <span className="font-medium">{progress}%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-300 ease-in-out"
-                style={{ width: `${progress}%` }}
+
+      <CardContent className="p-6 pt-4 space-y-6">
+        {/* Progress Visual */}
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-sm">
+            <span className="font-semibold text-foreground">Progress</span>
+            <span className="font-bold text-primary">{progress}%</span>
+          </div>
+          <div className="h-2.5 w-full bg-secondary rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-indigo-600 to-purple-500 rounded-full transition-all duration-1000 ease-out relative"
+              style={{ width: `${progress}%` }}
+            >
+              <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"
+                style={{ backgroundImage: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)', backgroundSize: '200% 100%' }}
               />
             </div>
-            
-            {/* Week Indicators */}
-            <div className="mt-3">
-              <div className="flex justify-between text-xs text-gray-500 mb-2">
-                <span>Week 1</span>
-                <span>Week 2</span>
-                <span>Week 3</span>
-                <span>Week 4</span>
-              </div>
-              <div className="flex space-x-1">
-                {/* Week 1 - Active */}
-                <div className={`flex-1 h-2 rounded ${progress > 0 ? 'bg-blue-500' : 'bg-gray-300'}`} />
-                {/* Week 2 - Locked until Week 1 is 100% */}
-                <div className={`flex-1 h-2 rounded ${progress >= 25 ? 'bg-green-500' : 'bg-gray-300'}`} />
-                {/* Week 3 - Locked until Week 2 is 100% */}
-                <div className={`flex-1 h-2 rounded ${progress >= 50 ? 'bg-green-500' : 'bg-gray-300'}`} />
-                {/* Week 4 - Locked until Week 3 is 100% */}
-                <div className={`flex-1 h-2 rounded ${progress >= 75 ? 'bg-green-500' : 'bg-gray-300'}`} />
-              </div>
-            </div>
-            
-            {progress < 25 && (
-              <p className="text-xs text-gray-500 mt-2">🚀 Just getting started! Complete Week 1 to unlock Week 2</p>
-            )}
           </div>
-
-          {/* Duration and Level */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-600">Duration:</span>
-              <span className="ml-2 font-medium">{roadmap.totalDuration}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">Level:</span>
-              <span className="ml-2 font-medium">{roadmap.studentLevel}</span>
-            </div>
-          </div>
-
-          {/* Milestones */}
-          {milestones.length > 0 && (
-            <div>
-              <h4 className="font-medium text-sm mb-2">Key Milestones</h4>
-              <div className="space-y-1">
-                {milestones.slice(0, 3).map((milestone: unknown, index: number) => (
-                  <div key={index} className="flex items-center text-xs">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2" />
-                    <span className="text-gray-700">{extractMilestoneText(milestone)}</span>
-                  </div>
-                ))}
-                {milestones.length > 3 && (
-                  <p className="text-xs text-gray-500">+{milestones.length - 3} more milestones</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Learning Path */}
-          {learningPath.length > 0 && (
-            <div>
-              <h4 className="font-medium text-sm mb-2">Learning Path</h4>
-              <div className="flex flex-wrap gap-1">
-                {learningPath.slice(0, 4).map((topic: unknown, index: number) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {extractTextContent(topic)}
-                  </Badge>
-                ))}
-                {learningPath.length > 4 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{learningPath.length - 4} more
-                  </Badge>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Career Outcomes */}
-          {careerOutcomes.length > 0 && (
-            <div>
-              <h4 className="font-medium text-sm mb-2">Career Outcomes</h4>
-              <div className="space-y-1">
-                {careerOutcomes.slice(0, 2).map((outcome: unknown, index: number) => (
-                  <div key={index} className="flex items-center text-xs">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
-                    <span className="text-gray-700">{extractTextContent(outcome)}</span>
-                  </div>
-                ))}
-                {careerOutcomes.length > 2 && (
-                  <p className="text-xs text-gray-500">+{careerOutcomes.length - 2} more outcomes</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex space-x-2 pt-2">
-            <Button
-              variant="default"
-              size="sm"
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
-              onClick={() => {
-                // Navigate to roadmap details in the same tab
-                const detailsUrl = `/student/roadmap-details/${roadmap.id}`;
-                window.location.href = detailsUrl;
-              }}
-            >
-              View Details
-            </Button>
+          <div className="flex justify-between text-xs text-muted-foreground font-medium">
+            <span>Start</span>
+            <span>Completion</span>
           </div>
         </div>
+
+        {/* Info Metrics */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-3 rounded-lg bg-secondary/50 border border-border/50 flex items-center gap-3">
+            <div className="p-2 rounded-md bg-white shadow-sm ring-1 ring-border/50">
+              <Clock className="w-4 h-4 text-indigo-500" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium">Duration</p>
+              <p className="text-sm font-bold text-foreground">{roadmap.totalDuration}</p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-lg bg-secondary/50 border border-border/50 flex items-center gap-3">
+            <div className="p-2 rounded-md bg-white shadow-sm ring-1 ring-border/50">
+              <Target className="w-4 h-4 text-emerald-500" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium">Milestones</p>
+              <p className="text-sm font-bold text-foreground">{milestones.length} Steps</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Milestones Preview */}
+        {milestones.length > 0 && (
+          <div className="relative pl-4 space-y-4 border-l-2 border-border/60 ml-1">
+            {milestones.slice(0, 2).map((milestone: any, i: number) => (
+              <div key={i} className="relative">
+                <div className={`absolute -left-[21px] top-1.5 w-3 h-3 rounded-full border-2 ${i === 0 ? 'bg-primary border-primary ring-4 ring-primary/20' : 'bg-white border-muted-foreground'}`} />
+                <p className="text-sm text-foreground font-medium line-clamp-1">{extractText(milestone)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1 opacity-80">
+                  Milestone {i + 1}
+                </p>
+              </div>
+            ))}
+            {milestones.length > 2 && (
+              <div className="relative">
+                <div className="absolute -left-[21px] top-2 w-3 h-3 rounded-full bg-secondary border-2 border-muted-foreground/30" />
+                <p className="text-xs text-primary font-semibold hover:underline cursor-pointer">
+                  +{milestones.length - 2} more milestones...
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <Button
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 font-semibold h-11 rounded-xl group-hover:scale-[1.02] transition-all"
+          onClick={() => router.push(`/student/roadmap-details/${roadmap.id}`)}
+        >
+          Continue Learning
+          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+        </Button>
       </CardContent>
     </Card>
   );

@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Parse skills JSON strings back to arrays
-    const parsedSuggestions = suggestions.map(suggestion => ({
+    const parsedSuggestions = suggestions.map((suggestion: any) => ({
       id: suggestion.id,
       title: suggestion.title,
       description: suggestion.description,
@@ -48,8 +48,8 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error fetching saved suggestions:', error);
-    return NextResponse.json({ 
-      error: 'Failed to fetch saved suggestions' 
+    return NextResponse.json({
+      error: 'Failed to fetch saved suggestions'
     }, { status: 500 });
   }
 }

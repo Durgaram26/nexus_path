@@ -2,21 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import AnalyticsDashboard from '@/components/student/AnalyticsDashboard';
-import { BarChart3, TrendingUp, Target, Award } from 'lucide-react';
 
 export default function StudentAnalyticsPage() {
   const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
-  // Auth Helper
   const getAuthPayload = () => {
     if (typeof window === 'undefined') return null;
-    
+
     let token = localStorage.getItem('access_token');
-    
+
     if (!token) {
       const cookies = document.cookie.split(';');
       const accessTokenCookie = cookies.find(cookie => cookie.trim().startsWith('access_token='));
@@ -24,12 +21,12 @@ export default function StudentAnalyticsPage() {
         token = accessTokenCookie.split('=')[1];
       }
     }
-    
+
     if (!token) {
       localStorage.removeItem('access_token');
       return null;
     }
-    
+
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       if (payload.exp && payload.exp < Date.now() / 1000) {
@@ -49,40 +46,34 @@ export default function StudentAnalyticsPage() {
       setIsAuth(!!authPayload);
       setAuthChecked(true);
     };
-    
+
     checkAuth();
   }, []);
 
-  // Show loading while checking authentication
   if (!authChecked) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
+      <div className="flex items-center justify-center h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="w-10 h-10 border-4 border-border border-t-primary rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm text-muted-foreground font-medium">Loading analytics...</p>
         </div>
       </div>
     );
   }
 
-  // Redirect if not authenticated
   if (!isAuth) {
     router.push('/auth/login');
     return null;
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Analytics & Insights</h1>
-        <p className="text-gray-600">Track your learning progress and performance analytics</p>
+    <div className="max-w-[1600px] mx-auto space-y-6 animate-fade-in pb-10">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Analytics & Insights</h1>
+        <p className="text-sm text-muted-foreground mt-1">Track your learning progress and performance metrics</p>
       </div>
 
-      {/* Analytics Content */}
-      <div className="space-y-6">
-        <AnalyticsDashboard />
-      </div>
+      <AnalyticsDashboard />
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface Faculty {
@@ -217,38 +217,42 @@ export default function AdminUserManagementPage() {
     <div className="max-w-7xl mx-auto space-y-8">
         {/* Single account creation */}
         <Card>
+          <CardHeader>
+            <CardTitle>Create User</CardTitle>
+            <CardDescription>Admin can create faculty, student, or admin accounts. Passwords are exported only when requested.</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">Create User</h2>
-              <p className="text-gray-600">Admin can create faculty, student, or admin accounts. Passwords are stored in plain text for export per your request.</p>
-            </div>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="space-y-2">
+            <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div className="col-span-1 md:col-span-5 space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={(e)=>setEmail(e.target.value)} required />
+                <Input id="email" type="email" value={email} onChange={(e)=>setEmail(e.target.value)} required className="bg-[#EEF6FF] border-transparent placeholder:text-[#64748B] rounded-full h-12 px-4" />
               </div>
-              <div className="space-y-2">
+              <div className="col-span-1 md:col-span-5 space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} required />
+                <Input id="password" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} required className="bg-[#EEF6FF] border-transparent placeholder:text-[#64748B] rounded-full h-12 px-4" />
               </div>
-              <div className="space-y-2">
+              <div className="col-span-1 md:col-span-2 space-y-2 self-start">
                 <Label htmlFor="role">Role</Label>
                 <select 
                   id="role"
-                  className="border rounded h-10 px-3 w-full" 
+                  className="border border-border rounded-full h-12 px-4 w-full bg-[#EEF6FF]"
                   value={userRole} 
                   onChange={(e) => setUserRole(e.target.value as 'auto' | 'admin')}
                 >
                   <option value="auto">Auto-detect (Faculty/Student)</option>
                   <option value="admin">Admin</option>
                 </select>
-                <div className="text-xs text-gray-600">
+                <div className="text-xs text-muted-foreground">
                   {userRole === 'auto' 
                     ? 'Role will be determined by existing faculty/student records' 
                     : 'Creates an admin account (no faculty/student record required)'}
                 </div>
               </div>
-              <Button type="submit" disabled={loading} className="w-full">{loading ? 'Creating...' : 'Create User'}</Button>
+              <div className="col-span-1 md:col-span-12">
+                <div className="mt-2">
+                  <Button type="submit" disabled={loading} className="w-full rounded-full h-12 bg-[#F59E0B] text-black hover:bg-[#f59a00]">{loading ? 'Creating...' : 'Create User'}</Button>
+                </div>
+              </div>
             </form>
           </CardContent>
         </Card>
@@ -256,22 +260,16 @@ export default function AdminUserManagementPage() {
         {/* Bulk account creation */}
         <Card>
           <CardContent className="space-y-6">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">Bulk Account Creation</h2>
-              <p className="text-gray-600">Create accounts in bulk from existing Faculty/Student records. Choose filters, select individuals or all, and choose how passwords are generated.</p>
-            </div>
+            <CardHeader>
+              <CardTitle>Bulk Account Creation</CardTitle>
+              <CardDescription>Create accounts in bulk from existing Faculty/Student records. Choose filters, select individuals or all, and choose how passwords are generated.</CardDescription>
+            </CardHeader>
 
             {/* Toggle for hiding existing accounts */}
             <div className="flex items-center space-x-2 mb-4">
-              <input
-                type="checkbox"
-                id="hideExisting"
-                checked={hideExistingAccounts}
-                onChange={(e) => setHideExistingAccounts(e.target.checked)}
-                className="rounded"
-              />
+              <Checkbox id="hideExisting" checked={hideExistingAccounts} onCheckedChange={(v)=>setHideExistingAccounts(Boolean(v))} />
               <Label htmlFor="hideExisting" className="text-sm">
-                Hide already created accounts (optional)
+                Hide already created accounts
               </Label>
             </div>
             
@@ -288,14 +286,14 @@ export default function AdminUserManagementPage() {
             {/* Password Mode Selection */}
             <div>
               <Label className="mb-2 block font-semibold">Password Generation Mode</Label>
-              <select className="border rounded h-10 px-3 w-full" value={mode} onChange={(e)=>setMode(e.target.value as any)}>
+              <select className="border border-border rounded-full h-12 px-4 w-full bg-[#EEF6FF]" value={mode} onChange={(e)=>setMode(e.target.value as any)}>
                 <option value="smart">⭐ Smart (Best for Both) - Recommended</option>
                 <option value="auto">🔒 Random Strong Passwords</option>
                 <option value="nameReg">👨‍🎓 Name + Register Number (Students Only)</option>
                 <option value="nameDept">👨‍🏫 Name@Department (Faculty Only)</option>
                 <option value="manual">🔑 Manual (Same Password for All)</option>
               </select>
-              <div className="text-xs text-gray-600 mt-2 bg-blue-50 p-2 rounded border border-blue-200">
+              <div className="text-xs text-muted-foreground mt-2 bg-muted/5 p-2 rounded border border-border">
                 {mode === 'smart' && (
                   <div>
                     <strong>✨ Smart Mode - Perfect for creating both at once:</strong>
@@ -339,7 +337,7 @@ export default function AdminUserManagementPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="mb-2 block">Faculty by Department</Label>
-                <select className="border rounded h-10 px-3 w-full" value={filterFacultyDepartmentId} onChange={(e)=>setFilterFacultyDepartmentId(e.target.value)}>
+                <select className="border border-border rounded-full h-12 px-4 w-full bg-[#EEF6FF]" value={filterFacultyDepartmentId} onChange={(e)=>setFilterFacultyDepartmentId(e.target.value)}>
                   <option value="">All Departments</option>
                   {departments.map(d => (
                     <option key={d.id} value={d.id}>{d.name}</option>
@@ -348,7 +346,7 @@ export default function AdminUserManagementPage() {
               </div>
               <div>
                 <Label className="mb-2 block">Students by Department</Label>
-                <select className="border rounded h-10 px-3 w-full" value={filterDepartmentId} onChange={(e)=>setFilterDepartmentId(e.target.value)}>
+                <select className="border border-border rounded-full h-12 px-4 w-full bg-[#EEF6FF]" value={filterDepartmentId} onChange={(e)=>setFilterDepartmentId(e.target.value)}>
                   <option value="">All Departments</option>
                   {departments.map(d => (
                     <option key={d.id} value={d.id}>{d.name}</option>
@@ -360,7 +358,7 @@ export default function AdminUserManagementPage() {
             {/* Year for Students */}
             <div>
               <Label className="mb-2 block">Students by Year</Label>
-              <select className="border rounded h-10 px-3 w-full" value={filterYear} onChange={(e)=>setFilterYear(e.target.value ? parseInt(e.target.value) : '')}>
+              <select className="border border-border rounded-full h-12 px-4 w-full bg-[#EEF6FF]" value={filterYear} onChange={(e)=>setFilterYear(e.target.value ? parseInt(e.target.value) : '')}>
                 <option value="">All Years</option>
                 {[1,2,3,4,5].map(y => (
                   <option key={y} value={y}>Year {y}</option>
@@ -378,24 +376,30 @@ export default function AdminUserManagementPage() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-semibold">Select Faculty ({filteredFaculties.length})</h3>
-                <Button variant="secondary" onClick={toggleAllFaculties} disabled={filteredFaculties.length === 0}>
+                  <Button variant="ghost" size="sm" onClick={toggleAllFaculties} disabled={filteredFaculties.length === 0} className="ml-auto">
                   {selectedFacultyIds.length === filteredFaculties.length && filteredFaculties.length > 0 ? 'Unselect All' : 'Select All (Filtered)'}
                 </Button>
               </div>
               {filteredFaculties.length === 0 ? (
-                <div className="text-gray-500">No faculty members match the current filters.</div>
+                <div className="text-muted-foreground">No faculty members match the current filters.</div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-64 overflow-y-auto border rounded p-3">
+                <div className="space-y-2 max-h-64 overflow-y-auto">
                   {filteredFaculties.map(faculty => (
-                    <div key={faculty.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`faculty-${faculty.id}`}
-                        checked={selectedFacultyIds.includes(faculty.id)}
-                        onCheckedChange={() => setSelectedFacultyIds(prev => prev.includes(faculty.id) ? prev.filter(id => id !== faculty.id) : [...prev, faculty.id])}
-                      />
-                      <Label htmlFor={`faculty-${faculty.id}`} className="text-sm">
-                        {faculty.name} ({faculty.email}) - {faculty?.department?.name || 'No Department'}
-                      </Label>
+                    <div key={faculty.id} className="w-full">
+                      <div className="w-full bg-white border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <Checkbox
+                            id={`faculty-${faculty.id}`}
+                            checked={selectedFacultyIds.includes(faculty.id)}
+                            onCheckedChange={() => setSelectedFacultyIds(prev => prev.includes(faculty.id) ? prev.filter(id => id !== faculty.id) : [...prev, faculty.id])}
+                          />
+                          <div>
+                            <div className="font-medium">{faculty.name}</div>
+                            <div className="text-xs text-muted-foreground">{faculty.email}</div>
+                          </div>
+                        </div>
+                        <div className="text-[12px] text-muted-foreground">{faculty?.department?.name || 'No Department'}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -406,24 +410,32 @@ export default function AdminUserManagementPage() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-semibold">Select Students ({filteredStudents.length})</h3>
-                <Button variant="secondary" onClick={toggleAllStudents} disabled={filteredStudents.length === 0}>
-                  {selectedStudentIds.length === filteredStudents.length && filteredStudents.length > 0 ? 'Unselect All' : 'Select All (Filtered)'}
-                </Button>
+                <div>
+                  <Button variant="ghost" size="sm" onClick={toggleAllStudents} disabled={filteredStudents.length === 0} className="text-sm">
+                    {selectedStudentIds.length === filteredStudents.length && filteredStudents.length > 0 ? 'Unselect All' : 'Select All (Filtered)'}
+                  </Button>
+                </div>
               </div>
               {filteredStudents.length === 0 ? (
-                <div className="text-gray-500">No students match the current filters.</div>
+                <div className="text-muted-foreground">No students match the current filters.</div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-64 overflow-y-auto border rounded p-3">
+                <div className="space-y-2 max-h-64 overflow-y-auto">
                   {filteredStudents.map(student => (
-                    <div key={student.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`student-${student.id}`}
-                        checked={selectedStudentIds.includes(student.id)}
-                        onCheckedChange={() => setSelectedStudentIds(prev => prev.includes(student.id) ? prev.filter(id => id !== student.id) : [...prev, student.id])}
-                      />
-                      <Label htmlFor={`student-${student.id}`} className="text-sm">
-                        {student.name} ({student.email}) - Year {student.year}, {departments.find(d => d.id === student.departmentId)?.name || 'Unknown Department'}
-                      </Label>
+                    <div key={student.id} className="w-full">
+                      <div className="w-full bg-white border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <Checkbox
+                            id={`student-${student.id}`}
+                            checked={selectedStudentIds.includes(student.id)}
+                            onCheckedChange={() => setSelectedStudentIds(prev => prev.includes(student.id) ? prev.filter(id => id !== student.id) : [...prev, student.id])}
+                          />
+                          <div>
+                            <div className="font-medium">{student.name}</div>
+                            <div className="text-xs text-muted-foreground">{student.email} • Year {student.year}</div>
+                          </div>
+                        </div>
+                        <div className="text-[12px] text-muted-foreground">{departments.find(d => d.id === student.departmentId)?.name || 'Unknown Department'}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
