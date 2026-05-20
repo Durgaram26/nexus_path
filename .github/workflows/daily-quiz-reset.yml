@@ -1,17 +1,17 @@
-name: Daily Quiz Reset
-
-on:
-  schedule:
-    - cron: '0 0 * * *'  # Run at midnight UTC
-  workflow_dispatch:  # Allow manual trigger
-
-jobs:
-  reset-daily-quiz:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Reset Daily Quiz
-      run: |
-        curl -X POST "${{ secrets.APP_URL }}/api/cron/daily-quiz-reset" \
-          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-          -H "Content-Type: application/json"
+# name: Daily Quiz Reset
+# 
+# on:
+#   schedule:
+#     - cron: '0 0 * * *'  # Run at midnight UTC
+#   workflow_dispatch:  # Allow manual trigger
+# 
+# jobs:
+#   reset-daily-quiz:
+#     runs-on: ubuntu-latest
+#     
+#     steps:
+#     - name: Reset Daily Quiz
+#       run: |
+#         curl -X POST "${{ secrets.APP_URL }}/api/cron/daily-quiz-reset" \
+#           -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+#           -H "Content-Type: application/json"
